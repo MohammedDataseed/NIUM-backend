@@ -1,0 +1,64 @@
+src
+├── app.module.ts
+├── constants
+│   └── general.constants.ts
+├── controllers
+│   └── v1
+│       └── main
+│           ├── app.controller.spec.ts
+│           └── app.controller.ts
+├── database
+│   ├── database.module.ts
+│   ├── models
+│   │   ├── index.ts
+│   │   ├── partner.model.ts
+│   │   └── user.model.ts
+│   ├── providers
+│   │   ├── database.provider.ts
+│   │   └── model-repository.provider.ts
+│   └── services
+│       └── partner
+│           ├── partner.service.spec.ts
+│           └── partner.service.ts
+├── filters
+│   └── exception.filter.ts
+├── graceful-shutdown
+│   ├── graceful-shutdown.module.ts
+│   └── services
+│       └── shutdown
+│           ├── shutdown.service.spec.ts
+│           └── shutdown.service.ts
+├── main.ts
+├── middleware
+│   ├── auditlogger
+│   │   └── auditlogger.service.ts
+│   └── middleware.module.ts
+├── services
+│   └── v1
+│       └── app
+│           └── app.service.ts
+└── shared
+    ├── dto
+    │   └── AuditLogPayload.ts
+    ├── providers
+    │   └── rabbitmq.provider.ts
+    ├── services
+    │   ├── http-wrapper
+    │   │   ├── http-wrapper.service.spec.ts
+    │   │   └── http-wrapper.service.ts
+    │   ├── logger
+    │   │   ├── logger.service.spec.ts
+    │   │   └── logger.service.ts
+    │   ├── rabbit-producer
+    │   │   ├── rabbit-producer.service.spec.ts
+    │   │   └── rabbit-producer.service.ts
+    │   ├── redis
+    │   │   ├── redis.service.spec.ts
+    │   │   └── redis.service.ts
+    │   ├── request-storage
+    │   │   ├── request-storage.service.spec.ts
+    │   │   └── request-storage.service.ts
+    │   └── tracer
+    │       ├── tracer.service.spec.ts
+    │       └── tracer.service.ts
+    └── shared.module.ts

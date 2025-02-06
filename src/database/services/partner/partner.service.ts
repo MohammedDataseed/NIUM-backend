@@ -25,8 +25,11 @@ export class PartnerService {
       this.tracerService.finishSpanWithResult(span, 200, null);
       return result;
     } catch (err) {
+      // Log the error before throwing
+      console.error('Error in PartnerService.findAll:', err);
       this.tracerService.finishSpanWithResult(span, null, true);
       throw err;
     }
   }
+  
 }

@@ -1,5 +1,5 @@
 import { Sequelize } from 'sequelize-typescript';
-import Mongoose from 'mongoose';
+// import Mongoose from 'mongoose';
 import { models } from '../models';
 import { ConfigService } from '@nestjs/config';
 import { LoggerService } from '../../shared/services/logger/logger.service';
