@@ -73,7 +73,6 @@ async function bootstrap() {
   app.use(contextService.middleware('request'));
 
   
-  // Swagger documentation
   const options = new DocumentBuilder()
     .setTitle(`InstaReM ${process.env.SERVICE_NAME}`)
     .setDescription(process.env.SERVICE_NAME)
