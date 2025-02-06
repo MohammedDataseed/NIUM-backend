@@ -1,0 +1,38 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Docker Debug",
+      "type": "node",
+      "protocol": "inspector",
+      "request": "attach",
+      "stopOnEntry": false,
+      "restart": true,
+      "port": 9229,
+      "localRoot": "${workspaceRoot}",
+      "remoteRoot": "/usr/src/app",
+      "sourceMaps": true,
+  }
+    ,
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Nest Framework",
+      "args": [
+        "${workspaceFolder}/src/main.ts"
+      ],
+      "runtimeArgs": [
+        "--nolazy",
+        "-r",
+        "ts-node/register"
+      ],
+      "sourceMaps": true,
+      "cwd": "${workspaceRoot}",
+      "protocol": "inspector",
+      "timeout": 40000
+    }
+  ]
+}
