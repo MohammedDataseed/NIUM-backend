@@ -1,64 +1,266 @@
-src
-├── app.module.ts
-├── constants
-│   └── general.constants.ts
-├── controllers
-│   └── v1
-│       └── main
-│           ├── app.controller.spec.ts
-│           └── app.controller.ts
-├── database
-│   ├── database.module.ts
-│   ├── models
-│   │   ├── index.ts
-│   │   ├── partner.model.ts
-│   │   └── user.model.ts
-│   ├── providers
-│   │   ├── database.provider.ts
-│   │   └── model-repository.provider.ts
-│   └── services
-│       └── partner
-│           ├── partner.service.spec.ts
-│           └── partner.service.ts
-├── filters
-│   └── exception.filter.ts
-├── graceful-shutdown
-│   ├── graceful-shutdown.module.ts
-│   └── services
-│       └── shutdown
-│           ├── shutdown.service.spec.ts
-│           └── shutdown.service.ts
-├── main.ts
-├── middleware
-│   ├── auditlogger
-│   │   └── auditlogger.service.ts
-│   └── middleware.module.ts
-├── services
-│   └── v1
-│       └── app
-│           └── app.service.ts
-└── shared
-    ├── dto
-    │   └── AuditLogPayload.ts
-    ├── providers
-    │   └── rabbitmq.provider.ts
-    ├── services
-    │   ├── http-wrapper
-    │   │   ├── http-wrapper.service.spec.ts
-    │   │   └── http-wrapper.service.ts
-    │   ├── logger
-    │   │   ├── logger.service.spec.ts
-    │   │   └── logger.service.ts
-    │   ├── rabbit-producer
-    │   │   ├── rabbit-producer.service.spec.ts
-    │   │   └── rabbit-producer.service.ts
-    │   ├── redis
-    │   │   ├── redis.service.spec.ts
-    │   │   └── redis.service.ts
-    │   ├── request-storage
-    │   │   ├── request-storage.service.spec.ts
-    │   │   └── request-storage.service.ts
-    │   └── tracer
-    │       ├── tracer.service.spec.ts
-    │       └── tracer.service.ts
-    └── shared.module.ts
+instadevelopers-nestjs-boilerplate-679505f0a847
+├── .dockerignore
+├── .env
+├── .gitignore
+├── .prettierrc
+├── .vscode
+│   ├── launch.json
+│   └── tasks.json
+├── dist
+│   ├── app.module.d.ts
+│   ├── app.module.js
+│   ├── app.module.js.map
+│   ├── constants
+│   │   ├── general.constants.d.ts
+│   │   ├── general.constants.js
+│   │   └── general.constants.js.map
+│   ├── controllers
+│   │   └── v1
+│   │       └── main
+│   │           ├── app.controller.d.ts
+│   │           ├── app.controller.js
+│   │           ├── app.controller.js.map
+│   │           ├── partner.controller.d.ts
+│   │           ├── partner.controller.js
+│   │           ├── partner.controller.js.map
+│   │           ├── user.controller.d.ts
+│   │           ├── user.controller.js
+│   │           └── user.controller.js.map
+│   ├── database
+│   │   ├── database.module.d.ts
+│   │   ├── database.module.js
+│   │   ├── database.module.js.map
+│   │   ├── models
+│   │   │   ├── bankAccount.model.d.ts
+│   │   │   ├── bankAccount.model.js
+│   │   │   ├── bankAccount.model.js.map
+│   │   │   ├── bank_accounts.model.d.ts
+│   │   │   ├── bank_accounts.model.js
+│   │   │   ├── bank_accounts.model.js.map
+│   │   │   ├── branch.model.d.ts
+│   │   │   ├── branch.model.js
+│   │   │   ├── branch.model.js.map
+│   │   │   ├── branches.model.d.ts
+│   │   │   ├── branches.model.js
+│   │   │   ├── branches.model.js.map
+│   │   │   ├── documents.model.d.ts
+│   │   │   ├── documents.model.js
+│   │   │   ├── documents.model.js.map
+│   │   │   ├── document_master.model.d.ts
+│   │   │   ├── document_master.model.js
+│   │   │   ├── document_master.model.js.map
+│   │   │   ├── document_requirements.model.d.ts
+│   │   │   ├── document_requirements.model.js
+│   │   │   ├── document_requirements.model.js.map
+│   │   │   ├── index.d.ts
+│   │   │   ├── index.js
+│   │   │   ├── index.js.map
+│   │   │   ├── partner.model.d.ts
+│   │   │   ├── partner.model.js
+│   │   │   ├── partner.model.js.map
+│   │   │   ├── products.model.d.ts
+│   │   │   ├── products.model.js
+│   │   │   ├── products.model.js.map
+│   │   │   ├── purpose.model.d.ts
+│   │   │   ├── purpose.model.js
+│   │   │   ├── purpose.model.js.map
+│   │   │   ├── role.model.d.ts
+│   │   │   ├── role.model.js
+│   │   │   ├── role.model.js.map
+│   │   │   ├── roles.models.d.ts
+│   │   │   ├── roles.models.js
+│   │   │   ├── roles.models.js.map
+│   │   │   ├── user.model.d.ts
+│   │   │   ├── user.model.js
+│   │   │   └── user.model.js.map
+│   │   ├── providers
+│   │   │   ├── database.provider.d.ts
+│   │   │   ├── database.provider.js
+│   │   │   ├── database.provider.js.map
+│   │   │   ├── model-repository.provider.d.ts
+│   │   │   ├── model-repository.provider.js
+│   │   │   └── model-repository.provider.js.map
+│   │   └── services
+│   │       ├── partner
+│   │       │   ├── partner.service.d.ts
+│   │       │   ├── partner.service.js
+│   │       │   └── partner.service.js.map
+│   │       └── user
+│   │           ├── user.service.d.ts
+│   │           ├── user.service.js
+│   │           └── user.service.js.map
+│   ├── dto
+│   │   ├── user.dto.d.ts
+│   │   ├── user.dto.js
+│   │   └── user.dto.js.map
+│   ├── filters
+│   │   ├── exception.filter.d.ts
+│   │   ├── exception.filter.js
+│   │   └── exception.filter.js.map
+│   ├── graceful-shutdown
+│   │   ├── graceful-shutdown.module.d.ts
+│   │   ├── graceful-shutdown.module.js
+│   │   ├── graceful-shutdown.module.js.map
+│   │   └── services
+│   │       └── shutdown
+│   │           ├── shutdown.service.d.ts
+│   │           ├── shutdown.service.js
+│   │           └── shutdown.service.js.map
+│   ├── main.d.ts
+│   ├── main.js
+│   ├── main.js.map
+│   ├── middleware
+│   │   ├── auditlogger
+│   │   │   ├── auditlogger.service.d.ts
+│   │   │   ├── auditlogger.service.js
+│   │   │   └── auditlogger.service.js.map
+│   │   ├── middleware.module.d.ts
+│   │   ├── middleware.module.js
+│   │   └── middleware.module.js.map
+│   ├── services
+│   │   └── v1
+│   │       └── app
+│   │           ├── app.service.d.ts
+│   │           ├── app.service.js
+│   │           └── app.service.js.map
+│   ├── shared
+│   │   ├── dto
+│   │   │   ├── AuditLogPayload.d.ts
+│   │   │   ├── AuditLogPayload.js
+│   │   │   └── AuditLogPayload.js.map
+│   │   ├── providers
+│   │   │   ├── rabbitmq.provider.d.ts
+│   │   │   ├── rabbitmq.provider.js
+│   │   │   └── rabbitmq.provider.js.map
+│   │   ├── services
+│   │   │   ├── http-wrapper
+│   │   │   │   ├── http-wrapper.service.d.ts
+│   │   │   │   ├── http-wrapper.service.js
+│   │   │   │   └── http-wrapper.service.js.map
+│   │   │   ├── logger
+│   │   │   │   ├── logger.service.d.ts
+│   │   │   │   ├── logger.service.js
+│   │   │   │   └── logger.service.js.map
+│   │   │   ├── rabbit-producer
+│   │   │   │   ├── rabbit-producer.service.d.ts
+│   │   │   │   ├── rabbit-producer.service.js
+│   │   │   │   └── rabbit-producer.service.js.map
+│   │   │   ├── redis
+│   │   │   │   ├── redis.service.d.ts
+│   │   │   │   ├── redis.service.js
+│   │   │   │   └── redis.service.js.map
+│   │   │   ├── request-storage
+│   │   │   │   ├── request-storage.service.d.ts
+│   │   │   │   ├── request-storage.service.js
+│   │   │   │   └── request-storage.service.js.map
+│   │   │   └── tracer
+│   │   │       ├── tracer.service.d.ts
+│   │   │       ├── tracer.service.js
+│   │   │       └── tracer.service.js.map
+│   │   ├── shared.module.d.ts
+│   │   ├── shared.module.js
+│   │   └── shared.module.js.map
+│   └── tsconfig.build.tsbuildinfo
+├── docker-compose.debug.yml
+├── docker-compose.yml
+├── Dockerfile
+├── Dockerfile-development
+├── nest-cli.json
+├── nodemon-docker-debug.json
+├── package-lock.json
+├── package.json
+├── postgres-db.sql
+├── README.md
+├── src
+│   ├── app.module.ts
+│   ├── auth
+│   ├── constants
+│   │   └── general.constants.ts
+│   ├── controllers
+│   │   └── v1
+│   │       └── main
+│   │           ├── app.controller.spec.ts
+│   │           ├── app.controller.ts
+│   │           ├── partner.controller.ts
+│   │           └── user.controller.ts
+│   ├── database
+│   │   ├── database.module.ts
+│   │   ├── models
+│   │   │   ├── bankAccount.model.ts
+│   │   │   ├── branch.model.ts
+│   │   │   ├── documents.model.ts
+│   │   │   ├── document_master.model.ts
+│   │   │   ├── document_requirements.model.ts
+│   │   │   ├── index.ts
+│   │   │   ├── partner.model.ts
+│   │   │   ├── products.model.ts
+│   │   │   ├── purpose.model.ts
+│   │   │   ├── role.model.ts
+│   │   │   └── user.model.ts
+│   │   ├── providers
+│   │   │   ├── database.provider.ts
+│   │   │   └── model-repository.provider.ts
+│   │   └── services
+│   │       ├── partner
+│   │       │   ├── partner.service.spec.ts
+│   │       │   └── partner.service.ts
+│   │       └── user
+│   │           ├── user.service.spec.ts
+│   │           └── user.service.ts
+│   ├── dev-assets
+│   │   ├── AADHAAR-TAYIB-base64.txt
+│   │   ├── b6ce773e-56d9-461d-be32-f2bacf7c864b
+│   │   ├── b6ce773e-56d9-461d-be32-f2bacf7c864b (1)
+│   │   └── PAN-TAYIB-85c22e55-cdfa-422a-b491-97c581fe21d9-esign_file0.txt
+│   ├── dto
+│   │   └── user.dto.ts
+│   ├── filters
+│   │   └── exception.filter.ts
+│   ├── graceful-shutdown
+│   │   ├── graceful-shutdown.module.ts
+│   │   └── services
+│   │       └── shutdown
+│   │           ├── shutdown.service.spec.ts
+│   │           └── shutdown.service.ts
+│   ├── main.ts
+│   ├── middleware
+│   │   ├── auditlogger
+│   │   │   └── auditlogger.service.ts
+│   │   └── middleware.module.ts
+│   ├── services
+│   │   └── v1
+│   │       └── app
+│   │           └── app.service.ts
+│   └── shared
+│       ├── dto
+│       │   └── AuditLogPayload.ts
+│       ├── providers
+│       │   └── rabbitmq.provider.ts
+│       ├── services
+│       │   ├── http-wrapper
+│       │   │   ├── http-wrapper.service.spec.ts
+│       │   │   └── http-wrapper.service.ts
+│       │   ├── logger
+│       │   │   ├── logger.service.spec.ts
+│       │   │   └── logger.service.ts
+│       │   ├── rabbit-producer
+│       │   │   ├── rabbit-producer.service.spec.ts
+│       │   │   └── rabbit-producer.service.ts
+│       │   ├── redis
+│       │   │   ├── redis.service.spec.ts
+│       │   │   └── redis.service.ts
+│       │   ├── request-storage
+│       │   │   ├── request-storage.service.spec.ts
+│       │   │   └── request-storage.service.ts
+│       │   └── tracer
+│       │       ├── tracer.service.spec.ts
+│       │       └── tracer.service.ts
+│       └── shared.module.ts
+├── test
+│   ├── app.e2e-spec.ts
+│   └── jest-e2e.json
+├── test-report.xml
+├── tree.txt
+├── tsconfig.build.json
+├── tsconfig.json
+└── tslint.json
