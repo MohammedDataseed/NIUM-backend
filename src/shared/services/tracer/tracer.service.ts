@@ -14,7 +14,7 @@ export class TracerService {
     this.tracer = this.initTracer(
       this.configService.get('SERVICE_NAME'),
       this.configService.get('JAEGER_HOST'),
-      this.configService.get('JAEGER_POST'),
+      this.configService.get('JAEGER_PORT'),
     );
   }
 
@@ -101,13 +101,40 @@ export class TracerService {
     span.finish();
   }
 
+  // traceDBOperations(
+  //   parentSpan: opentracing.Span,
+  //   dbOperation: string,
+  //   model: string,
+  // ) {
+  //   const span = this.tracer.startSpan('database', {
+  //     childOf: parentSpan,
+  //     tags: {
+  //       [opentracing.Tags.SPAN_KIND]: opentracing.Tags.DB_STATEMENT,
+  //       [opentracing.Tags.COMPONENT]: model,
+  //       [opentracing.Tags.DB_STATEMENT]: dbOperation,
+  //     },
+  //   });
+  //   this.requestStorage.set(`active-span`, span);
+  //   return span;
+  // }
   traceDBOperations(
-    parentSpan: opentracing.Span,
+    parentSpan: opentracing.Span | null,
     dbOperation: string,
     model: string,
   ) {
+    if (!parentSpan || typeof parentSpan.context !== 'function') {
+      console.error('Invalid parentSpan passed to traceDBOperations');
+      return this.tracer.startSpan('database', {
+        tags: {
+          [opentracing.Tags.SPAN_KIND]: opentracing.Tags.DB_STATEMENT,
+          [opentracing.Tags.COMPONENT]: model,
+          [opentracing.Tags.DB_STATEMENT]: dbOperation,
+        },
+      });
+    }
+  
     const span = this.tracer.startSpan('database', {
-      childOf: parentSpan,
+      childOf: parentSpan.context(),  // Ensure proper context extraction
       tags: {
         [opentracing.Tags.SPAN_KIND]: opentracing.Tags.DB_STATEMENT,
         [opentracing.Tags.COMPONENT]: model,

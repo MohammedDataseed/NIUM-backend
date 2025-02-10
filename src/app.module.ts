@@ -10,6 +10,8 @@ import { MiddlewareModule } from './middleware/middleware.module';
 import { AuditLoggerService } from './middleware/auditlogger/auditlogger.service';
 import { UserController } from './controllers/v1/main/user.controller';
 import { UserService } from './database/services/user/user.service';
+import { RoleService } from './database/services/role/role.service';
+import { RoleController } from './controllers/v1/main/role.controller';
 
 @Module({
   imports: [
@@ -19,10 +21,11 @@ import { UserService } from './database/services/user/user.service';
     GracefulShutdownModule,
     MiddlewareModule,
   ],
-  controllers: [AppController,UserController],
+  controllers: [AppController,UserController,RoleController],
   providers: [
     AppService,
     UserService,
+    RoleService,
     {
       provide: APP_INTERCEPTOR,
       useClass: AuditLoggerService,
