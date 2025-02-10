@@ -1,56 +1,71 @@
-// import { Injectable, Inject } from '@nestjs/common';
-// import { Role } from '../../models/role.model';
+// import { Injectable, Inject } from "@nestjs/common";
+// import { Role } from "../../models/role.model";
 // import * as opentracing from 'opentracing';
+// import { WhereOptions } from 'sequelize';
 // import { TracerService } from '../../../shared/services/tracer/tracer.service';
-
 // @Injectable()
 // export class RoleService {
 //   constructor(
-//     @Inject('USER_REPOSITORY')
-//     private readonly roleRepository: typeof Role,
-//     private tracerService: TracerService,
+//     @Inject("ROLE_REPOSITORY")
+//     private readonly roleRepository: typeof Role
 //   ) {}
 
 //   async findAll(
-//     parentSpan: opentracing.Span,
-//     params: object,
+//     span: opentracing.Span,
+//     params: WhereOptions<Role> // Ensure params match expected type
 //   ): Promise<Role[]> {
-//     const span = this.tracerService.traceDBOperations(
-//       parentSpan,
-//       'findall',
-//       Role.tableName,
-//     );
+//     const childSpan = span.tracer().startSpan('db-query', { childOf: span });
+    
 //     try {
-//       const result = await this.roleRepository.findAll(params);
-//       this.tracerService.finishSpanWithResult(span, 200, null);
+//       const result = await this.roleRepository.findAll({ where: params });
 //       return result;
-//     } catch (err) {
-//       // Log the error before throwing
-//       console.error('Error in RoleService.findAll:', err);
-//       this.tracerService.finishSpanWithResult(span, null, true);
-//       throw err;
+//     } finally {
+//       childSpan.finish();
 //     }
 //   }
+
 // }
 
-import { Injectable, Inject } from "@nestjs/common";
-import { Role } from "../../models/role.model";
+import { Injectable, Inject, ConflictException } from '@nestjs/common';
+import { Role } from '../../models/role.model';
+import * as opentracing from 'opentracing';
+import { CreateRoleDto } from '../../../dto/role.dto';
+import { WhereOptions } from 'sequelize';
 
 @Injectable()
 export class RoleService {
   constructor(
-    @Inject("ROLE_REPOSITORY")
-    private readonly roleRepository: typeof Role
+    @Inject('ROLE_REPOSITORY')
+    private readonly roleRepository: typeof Role,
   ) {}
 
-  async findAll(params: object): Promise<Role[]> {
+  async findAll(span: opentracing.Span, params: WhereOptions<Role>): Promise<Role[]> {
+    const childSpan = span.tracer().startSpan('db-query', { childOf: span });
+
     try {
-      const roles = await this.roleRepository.findAll(params);
-      return roles;
-    } catch (err) {
-      console.error("Error in RoleService.findAll:", err); // Log detailed error
-      throw new Error("Database fetch failed"); // Custom error message
+      return await this.roleRepository.findAll({ where: params });
+    } finally {
+      childSpan.finish();
     }
   }
 
+  async createRole(span: opentracing.Span, createRoleDto: CreateRoleDto): Promise<Role> {
+    const childSpan = span.tracer().startSpan('create-role', { childOf: span });
+
+    try {
+      // Check if role already exists
+      const existingRole = await this.roleRepository.findOne({ where: { name: createRoleDto.name } });
+      if (existingRole) {
+        throw new ConflictException('Role already exists');
+      }
+
+      // Create a new role
+      return await this.roleRepository.create({
+        name: createRoleDto.name,
+        status: createRoleDto.status ?? true, // Default status to true if not provided
+      });
+    } finally {
+      childSpan.finish();
+    }
+  }
 }

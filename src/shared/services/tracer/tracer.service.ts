@@ -117,33 +117,31 @@ export class TracerService {
   //   this.requestStorage.set(`active-span`, span);
   //   return span;
   // }
+
   traceDBOperations(
-    parentSpan: opentracing.Span | null,
+    parentSpan: opentracing.Span | undefined,
     dbOperation: string,
     model: string,
   ) {
-    if (!parentSpan || typeof parentSpan.context !== 'function') {
-      console.error('Invalid parentSpan passed to traceDBOperations');
-      return this.tracer.startSpan('database', {
-        tags: {
-          [opentracing.Tags.SPAN_KIND]: opentracing.Tags.DB_STATEMENT,
-          [opentracing.Tags.COMPONENT]: model,
-          [opentracing.Tags.DB_STATEMENT]: dbOperation,
-        },
-      });
+    // Ensure parentSpan is a valid OpenTracing span
+    if (!(parentSpan instanceof opentracing.Span)) {
+      console.warn('Invalid parent span detected, starting a new root span.');
+      parentSpan = undefined; // If invalid, create a new root span
     }
   
     const span = this.tracer.startSpan('database', {
-      childOf: parentSpan.context(),  // Ensure proper context extraction
+      childOf: parentSpan || undefined, // Avoid passing invalid parentSpan
       tags: {
         [opentracing.Tags.SPAN_KIND]: opentracing.Tags.DB_STATEMENT,
         [opentracing.Tags.COMPONENT]: model,
         [opentracing.Tags.DB_STATEMENT]: dbOperation,
       },
     });
+  
     this.requestStorage.set(`active-span`, span);
     return span;
   }
+  
 
   traceHttpRequest(parentSpan: opentracing.Span, uri: string, method: string) {
     const span = this.tracer.startSpan(`http: ${uri}`, {
