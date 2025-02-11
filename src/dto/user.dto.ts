@@ -110,3 +110,22 @@ export class UpdateUserDto {
   @ApiProperty({ example: true, required: false })
   is_active?: boolean;
 }
+
+
+  export class SendEmailDto {
+    @ApiProperty({ description: 'Recipient email address', example: 'recipient@example.com' })
+    @IsEmail()
+    to: string;
+  
+    @ApiProperty({ description: 'Email subject', example: 'Password Reset Request' })
+    @IsString()
+    subject: string;
+  
+    @ApiProperty({ description: 'Plain text content of the email', example: 'Click the link to reset your password.' })
+    @IsString()
+    text: string;
+  
+    @ApiProperty({ description: 'HTML content of the email', example: '<p>Click <a href="http://example.com/reset-password">here</a> to reset your password.</p>' })
+    @IsString()
+    html: string;
+  }

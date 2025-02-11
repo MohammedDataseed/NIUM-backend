@@ -6,13 +6,16 @@ import { DatabaseModule } from '../database/database.module'; // ✅ Import Data
 import { UserService } from '../database/services/user/user.service';
 import { SharedModule } from '../shared/shared.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-
+import { MailModule } from 'src/shared/services/mailer/mailer.module';
+import { MailerService } from 'src/shared/services/mailer/mailer.service';
 @Module({
   imports: [
     ConfigModule, // ✅ Ensure ConfigModule is imported
     DatabaseModule, // ✅ Now UserService is available
     PassportModule,
     SharedModule,
+    MailModule, // ✅ Add MailModule to imports
+  
     JwtModule.registerAsync({
       imports: [ConfigModule], // ✅ Import ConfigModule for dependency injection
       inject: [ConfigService], // ✅ Inject ConfigService
@@ -26,7 +29,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       },      
     }),
   ],
-  providers: [JwtAuthService, UserService], // ✅ Provide UserService
-  exports: [JwtAuthService],
+  providers: [JwtAuthService, UserService, MailerService], // ✅ Add MailService
+  exports: [JwtAuthService, MailerService], // ✅ Export MailService if needed in other modules
 })
 export class AuthModule {}

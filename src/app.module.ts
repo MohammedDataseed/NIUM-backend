@@ -14,7 +14,7 @@ import { RoleService } from './database/services/role/role.service';
 import { RoleController } from './controllers/v1/main/role.controller';
 import { AuthModule } from './auth/auth.module'; // ✅ Import Auth Module
 import { JwtModule } from '@nestjs/jwt'; // ✅ Import JWT Module
-
+import { MailerService } from './shared/services/mailer/mailer.service';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -33,6 +33,7 @@ import { JwtModule } from '@nestjs/jwt'; // ✅ Import JWT Module
     AppService,
     UserService,
     RoleService,
+    MailerService,
     {
       provide: APP_INTERCEPTOR,
       useClass: AuditLoggerService,
