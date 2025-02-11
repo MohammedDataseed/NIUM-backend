@@ -8,42 +8,42 @@ import {
   Unique,
   DataType,
   ForeignKey,
-} from 'sequelize-typescript';
-import { Role } from './role.model';
-import { Branch } from './branch.model';
-import { BankAccount } from './bankAccount.model';
-import { Products } from './products.model';
-import { DocumentMaster } from './document_master.model';
+} from "sequelize-typescript";
+import { Role } from "./role.model";
+import { Branch } from "./branch.model";
+import { BankAccount } from "./bankAccount.model";
+import { Products } from "./products.model";
+import { DocumentMaster } from "./document_master.model";
 
 @Table({
-  tableName: 'users',
+  tableName: "users",
 })
 export class User extends Model<User> {
   @PrimaryKey
   @Default(DataType.UUIDV4)
-  @Column({ type: DataType.UUID, field: 'id' })
+  @Column({ type: DataType.UUID, field: "id" })
   id: string;
 
   @ForeignKey(() => Role)
-  @Column({ type: DataType.UUID, field: 'role_id' })
-  roleId: string;
+  @Column({ type: DataType.UUID, field: "role_id" })
+  role_id: string;
 
   @Unique
   @AllowNull(false)
-  @Column({ type: DataType.STRING, field: 'email' })
+  @Column({ type: DataType.STRING, field: "email" })
   email: string;
 
   @AllowNull(false)
-  @Column({ type: DataType.STRING, field: 'password' })
+  @Column({ type: DataType.STRING, field: "password" })
   password: string;
 
   @ForeignKey(() => Branch)
-  @Column({ type: DataType.UUID, field: 'branch_id' })
-  branchId: string;
+  @Column({ type: DataType.UUID, field: "branch_id" })
+  branch_id: string;
 
   @ForeignKey(() => BankAccount)
-  @Column({ type: DataType.UUID, field: 'bank_account_id' })
-  bankAccountId: string;
+  @Column({ type: DataType.UUID, field: "bank_account_id" })
+  bank_account_id: string;
 
   @Column({ type: DataType.BOOLEAN, allowNull: false, defaultValue: true })
   is_active: boolean;
@@ -54,28 +54,28 @@ export class User extends Model<User> {
 
   @AllowNull(false)
   @Column({
-    type: DataType.ENUM('cash&carry', 'large_enterprise'),
-    field: 'business_type',
+    type: DataType.ENUM("cash&carry", "large_enterprise"),
+    field: "business_type",
   })
-  businessType: string;
+  business_type: string;
 
   // @ForeignKey(() => DocumentRequirement)
   // @Column({ type: DataType.UUID, field: 'document_id' })
   // documentId: string;
 
   @Default(DataType.NOW)
-  @Column({ type: DataType.DATE, field: 'created_at' })
+  @Column({ type: DataType.DATE, field: "created_at" })
   createdAt: Date;
 
   @Default(DataType.NOW)
-  @Column({ type: DataType.DATE, field: 'updated_at' })
+  @Column({ type: DataType.DATE, field: "updated_at" })
   updatedAt: Date;
 
   @ForeignKey(() => User)
-  @Column({ type: DataType.UUID, field: 'created_by' })
-  createdBy: string;
+  @Column({ type: DataType.UUID, field: "created_by" })
+  created_by: string;
 
   @ForeignKey(() => User)
-  @Column({ type: DataType.UUID, field: 'updated_by' })
-  updatedBy: string;
+  @Column({ type: DataType.UUID, field: "updated_by" })
+  updated_by: string;
 }

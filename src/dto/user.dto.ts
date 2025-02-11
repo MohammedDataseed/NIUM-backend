@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty , PartialType } from '@nestjs/swagger';
 import { IsString, IsEmail, IsEnum, IsUUID, IsOptional, IsBoolean } from 'class-validator';
 
 export class CreateUserDto {
@@ -31,7 +31,7 @@ export class CreateUserDto {
     enum: ['cash&carry', 'large_enterprise'],
   })
   @IsEnum(['cash&carry', 'large_enterprise'])
-  businessType: string;
+  business_type: string;
 
   // 🏦 Financial & Branch Details
   @ApiProperty({
@@ -61,7 +61,7 @@ export class CreateUserDto {
     example: null,
     required: false,
   })
-  @IsUUID()
+  @IsString()
   @IsOptional()
   document_id?: string;
 
@@ -86,4 +86,27 @@ export class CreateUserDto {
   })
   @IsBoolean()
   is_active: boolean;
+}
+
+export class UpdateUserDto {
+  @ApiProperty({ example: 'updatedemail@dataseedtech.com', required: false })
+  email?: string;
+
+  @ApiProperty({ example: '333cd780-af26-42f4-b9f5-0934fcf8936f', required: false })
+  role_id?: string;
+
+  @ApiProperty({ example: 'medium_enterprise', required: false })
+  business_type?: string;
+
+  @ApiProperty({ example: '7cfa494d-ea85-496d-92ec-0a35a359e556', required: false })
+  branch_id?: string;
+
+  @ApiProperty({ example: '671fabc3-47c0-4631-8067-e324e173038f', required: false })
+  bank_account_id?: string;
+
+  @ApiProperty({ example: 'bc7cb89f-56b0-4bc6-9e22-80c0d55dc754', required: false })
+  updated_by?: string;
+
+  @ApiProperty({ example: true, required: false })
+  is_active?: boolean;
 }

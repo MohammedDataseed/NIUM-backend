@@ -101,23 +101,6 @@ export class TracerService {
     span.finish();
   }
 
-  // traceDBOperations(
-  //   parentSpan: opentracing.Span,
-  //   dbOperation: string,
-  //   model: string,
-  // ) {
-  //   const span = this.tracer.startSpan('database', {
-  //     childOf: parentSpan,
-  //     tags: {
-  //       [opentracing.Tags.SPAN_KIND]: opentracing.Tags.DB_STATEMENT,
-  //       [opentracing.Tags.COMPONENT]: model,
-  //       [opentracing.Tags.DB_STATEMENT]: dbOperation,
-  //     },
-  //   });
-  //   this.requestStorage.set(`active-span`, span);
-  //   return span;
-  // }
-
   traceDBOperations(
     parentSpan: opentracing.Span | undefined,
     dbOperation: string,

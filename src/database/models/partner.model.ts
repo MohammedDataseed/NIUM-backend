@@ -7,76 +7,76 @@ import {
   AllowNull,
   Unique,
   DataType,
-} from 'sequelize-typescript';
+} from "sequelize-typescript";
 
 @Table({
-  tableName: 'partner',
+  tableName: "partner",
 })
 export class Partner extends Model<Partner> {
   @PrimaryKey
   @AutoIncrement
   @Column({
     type: DataType.SMALLINT,
-    field: 'partner_id',
+    field: "partner_id",
   })
   partnerid: number;
 
   @Column({
-    field: 'name',
+    field: "name",
   })
   name: string | null;
 
   @AllowNull
   @Column({
-    field: 'description',
+    field: "description",
   })
   description: string | null;
 
   @Unique
   @Column({
-    field: 'partner_key',
+    field: "partner_key",
   })
   partnerKey: string;
 
   @Column({
-    field: 'type',
+    field: "type",
   })
   type: string;
 
-  @Column({ type: DataType.JSONB, field: 'config' })
+  @Column({ type: DataType.JSONB, field: "config" })
   config: any;
 
   @Column({
-    field: 'is_active',
+    field: "is_active",
     type: DataType.BOOLEAN,
   })
   isActive: boolean;
 
   @Column({
-    field: 'created_at',
+    field: "created_at",
   })
   createdAt: Date;
 
   @Column({
-    field: 'created_by',
+    field: "created_by",
   })
-  createdBy: number;
+  created_by: number;
 
   @Column({
-    field: 'updated_at',
+    field: "updated_at",
   })
   updatedAt: Date;
 
   @Column({
-    field: 'updated_by',
+    field: "updated_by",
   })
-  updatedBy: number;
+  updated_by: number;
 
   @Column({
-    field: 'code',
+    field: "code",
   })
   code: string;
 
-  @Column({ type: DataType.JSONB, field: 'notification_config' })
+  @Column({ type: DataType.JSONB, field: "notification_config" })
   notificationConfig: JSON;
 }

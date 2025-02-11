@@ -34,6 +34,14 @@ async function bootstrap() {
     .setTitle(`InstaReM ${process.env.SERVICE_NAME}`)
     .setDescription(process.env.SERVICE_NAME)
     .setVersion('1.0')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+      },
+      'access_token' // 🔹 Name of the security scheme (important)
+    )
     .build();
   const document = SwaggerModule.createDocument(app, options);
   SwaggerModule.setup('v1/api-docs', app, document);

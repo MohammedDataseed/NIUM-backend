@@ -12,6 +12,8 @@ import { UserController } from './controllers/v1/main/user.controller';
 import { UserService } from './database/services/user/user.service';
 import { RoleService } from './database/services/role/role.service';
 import { RoleController } from './controllers/v1/main/role.controller';
+import { AuthModule } from './auth/auth.module'; // ✅ Import Auth Module
+import { JwtModule } from '@nestjs/jwt'; // ✅ Import JWT Module
 
 @Module({
   imports: [
@@ -20,6 +22,11 @@ import { RoleController } from './controllers/v1/main/role.controller';
     DatabaseModule,
     GracefulShutdownModule,
     MiddlewareModule,
+    AuthModule, // ✅ Add Auth Module
+    JwtModule.register({
+      secret: process.env.JWT_SECRET || '123456', // ✅ Use environment variable
+      signOptions: { expiresIn: '1h' }, // ✅ Token expiry
+    }),
   ],
   controllers: [AppController,UserController,RoleController],
   providers: [
