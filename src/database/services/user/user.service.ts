@@ -118,7 +118,7 @@ export class UserService {
     }
   
       // Generate a reset token valid for 1 hour
-    const resetToken = this.jwtService.sign({ email }, { expiresIn: '1h' });
+    const resetToken = this.jwtService.sign({ email, type: 'reset' }, { expiresIn: '15m' });
     const resetUrl = `https://tayib-jet.vercel.app/reset-password?token=${resetToken}`;
   
     try {
@@ -144,6 +144,7 @@ export class UserService {
     let payload;
     try {
       payload = verify(token, process.env.JWT_SECRET);
+      if (payload.type !== 'reset') throw new UnauthorizedException('Invalid token type');
     } catch (error) {
       throw new UnauthorizedException('Invalid or expired token');
     }
