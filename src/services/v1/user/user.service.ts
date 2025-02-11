@@ -1,6 +1,6 @@
 import { Injectable, Inject, NotFoundException, UnauthorizedException,InternalServerErrorException,BadRequestException } from '@nestjs/common';
 import { WhereOptions } from 'sequelize';
-import { User } from '../../models/user.model';
+import { User } from '../../../database/models/user.model';
 import * as opentracing from 'opentracing';
 import { TracerService } from '../../../shared/services/tracer/tracer.service';
 import { CreateUserDto, UpdateUserDto } from 'src/dto/user.dto';

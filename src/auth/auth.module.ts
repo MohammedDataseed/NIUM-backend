@@ -3,7 +3,7 @@ import { JwtAuthService } from './jwt.service';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { DatabaseModule } from '../database/database.module'; // ✅ Import DatabaseModule
-import { UserService } from '../database/services/user/user.service';
+import { UserService } from '../services/v1/user/user.service';
 import { SharedModule } from '../shared/shared.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MailModule } from 'src/shared/services/mailer/mailer.module';
