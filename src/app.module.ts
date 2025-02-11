@@ -22,7 +22,7 @@ import { MailerService } from "./shared/services/mailer/mailer.service";
     DatabaseModule,
     GracefulShutdownModule,
     MiddlewareModule,
-    AuthModule, // ✅ Add Auth Module
+    AuthModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET || "123456", // ✅ Use environment variable
       signOptions: { expiresIn: "1h" }, // ✅ Token expiry

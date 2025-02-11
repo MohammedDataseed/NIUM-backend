@@ -8,6 +8,7 @@ import { TracerService } from './services/tracer/tracer.service';
 import { RequestStorageService } from './services/request-storage/request-storage.service';
 import { ConfigService } from '@nestjs/config';
 import { RabbitProvider } from './providers/rabbitmq.provider';
+import { PdfService } from './services/documents-consolidate/documents-consolidate.service';
 
 @Module({
   imports: [HttpModule],
@@ -21,6 +22,7 @@ import { RabbitProvider } from './providers/rabbitmq.provider';
     TracerService,
     RequestStorageService,
     RabbitProvider,
+    PdfService, 
   ],
   exports: [
     LoggerService,
@@ -31,6 +33,7 @@ import { RabbitProvider } from './providers/rabbitmq.provider';
     RequestStorageService,
     HttpModule,
     RabbitProvider,
+    PdfService, 
   ],
 })
 export class SharedModule {}
