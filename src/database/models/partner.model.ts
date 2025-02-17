@@ -50,7 +50,7 @@ export class Partner extends Model<Partner> {
     field: "is_active",
     type: DataType.BOOLEAN,
   })
-  isActive: boolean;
+  is_active: boolean;
 
   @Column({
     field: "created_at",

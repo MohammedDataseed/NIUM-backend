@@ -15,6 +15,10 @@ import { RoleController } from "./controllers/v1/main/role.controller";
 import { AuthModule } from "./auth/auth.module"; // ✅ Import Auth Module
 import { JwtModule } from "@nestjs/jwt"; // ✅ Import JWT Module
 import { MailerService } from "./shared/services/mailer/mailer.service";
+import { BranchService } from "./services/v1/branch/branch.service";
+import { BranchController } from "./controllers/v1/main/branch.controller";
+import { ProductService } from "./services/v1/product/product.service";
+import { ProductController } from "./controllers/v1/main/product.controller";
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -23,17 +27,20 @@ import { MailerService } from "./shared/services/mailer/mailer.service";
     GracefulShutdownModule,
     MiddlewareModule,
     AuthModule,
+    
     JwtModule.register({
       secret: process.env.JWT_SECRET || "123456", // ✅ Use environment variable
       signOptions: { expiresIn: "1h" }, // ✅ Token expiry
     }),
   ],
-  controllers: [AppController, UserController, RoleController],
+  controllers: [AppController, UserController, RoleController,BranchController,ProductController],
   providers: [
     AppService,
     UserService,
     RoleService,
     MailerService,
+    BranchService,
+    ProductService,
     {
       provide: APP_INTERCEPTOR,
       useClass: AuditLoggerService,

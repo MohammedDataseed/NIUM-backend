@@ -29,11 +29,11 @@ export class Products extends Model<Products> {
 
   @Default(true)
   @Column({ type: DataType.BOOLEAN, field: "is_active" })
-  isActive: boolean;
+  is_active: boolean;
 
-  @ForeignKey(() => User)
-  @Column({ type: DataType.UUID, field: "user_id" })
-  userId: string;
+  // @ForeignKey(() => User)
+  // @Column({ type: DataType.UUID, field: "user_id" })
+  // user_id: string;
 
   @Default(DataType.NOW)
   @Column({ type: DataType.DATE, field: "created_at" })
