@@ -1,6 +1,9 @@
 import { Injectable, Inject, NotFoundException, UnauthorizedException,InternalServerErrorException,BadRequestException } from '@nestjs/common';
 import { WhereOptions } from 'sequelize';
 import { User } from '../../../database/models/user.model';
+import { Role } from 'src/database/models/role.model';
+import { Branch } from 'src/database/models/branch.model';
+import { BankAccount } from 'src/database/models/bankAccount.model';
 import * as opentracing from 'opentracing';
 import { TracerService } from '../../../shared/services/tracer/tracer.service';
 import { CreateUserDto, UpdateUserDto } from 'src/dto/user.dto';
@@ -8,7 +11,6 @@ import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from 'src/dto/login.dto';
 import { MailerService } from 'src/shared/services/mailer/mailer.service';
-import { randomBytes } from 'crypto';
 import { verify } from 'jsonwebtoken';
 @Injectable()
 export class UserService {
@@ -19,6 +21,33 @@ export class UserService {
     private readonly jwtService: JwtService,
     private readonly mailService: MailerService
   ) {}
+  async login(
+    loginDto: LoginDto
+  ): Promise<{ user: User; access_token: string; refresh_token: string }> {
+    const { email, password } = loginDto;
+  
+    const user = await this.userRepository.findOne({
+      where: { email },
+      attributes: { exclude: ['role_id','branch_id','bank_account_id',] }, // Exclude role_id here
+      include: [
+        { model: Role, as: "role", attributes: ["id", "name"] },
+        { model: Branch, as: "branch", attributes: ["id", "name"] },
+        { model: BankAccount, as: "bankAccount", attributes: ["id", "account_number","ifsc_code","bank_name" ,"bank_branch"] },
+       ],
+    });
+  
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      throw new UnauthorizedException("Invalid credentials");
+    }
+  
+    const payload = { email: user.email, sub: user.id };
+  
+    return {
+      user, // Now includes full role details
+      access_token: this.jwtService.sign(payload, { expiresIn: process.env.ACCESS_TOKEN_EXPIRY || "1h" }),
+      refresh_token: this.jwtService.sign(payload, { expiresIn: process.env.REFRESH_TOKEN_EXPIRY || "1d" }),
+    };
+  }
 
   async findAll(span: opentracing.Span, params: WhereOptions<User>): Promise<User[]> {
     const childSpan = span.tracer().startSpan('db-query', { childOf: span });
@@ -83,21 +112,6 @@ export class UserService {
     }
   }
 
-  async login(loginDto: LoginDto): Promise<{ user: User; access_token: string; refresh_token: string }> {
-    const { email, password } = loginDto;
-    const user = await this.userRepository.findOne({ where: { email } });
-
-    if (!user || !(await bcrypt.compare(password, user.password))) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-
-    const payload = { email: user.email, sub: user.id };
-    return {
-      user,
-      access_token: this.jwtService.sign(payload, { expiresIn: process.env.ACCESS_TOKEN_EXPIRY || '1h' }),
-      refresh_token: this.jwtService.sign(payload, { expiresIn: process.env.REFRESH_TOKEN_EXPIRY || '1d' }),
-    };
-  }
 
   async refreshToken(refreshToken: string): Promise<{ access_token: string }> {
     try {

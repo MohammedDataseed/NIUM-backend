@@ -8,6 +8,7 @@ import {
   Unique,
   DataType,
   ForeignKey,
+  BelongsTo,
 } from "sequelize-typescript";
 import { Role } from "./role.model";
 import { Branch } from "./branch.model";
@@ -48,10 +49,6 @@ export class User extends Model<User> {
   @Column({ type: DataType.BOOLEAN, allowNull: false, defaultValue: true })
   is_active: boolean;
 
-  // @ForeignKey(() => Products)
-  // @Column({ type: DataType.UUID, field: 'products' })
-  // products: string;
-
   @AllowNull(false)
   @Column({
     type: DataType.ENUM("cash&carry", "large_enterprise"),
@@ -59,9 +56,15 @@ export class User extends Model<User> {
   })
   business_type: string;
 
-  // @ForeignKey(() => DocumentRequirement)
-  // @Column({ type: DataType.UUID, field: 'document_id' })
-  // documentId: string;
+  // Associations
+  @BelongsTo(() => Role)
+  role: Role;
+
+  @BelongsTo(() => Branch)
+  branch: Branch;
+
+  @BelongsTo(() => BankAccount)
+  bankAccount: BankAccount;
 
   @Default(DataType.NOW)
   @Column({ type: DataType.DATE, field: "created_at" })
