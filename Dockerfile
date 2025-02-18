@@ -41,7 +41,7 @@ WORKDIR /usr/src/app
 COPY --from=builder /usr/src/app ./ 
 
 # Expose port for development (use port 3000 or whatever port your app runs on)
-EXPOSE 3001
+EXPOSE 3002
 
 # Start the application in development mode
 CMD ["npm", "run", "start:dev"]
