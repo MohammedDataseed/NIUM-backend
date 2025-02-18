@@ -17,12 +17,26 @@ services:
       - "15672:15672"
       - "5672:5672"
 
+  postgres:
+    image: postgres:13
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+      POSTGRES_DB: nium-dev  # Ensure this matches the PGDATABASE
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
   nestjs-boilerplate:
     image: nestjs-boilerplate
     container_name: nestjs-boilerplate
     depends_on: 
       - redis
       - rabbit
+      - postgres  # Ensure that the NestJS service waits for PostgreSQL
+  
     build: .
     env_file:
       - .env
