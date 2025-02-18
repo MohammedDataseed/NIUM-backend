@@ -64,29 +64,14 @@ export const databaseProviders = [
           );
           process.exit(1);
         });
+      // Call sequelize.sync with force: false and alter: false to avoid automatic syncing
+      await sequelize.sync({
+        force: false,  // Don't drop tables if they exist
+        alter: false,  // Don't alter existing tables
+      });
+
       return sequelize;
     },
     inject: [ConfigService, LoggerService],
   },
-  // {
-  //   name: 'MongoDBProvider',
-  //   provide: 'MONGO',
-  //   useFactory: async (config: ConfigService, logger: LoggerService) => {
-  //     const uri = config.get('MONGO_DB_URL');
-  //     const connectionString = `${uri}`;
-  //     Mongoose.connection.on('connected', async () => {
-  //       logger.info(`${config.get('SERVICE_NAME')} :: DB - Connection successful to MongoDB`);
-  //     });
-  //     Mongoose.connection.on('error', (error) => {
-  //       logger.error(`${config.get('SERVICE_NAME')} :: DB - Connection failed.`, error.message || error);
-  //     });
-  //     Mongoose.connection.on('disconnected', () => {
-  //       logger.info(`${config.get('SERVICE_NAME')} :: Mongoose default connection disconnected`);
-  //     });
-  //     await Mongoose.connect(connectionString);
-  //     const conn: Mongoose.Connection = Mongoose.connection;
-  //     return conn;
-  //   },
-  //   inject: [ConfigService, LoggerService],
-  // },
 ];
