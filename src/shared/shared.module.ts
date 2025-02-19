@@ -3,11 +3,11 @@ import { HttpModule } from '@nestjs/axios';
 import { LoggerService } from './services/logger/logger.service';
 // import { RedisService } from './services/redis/redis.service';
 import { HttpWrapperService } from './services/http-wrapper/http-wrapper.service';
-import { RabbitProducerService } from './services/rabbit-producer/rabbit-producer.service';
+// import { RabbitProducerService } from './services/rabbit-producer/rabbit-producer.service';
 import { TracerService } from './services/tracer/tracer.service';
 import { RequestStorageService } from './services/request-storage/request-storage.service';
 import { ConfigService } from '@nestjs/config';
-import { RabbitProvider } from './providers/rabbitmq.provider';
+// import { RabbitProvider } from './providers/rabbitmq.provider';
 import { PdfService } from './services/documents-consolidate/documents-consolidate.service';
 
 @Module({
@@ -18,21 +18,21 @@ import { PdfService } from './services/documents-consolidate/documents-consolida
     ConfigService,
     // RedisService,
     HttpWrapperService,
-    RabbitProducerService,
+    // RabbitProducerService,
     TracerService,
     RequestStorageService,
-    RabbitProvider,
+    // RabbitProvider,
     PdfService, 
   ],
   exports: [
     LoggerService,
     // RedisService,
     HttpWrapperService,
-    RabbitProducerService,
+    // RabbitProducerService,
     TracerService,
     RequestStorageService,
     HttpModule,
-    RabbitProvider,
+    // RabbitProvider,
     PdfService, 
   ],
 })

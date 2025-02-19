@@ -57,21 +57,21 @@
 version: "3.8"
 
 services:
-  redis:
-    container_name: redis
-    image: redis
-    ports:
-      - "6379:6379"
+  # redis:
+  #   container_name: redis
+  #   image: redis
+  #   ports:
+  #     - "6379:6379"
       
-  rabbit:
-    container_name: rabbit
-    hostname: rabbit
-    labels:
-      NAME: "rabbit"
-    image: "rabbitmq:3-management"
-    ports: 
-      - "15672:15672"
-      - "5672:5672"
+  # rabbit:
+  #   container_name: rabbit
+  #   hostname: rabbit
+  #   labels:
+  #     NAME: "rabbit"
+  #   image: "rabbitmq:3-management"
+  #   ports: 
+  #     - "15672:15672"
+  #     - "5672:5672"
 
   postgres:
     image: postgres:13
@@ -97,10 +97,10 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
-        condition: service_started
-      rabbit:
-        condition: service_started
+      # redis:
+      #   condition: service_started
+      # rabbit:
+      #   condition: service_started
     build: .
     env_file:
       - .env
