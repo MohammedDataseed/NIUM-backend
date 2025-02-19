@@ -17,10 +17,13 @@ export const RabbitProvider = {
     if (configService.get('NODE_ENV') === NODE_ENV_VALUES.TEST) {
       return new ClientProxyMock();
     }
+    const rabbitUrl = configService.get<string>('RABBIT_URL');
+    if (!rabbitUrl) return null; // Prevents connection errors
+
     const params: ClientOptions = {
       transport: Transport.RMQ,
       options: {
-        urls: [configService.get<string>('RABBIT_URL')],
+        urls: [rabbitUrl],
         queue: configService.get('QUEUE_NAME'),
         queueOptions: {
           durable: true,

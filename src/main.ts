@@ -28,6 +28,12 @@ async function bootstrap() {
 
   // listen for kill signal
   // app.enableShutdownHooks();
+   // Global Unhandled Promise Catcher
+   process.on("unhandledRejection", (reason, promise) => {
+    console.error("Unhandled Rejection at:", promise, "reason:", reason);
+    // logger.error("Unhandled Promise Rejection", reason);
+  });
+
 
   // Set Swagger Documentation
   const options = new DocumentBuilder()
