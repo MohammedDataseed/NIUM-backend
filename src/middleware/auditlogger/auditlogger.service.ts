@@ -17,7 +17,7 @@ export interface Response<T> {
 @Injectable()
 export class AuditLoggerService<T> implements NestInterceptor<T, Response<T>> {
   constructor(
-    private publisher: RabbitProducerService,
+    // private publisher: RabbitProducerService,
     private tracerService: TracerService,
   ) {}
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
@@ -46,7 +46,7 @@ export class AuditLoggerService<T> implements NestInterceptor<T, Response<T>> {
           latency: Date.now() - start,
         };
         const span = this.tracerService.createRabbitSpan(controllerSpan);
-        this.publisher.sendServiceAuditLogToQueue(loggingPayload);
+        // this.publisher.sendServiceAuditLogToQueue(loggingPayload);
         this.tracerService.finishSpanWithResult(span, 200, false);
         this.tracerService.finishSpanWithResult(controllerSpan, 200, false);
       }),
@@ -64,7 +64,7 @@ export class AuditLoggerService<T> implements NestInterceptor<T, Response<T>> {
           latency: Date.now() - start,
         };
         const span = this.tracerService.createRabbitSpan(controllerSpan);
-        this.publisher.sendServiceAuditLogToQueue(loggingPayload);
+        // this.publisher.sendServiceAuditLogToQueue(loggingPayload);
         span.log({ message: err.message });
         this.tracerService.finishSpanWithResult(span, 200, true);
         this.tracerService.finishSpanWithResult(controllerSpan, 200, true);
