@@ -1,3 +1,4 @@
+//database.provider.ts
 import { Sequelize } from 'sequelize-typescript';
 import { models } from '../models';
 import { ConfigService } from '@nestjs/config';
