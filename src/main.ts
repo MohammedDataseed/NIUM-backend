@@ -22,6 +22,11 @@ async function bootstrap() {
       stream: { write: (message) => logger.info(message) },
     })
   );
+  app.enableCors({
+    origin: '*', // Change to specific domains for security
+    credentials: true,
+  });
+  
   app.use(helmet());
   app.setGlobalPrefix("api");
   app.use(contextService.middleware("request"));
