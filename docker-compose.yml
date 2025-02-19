@@ -47,7 +47,8 @@ services:
     env_file:
       - .env
     ports:
-      - 4400:4400
+      # - 4400:4400
+      - "4400:3002"  # Maps external 4400 → internal 3002
     command: npm run start:dev
 
 volumes:

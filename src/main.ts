@@ -51,8 +51,10 @@ async function bootstrap() {
     .build();
   const document = SwaggerModule.createDocument(app, options);
   SwaggerModule.setup("v1/api-docs", app, document);
+  
+  const port = config.get<number>("PORT") || 3002; // Default to 3002 if undefined
 
-  await app.listen(config.get("PORT"));
-  console.log(`app is running on ${config.get("PORT")}`)
+  await app.listen(port);
+  console.log(`🚀 App is running on port ${port}`);
 }
 bootstrap();
