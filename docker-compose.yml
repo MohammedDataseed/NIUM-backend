@@ -1,3 +1,61 @@
+# services:
+#   redis:
+#     container_name: redis
+#     image: redis
+#     ports:
+#       - "6379:6379"
+      
+#   rabbit:
+#     container_name: rabbit
+#     hostname: rabbit
+#     labels:
+#       NAME: "rabbit"
+#     image: "rabbitmq:3-management"
+#     ports: 
+#       - "15672:15672"
+#       - "5672:5672"
+
+#   postgres:
+#     image: postgres:13
+#     container_name: postgres
+#     environment:
+#       POSTGRES_USER: postgres
+#       POSTGRES_PASSWORD: 1234
+#       POSTGRES_DB: nium-dev
+#     ports:
+#       - "5433:5432"  # Change external port to 5433
+#     volumes:
+#       - postgres-data:/var/lib/postgresql/data
+#     healthcheck:
+#       test: ["CMD", "pg_isready", "-U", "postgres", "-d", "nium-dev"]
+#       interval: 10s
+#       retries: 5
+#       start_period: 30s
+#       timeout: 5s
+
+#   nestjs-boilerplate:
+#     image: nestjs-boilerplate
+#     container_name: nestjs-boilerplate
+#     depends_on:
+#       postgres:
+#         condition: service_healthy  # Ensures PostgreSQL is ready before NestJS starts
+#       redis:
+#         condition: service_started
+#       rabbit:
+#         condition: service_started
+#     build: .
+#     env_file:
+#       - .env
+#     ports:
+#       # - 4400:4400
+#       - "4400:3002"  # Maps external 4400 → internal 3002
+#     command: npm run start:dev
+
+# volumes:
+#   postgres-data:
+
+version: "3.8"
+
 services:
   redis:
     container_name: redis
@@ -23,7 +81,7 @@ services:
       POSTGRES_PASSWORD: 1234
       POSTGRES_DB: nium-dev
     ports:
-      - "5433:5432"  # Change external port to 5433
+      - "5433:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
@@ -38,7 +96,7 @@ services:
     container_name: nestjs-boilerplate
     depends_on:
       postgres:
-        condition: service_healthy  # Ensures PostgreSQL is ready before NestJS starts
+        condition: service_healthy
       redis:
         condition: service_started
       rabbit:
@@ -47,8 +105,7 @@ services:
     env_file:
       - .env
     ports:
-      # - 4400:4400
-      - "4400:3002"  # Maps external 4400 → internal 3002
+      - "4400:3002"
     command: npm run start:dev
 
 volumes:
