@@ -1,7 +1,3 @@
-// import { Partner } from './partner.model';
-// import { User } from './user.model';
-// export const models = [User,Partner];
-
 import { BankAccount } from './bankAccount.model';
 import { Branch } from './branch.model';
 import { Documents } from './documents.model';
