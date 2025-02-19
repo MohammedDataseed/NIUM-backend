@@ -18,7 +18,10 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "lint-fix": "prettier --write \"src/**/*.ts\""
+    "lint-fix": "prettier --write \"src/**/*.ts\"",
+    "db:migrate": "npx sequelize-cli db:migrate",
+    "db:migrate:undo": "npx sequelize-cli db:migrate:undo",
+    "db:migrate:undo:all": "npx sequelize-cli db:migrate:undo:all"
   },
   "dependencies": {
     "@nestjs/axios": "^3.0.3",
@@ -80,6 +83,7 @@
     "prettier": "^3.3.3",
     "pretty-quick": "^4.0.0",
     "rimraf": "^6.0.1",
+    "sequelize-cli": "^6.6.2",
     "supertest": "^4.0.2",
     "ts-jest": "^29.2.5",
     "ts-loader": "^9.5.1",

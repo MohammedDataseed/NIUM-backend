@@ -10,6 +10,38 @@ instadevelopers-nestjs-boilerplate-679505f0a847
 │   ├── app.module.d.ts
 │   ├── app.module.js
 │   ├── app.module.js.map
+│   ├── auth
+│   │   ├── auth.module.d.ts
+│   │   ├── auth.module.js
+│   │   ├── auth.module.js.map
+│   │   ├── jwt-payload.interface.d.ts
+│   │   ├── jwt-payload.interface.js
+│   │   ├── jwt-payload.interface.js.map
+│   │   ├── jwt-strategy.d.ts
+│   │   ├── jwt-strategy.js
+│   │   ├── jwt-strategy.js.map
+│   │   ├── jwt.guard.d.ts
+│   │   ├── jwt.guard.js
+│   │   ├── jwt.guard.js.map
+│   │   ├── jwt.service.d.ts
+│   │   ├── jwt.service.js
+│   │   └── jwt.service.js.map
+│   ├── auth copy
+│   │   ├── auth.module.d.ts
+│   │   ├── auth.module.js
+│   │   ├── auth.module.js.map
+│   │   ├── jwt-payload.interface.d.ts
+│   │   ├── jwt-payload.interface.js
+│   │   ├── jwt-payload.interface.js.map
+│   │   ├── jwt-strategy.d.ts
+│   │   ├── jwt-strategy.js
+│   │   ├── jwt-strategy.js.map
+│   │   ├── jwt.guard.d.ts
+│   │   ├── jwt.guard.js
+│   │   ├── jwt.guard.js.map
+│   │   ├── jwt.service.d.ts
+│   │   ├── jwt.service.js
+│   │   └── jwt.service.js.map
 │   ├── constants
 │   │   ├── general.constants.d.ts
 │   │   ├── general.constants.js
@@ -20,9 +52,18 @@ instadevelopers-nestjs-boilerplate-679505f0a847
 │   │           ├── app.controller.d.ts
 │   │           ├── app.controller.js
 │   │           ├── app.controller.js.map
+│   │           ├── branch.controller.d.ts
+│   │           ├── branch.controller.js
+│   │           ├── branch.controller.js.map
 │   │           ├── partner.controller.d.ts
 │   │           ├── partner.controller.js
 │   │           ├── partner.controller.js.map
+│   │           ├── product.controller.d.ts
+│   │           ├── product.controller.js
+│   │           ├── product.controller.js.map
+│   │           ├── role.controller.d.ts
+│   │           ├── role.controller.js
+│   │           ├── role.controller.js.map
 │   │           ├── user.controller.d.ts
 │   │           ├── user.controller.js
 │   │           └── user.controller.js.map
@@ -85,11 +126,35 @@ instadevelopers-nestjs-boilerplate-679505f0a847
 │   │       │   ├── partner.service.d.ts
 │   │       │   ├── partner.service.js
 │   │       │   └── partner.service.js.map
-│   │       └── user
+│   │       ├── role
+│   │       │   ├── role.service.d.ts
+│   │       │   ├── role.service.js
+│   │       │   ├── role.service.js.map
+│   │       │   ├── user.service.d.ts
+│   │       │   ├── user.service.js
+│   │       │   └── user.service.js.map
+│   │       ├── user
+│   │       │   ├── user.service.d.ts
+│   │       │   ├── user.service.js
+│   │       │   └── user.service.js.map
+│   │       └── user copy
 │   │           ├── user.service.d.ts
 │   │           ├── user.service.js
 │   │           └── user.service.js.map
+│   ├── dev-assets
 │   ├── dto
+│   │   ├── branch.dto.d.ts
+│   │   ├── branch.dto.js
+│   │   ├── branch.dto.js.map
+│   │   ├── login.dto.d.ts
+│   │   ├── login.dto.js
+│   │   ├── login.dto.js.map
+│   │   ├── product.dto.d.ts
+│   │   ├── product.dto.js
+│   │   ├── product.dto.js.map
+│   │   ├── role.dto.d.ts
+│   │   ├── role.dto.js
+│   │   ├── role.dto.js.map
 │   │   ├── user.dto.d.ts
 │   │   ├── user.dto.js
 │   │   └── user.dto.js.map
@@ -119,10 +184,29 @@ instadevelopers-nestjs-boilerplate-679505f0a847
 │   │   └── middleware.module.js.map
 │   ├── services
 │   │   └── v1
-│   │       └── app
-│   │           ├── app.service.d.ts
-│   │           ├── app.service.js
-│   │           └── app.service.js.map
+│   │       ├── app
+│   │       │   ├── app.service.d.ts
+│   │       │   ├── app.service.js
+│   │       │   └── app.service.js.map
+│   │       ├── branch
+│   │       │   ├── branch.service.d.ts
+│   │       │   ├── branch.service.js
+│   │       │   └── branch.service.js.map
+│   │       ├── product
+│   │       │   ├── product.service.d.ts
+│   │       │   ├── product.service.js
+│   │       │   ├── product.service.js.map
+│   │       │   ├── product.services.d.ts
+│   │       │   ├── product.services.js
+│   │       │   └── product.services.js.map
+│   │       ├── role
+│   │       │   ├── role.service.d.ts
+│   │       │   ├── role.service.js
+│   │       │   └── role.service.js.map
+│   │       └── user
+│   │           ├── user.service.d.ts
+│   │           ├── user.service.js
+│   │           └── user.service.js.map
 │   ├── shared
 │   │   ├── dto
 │   │   │   ├── AuditLogPayload.d.ts
@@ -133,6 +217,23 @@ instadevelopers-nestjs-boilerplate-679505f0a847
 │   │   │   ├── rabbitmq.provider.js
 │   │   │   └── rabbitmq.provider.js.map
 │   │   ├── services
+│   │   │   ├── dev-assets
+│   │   │   │   ├── merged_1739279338652.pdf
+│   │   │   │   ├── merged_1739279520434.pdf
+│   │   │   │   └── merged_1739279535738.pdf
+│   │   │   ├── documents-consolidate
+│   │   │   │   ├── documents-consolidate.module.d.ts
+│   │   │   │   ├── documents-consolidate.module.js
+│   │   │   │   ├── documents-consolidate.module.js.map
+│   │   │   │   ├── documents-consolidate.service.d.ts
+│   │   │   │   ├── documents-consolidate.service.js
+│   │   │   │   ├── documents-consolidate.service.js.map
+│   │   │   │   ├── mailer.module.d.ts
+│   │   │   │   ├── mailer.module.js
+│   │   │   │   ├── mailer.module.js.map
+│   │   │   │   ├── mailer.service.d.ts
+│   │   │   │   ├── mailer.service.js
+│   │   │   │   └── mailer.service.js.map
 │   │   │   ├── http-wrapper
 │   │   │   │   ├── http-wrapper.service.d.ts
 │   │   │   │   ├── http-wrapper.service.js
@@ -141,6 +242,13 @@ instadevelopers-nestjs-boilerplate-679505f0a847
 │   │   │   │   ├── logger.service.d.ts
 │   │   │   │   ├── logger.service.js
 │   │   │   │   └── logger.service.js.map
+│   │   │   ├── mailer
+│   │   │   │   ├── mailer.module.d.ts
+│   │   │   │   ├── mailer.module.js
+│   │   │   │   ├── mailer.module.js.map
+│   │   │   │   ├── mailer.service.d.ts
+│   │   │   │   ├── mailer.service.js
+│   │   │   │   └── mailer.service.js.map
 │   │   │   ├── rabbit-producer
 │   │   │   │   ├── rabbit-producer.service.d.ts
 │   │   │   │   ├── rabbit-producer.service.js
@@ -165,6 +273,8 @@ instadevelopers-nestjs-boilerplate-679505f0a847
 ├── docker-compose.yml
 ├── Dockerfile
 ├── Dockerfile-development
+├── migrations
+│   └── 20250219093445-create-users-table.js
 ├── nest-cli.json
 ├── nodemon-docker-debug.json
 ├── package-lock.json
@@ -174,6 +284,11 @@ instadevelopers-nestjs-boilerplate-679505f0a847
 ├── src
 │   ├── app.module.ts
 │   ├── auth
+│   │   ├── auth.module.ts
+│   │   ├── jwt-payload.interface.ts
+│   │   ├── jwt-strategy.ts
+│   │   ├── jwt.guard.ts
+│   │   └── jwt.service.ts
 │   ├── constants
 │   │   └── general.constants.ts
 │   ├── controllers
@@ -181,7 +296,10 @@ instadevelopers-nestjs-boilerplate-679505f0a847
 │   │       └── main
 │   │           ├── app.controller.spec.ts
 │   │           ├── app.controller.ts
+│   │           ├── branch.controller.ts
 │   │           ├── partner.controller.ts
+│   │           ├── product.controller.ts
+│   │           ├── role.controller.ts
 │   │           └── user.controller.ts
 │   ├── database
 │   │   ├── database.module.ts
@@ -201,18 +319,20 @@ instadevelopers-nestjs-boilerplate-679505f0a847
 │   │   │   ├── database.provider.ts
 │   │   │   └── model-repository.provider.ts
 │   │   └── services
-│   │       ├── partner
-│   │       │   ├── partner.service.spec.ts
-│   │       │   └── partner.service.ts
-│   │       └── user
-│   │           ├── user.service.spec.ts
-│   │           └── user.service.ts
+│   │       └── partner
+│   │           ├── partner.service.spec.ts
+│   │           └── partner.service.ts
 │   ├── dev-assets
 │   │   ├── AADHAAR-TAYIB-base64.txt
 │   │   ├── b6ce773e-56d9-461d-be32-f2bacf7c864b
 │   │   ├── b6ce773e-56d9-461d-be32-f2bacf7c864b (1)
+│   │   ├── merged_1739279756734.pdf
 │   │   └── PAN-TAYIB-85c22e55-cdfa-422a-b491-97c581fe21d9-esign_file0.txt
 │   ├── dto
+│   │   ├── branch.dto.ts
+│   │   ├── login.dto.ts
+│   │   ├── product.dto.ts
+│   │   ├── role.dto.ts
 │   │   └── user.dto.ts
 │   ├── filters
 │   │   └── exception.filter.ts
@@ -229,20 +349,36 @@ instadevelopers-nestjs-boilerplate-679505f0a847
 │   │   └── middleware.module.ts
 │   ├── services
 │   │   └── v1
-│   │       └── app
-│   │           └── app.service.ts
+│   │       ├── app
+│   │       │   └── app.service.ts
+│   │       ├── branch
+│   │       │   └── branch.service.ts
+│   │       ├── product
+│   │       │   └── product.service.ts
+│   │       ├── role
+│   │       │   ├── role.service.spec.ts
+│   │       │   └── role.service.ts
+│   │       └── user
+│   │           ├── user.service.spec.ts
+│   │           └── user.service.ts
 │   └── shared
 │       ├── dto
 │       │   └── AuditLogPayload.ts
 │       ├── providers
 │       │   └── rabbitmq.provider.ts
 │       ├── services
+│       │   ├── documents-consolidate
+│       │   │   ├── documents-consolidate.module.ts
+│       │   │   └── documents-consolidate.service.ts
 │       │   ├── http-wrapper
 │       │   │   ├── http-wrapper.service.spec.ts
 │       │   │   └── http-wrapper.service.ts
 │       │   ├── logger
 │       │   │   ├── logger.service.spec.ts
 │       │   │   └── logger.service.ts
+│       │   ├── mailer
+│       │   │   ├── mailer.module.ts
+│       │   │   └── mailer.service.ts
 │       │   ├── rabbit-producer
 │       │   │   ├── rabbit-producer.service.spec.ts
 │       │   │   └── rabbit-producer.service.ts
