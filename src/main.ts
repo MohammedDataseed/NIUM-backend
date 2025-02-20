@@ -28,7 +28,7 @@ async function bootstrap() {
   });
   
   app.use(helmet());
-  app.setGlobalPrefix("api");
+  app.setGlobalPrefix("v1/api");
   app.use(contextService.middleware("request"));
 
   // listen for kill signal

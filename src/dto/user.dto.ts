@@ -73,20 +73,20 @@ export class CreateUserDto {
   // @IsOptional()
   // document_id?: string;
 
-  // // 🔍 Metadata
-  // @ApiProperty({
-  //   description: 'The ID of the user who created this record',
-  //   example: 'bc7cb89f-56b0-4bc6-9e22-80c0d55dc754',
-  // })
-  // @IsUUID()
-  // created_by: string;
+  // 🔍 Metadata
+  @ApiProperty({
+    description: 'The ID of the user who created this record',
+    example: '9ab32de9-9020-4cde-8ef3-285c59f94d9f',
+  })
+  @IsUUID()
+  created_by: string;
 
-  // @ApiProperty({
-  //   description: 'The ID of the user who last updated this record',
-  //   example: 'bc7cb89f-56b0-4bc6-9e22-80c0d55dc754',
-  // })
-  // @IsUUID()
-  // updated_by: string;
+  @ApiProperty({
+    description: 'The ID of the user who last updated this record',
+    example: '9ab32de9-9020-4cde-8ef3-285c59f94d9f',
+  })
+  @IsUUID()
+  updated_by: string;
 
   @ApiProperty({
     description: "User active status",
@@ -98,38 +98,90 @@ export class CreateUserDto {
 
 export class UpdateUserDto {
   @ApiProperty({ example: "updatedemail@dataseedtech.com", required: false })
+  @IsEmail()
+  @IsOptional()
   email?: string;
 
   @ApiProperty({
     example: "333cd780-af26-42f4-b9f5-0934fcf8936f",
     required: false,
   })
+  @IsUUID()
+  @IsOptional()
   role_id?: string;
 
-  @ApiProperty({ example: "medium_enterprise", required: false })
+  @ApiProperty({
+    example: "cash&carry",
+    required: false,
+    enum: ["cash&carry", "large_enterprise"],
+  })
+  @IsEnum(["cash&carry", "large_enterprise"])
+  @IsOptional()
   business_type?: string;
 
   @ApiProperty({
     example: "7cfa494d-ea85-496d-92ec-0a35a359e556",
     required: false,
   })
+  @IsUUID()
+  @IsOptional()
   branch_id?: string;
 
-  @ApiProperty({
-    example: "671fabc3-47c0-4631-8067-e324e173038f",
-    required: false,
-  })
-  bank_account_id?: string;
+  // @ApiProperty({
+  //   example: "671fabc3-47c0-4631-8067-e324e173038f",
+  //   required: false,
+  // })
+  // @IsUUID()
+  // @IsOptional()
+  // bank_account_id?: string;
 
   @ApiProperty({
     example: "bc7cb89f-56b0-4bc6-9e22-80c0d55dc754",
     required: false,
   })
+  @IsUUID()
+  @IsOptional()
   updated_by?: string;
 
   @ApiProperty({ example: true, required: false })
+  @IsBoolean()
+  @IsOptional()
   is_active?: boolean;
 }
+// export class UpdateUserDto {
+//   @ApiProperty({ example: "updatedemail@dataseedtech.com", required: false })
+//   email?: string;
+
+//   @ApiProperty({
+//     example: "333cd780-af26-42f4-b9f5-0934fcf8936f",
+//     required: false,
+//   })
+//   role_id?: string;
+
+//   @ApiProperty({ example: "large_enterprise", required: false })
+//   business_type?: string;
+
+//   @ApiProperty({
+//     example: "7cfa494d-ea85-496d-92ec-0a35a359e556",
+//     required: false,
+//   })
+//   branch_id?: string;
+
+//   // @ApiProperty({
+//   //   example: "671fabc3-47c0-4631-8067-e324e173038f",
+//   //   required: false,
+//   // })
+//   // bank_account_id?: string;
+
+//   @ApiProperty({
+//     example: "bc7cb89f-56b0-4bc6-9e22-80c0d55dc754",
+//     required: false,
+//   })
+//   updated_by?: string;
+
+//   @ApiProperty({ example: true, required: false })
+//   is_active?: boolean;
+// }
 
 export class SendEmailDto {
   @ApiProperty({
