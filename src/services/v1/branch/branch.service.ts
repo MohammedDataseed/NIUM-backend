@@ -29,7 +29,7 @@ export class BranchService {
     createBranchDto: CreateBranchDto
   ): Promise<Branch> {
     const childSpan = span.tracer().startSpan("create-branch", { childOf: span });
-
+  
     try {
       // Check if branch already exists
       const existingBranch = await this.branchRepository.findOne({
@@ -38,14 +38,22 @@ export class BranchService {
       if (existingBranch) {
         throw new ConflictException("Branch already exists");
       }
-
-      // Create a new branch
+  
+      console.log("Received DTO:", createBranchDto); // Debugging log
+  
+      // Ensure all required fields are passed to create()
       return await this.branchRepository.create({
         name: createBranchDto.name,
-        // status: createBranchDto.status ?? true, // Default status to true if not provided
+        location: createBranchDto.location,
+        city: createBranchDto.city,
+        state: createBranchDto.state,
+        businessType: createBranchDto.businessType,
+        created_by: createBranchDto.created_by, // Ensure UUIDs are provided
+        updated_by: createBranchDto.updated_by,
       });
     } finally {
       childSpan.finish();
     }
   }
+  
 }

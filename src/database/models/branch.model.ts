@@ -51,10 +51,13 @@ export class Branch extends Model<Branch> {
   updatedAt: Date;
 
   @ForeignKey(() => User)
+  @AllowNull(true)  // Make it optional
   @Column({ type: DataType.UUID, field: "created_by" })
-  created_by: string;
-
+  created_by?: string;
+  
   @ForeignKey(() => User)
+  @AllowNull(true)  // Make it optional
   @Column({ type: DataType.UUID, field: "updated_by" })
-  updated_by: string;
+  updated_by?: string;
+  
 }
