@@ -27,7 +27,7 @@ export class BranchController {
     return result;
   }
 
-  @UseGuards(JwtGuard)
+  // @UseGuards(JwtGuard)
   @Post()
   @ApiOperation({ summary: "Create a new branch" })
   @ApiResponse({
