@@ -23,31 +23,41 @@ export class UserService {
   ) {}
   async login(
     loginDto: LoginDto
-  ): Promise<{ user: User; access_token: string; refresh_token: string }> {
+  ): Promise<{ user: Partial<User>; access_token: string; refresh_token: string }> {
     const { email, password } = loginDto;
   
     const user = await this.userRepository.findOne({
       where: { email },
-      attributes: { exclude: ['role_id','branch_id','bank_account_id',] }, // Exclude role_id here
+      attributes: { exclude: ["role_id", "branch_id", "bank_account_id"] }, // Do NOT exclude password
       include: [
         { model: Role, as: "role", attributes: ["id", "name"] },
         { model: Branch, as: "branch", attributes: ["id", "name"] },
-        { model: BankAccount, as: "bankAccount", attributes: ["id", "account_number","ifsc_code","bank_name" ,"bank_branch"] },
-       ],
+        { model: BankAccount, as: "bankAccount", attributes: ["id", "account_number", "ifsc_code", "bank_name", "bank_branch"] },
+      ],
     });
-  
-    if (!user || !(await bcrypt.compare(password, user.password))) {
+
+    if (!user || !user.password) {
+      throw new UnauthorizedException("Invalid credentials");
+    }
+    
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
       throw new UnauthorizedException("Invalid credentials");
     }
   
     const payload = { email: user.email, sub: user.id };
   
+    // 🔹 Convert Sequelize instance to plain object and remove password
+    const safeUser = user.get({ plain: true });
+    delete safeUser.password;
+  
     return {
-      user, // Now includes full role details
+      user: safeUser, // Return user object without password
       access_token: this.jwtService.sign(payload, { expiresIn: process.env.ACCESS_TOKEN_EXPIRY || "1h" }),
       refresh_token: this.jwtService.sign(payload, { expiresIn: process.env.REFRESH_TOKEN_EXPIRY || "1d" }),
     };
   }
+  
 
   async findAll(span: opentracing.Span, params: WhereOptions<User>): Promise<User[]> {
     const childSpan = span.tracer().startSpan('db-query', { childOf: span });

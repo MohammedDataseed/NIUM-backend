@@ -14,7 +14,7 @@ import { PdfService } from "src/shared/services/documents-consolidate/documents-
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
-  //@UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Get()
   async findAll(@Query() params: Record<string, any>): Promise<Products[]> {
     const tracer = opentracing.globalTracer();
@@ -26,7 +26,7 @@ export class ProductController {
     return result;
   }
 
-  // @UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Post()
   @ApiOperation({ summary: "Create a new product" })
   @ApiResponse({

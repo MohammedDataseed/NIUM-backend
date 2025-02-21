@@ -17,7 +17,7 @@ export class RoleController {
     private readonly pdfService: PdfService,
   ) {}
 
-  // @UseGuards(JwtGuard) 
+  @UseGuards(JwtGuard) 
   @Get()
   async findAll(@Query() params: Record<string, any>): Promise<Role[]> {
     const tracer = opentracing.globalTracer();
@@ -28,7 +28,7 @@ export class RoleController {
     return result;
   }
 
-  // @UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Post()
   @ApiOperation({ summary: "Create a new role" })
   @ApiResponse({

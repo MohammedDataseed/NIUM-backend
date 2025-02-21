@@ -19,7 +19,7 @@ export class UserController {
     private readonly userService: UserService,
     private readonly mailService: MailerService) {}
 
-  // @UseGuards(JwtGuard) 
+  @UseGuards(JwtGuard) 
   @Get()
   async findAll(@Query() params: Record<string, any>): Promise<User[]> {
     const tracer = opentracing.globalTracer();
@@ -30,7 +30,7 @@ export class UserController {
     return result;
   }
 
-  // @UseGuards(JwtGuard) 
+  @UseGuards(JwtGuard) 
   @Post()
   @ApiOperation({ summary: "Create a new user" })
   @ApiResponse({
@@ -53,7 +53,7 @@ export class UserController {
     }
   }
 
-  // @UseGuards(JwtGuard) 
+  @UseGuards(JwtGuard) 
   @Put(':id')
   @ApiOperation({ summary: 'Update a user' })
   @ApiResponse({ status: 200, description: 'The user has been successfully updated.', type: User })
@@ -74,7 +74,7 @@ export class UserController {
     }
   }
 
-  // @UseGuards(JwtGuard) 
+  @UseGuards(JwtGuard) 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a user' })
   @ApiResponse({ status: 200, description: 'User successfully deleted.' })

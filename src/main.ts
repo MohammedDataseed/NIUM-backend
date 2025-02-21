@@ -23,22 +23,30 @@ async function bootstrap() {
     })
   );
   app.enableCors({
-    origin: '*', // Change to specific domains for security
+    origin: [
+      "http://localhost:3000",
+      "http://127.0.0.1:3000",
+      "http://localhost:8000",
+      "http://127.0.0.1:8000",
+      "http://nium.thestorywallcafe.com",
+      "*",
+    ], // Allow frontend on localhost
     credentials: true,
+    methods: ["GET", "POST", "PUT"], // Explicitly allow methods
+    allowedHeaders: ["Content-Type", "Authorization"], // Allow required headers
   });
-  
+
   app.use(helmet());
   app.setGlobalPrefix("v1/api");
   app.use(contextService.middleware("request"));
 
   // listen for kill signal
   // app.enableShutdownHooks();
-   // Global Unhandled Promise Catcher
-   process.on("unhandledRejection", (reason, promise) => {
+  // Global Unhandled Promise Catcher
+  process.on("unhandledRejection", (reason, promise) => {
     console.error("Unhandled Rejection at:", promise, "reason:", reason);
     // logger.error("Unhandled Promise Rejection", reason);
   });
-
 
   // Set Swagger Documentation
   const options = new DocumentBuilder()
@@ -56,7 +64,7 @@ async function bootstrap() {
     .build();
   const document = SwaggerModule.createDocument(app, options);
   SwaggerModule.setup("v1/api-docs", app, document);
-  
+
   const port = config.get<number>("PORT") || 3002; // Default to 3002 if undefined
 
   await app.listen(port);
