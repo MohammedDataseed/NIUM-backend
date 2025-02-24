@@ -44,6 +44,11 @@ export const databaseProviders = [
         .authenticate()
         .then(() => {
           logger.info("Postgres DB - Connection successful");
+          logger.info(
+            `DB : ${config.get("PGHOST")} ${config.get("PGPORT")} ${config.get(
+              "PGUSER"
+            )} ${config.get("PGDATABASE")}`
+          );
         })
         .catch((error) => {
           logger.error(
@@ -56,7 +61,6 @@ export const databaseProviders = [
           );
           process.exit(1);
         });
-
 
       // // Conditionally sync models based on environment
       // if (config.get("NODE_ENV") === NODE_ENV_VALUES.DEVELOPMENT) {

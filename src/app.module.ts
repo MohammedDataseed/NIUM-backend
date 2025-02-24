@@ -19,6 +19,8 @@ import { BranchService } from "./services/v1/branch/branch.service";
 import { BranchController } from "./controllers/v1/main/branch.controller";
 import { ProductService } from "./services/v1/product/product.service";
 import { ProductController } from "./controllers/v1/main/product.controller";
+import { PartnerController } from "./controllers/v1/main/partner.controller";
+import { PartnerService } from "./services/v1/partner/partner.service";
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -33,9 +35,10 @@ import { ProductController } from "./controllers/v1/main/product.controller";
       signOptions: { expiresIn: "1h" }, // ✅ Token expiry
     }),
   ],
-  controllers: [AppController, UserController, RoleController,BranchController,ProductController],
+  controllers: [AppController,PartnerController, UserController, RoleController,BranchController,ProductController],
   providers: [
     AppService,
+    PartnerService,
     UserService,
     RoleService,
     MailerService,
