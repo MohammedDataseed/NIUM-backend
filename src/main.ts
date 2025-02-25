@@ -29,6 +29,7 @@ async function bootstrap() {
       "http://localhost:8000",
       "http://127.0.0.1:8000",
       "http://nium.thestorywallcafe.com",
+      "https://nium-forex-agent-portal.vercel.app"
       "*",
     ], // Allow frontend on localhost
     credentials: true,
