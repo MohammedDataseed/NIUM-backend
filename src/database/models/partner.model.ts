@@ -137,12 +137,13 @@ export class Partner extends Model<Partner> {
   @Column({ type: DataType.BOOLEAN, allowNull: false, defaultValue: true })
   is_active: boolean;
 
-  @AllowNull(false)
-  @Column({
-    type: DataType.ENUM("cash&carry", "large_enterprise"),
-    field: "business_type",
-  })
-  business_type: string;
+  // @AllowNull(false)
+  // @Column({
+  //   type: DataType.ENUM("cash&carry", "large_enterprise"),
+  //   field: "business_type",
+  // })
+  // business_type: string;
+  
 
   // Associations
   @BelongsTo(() => Role)

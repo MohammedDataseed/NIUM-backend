@@ -30,6 +30,7 @@
     "db:rebuild": "npm run db:drop && npm run db:create && npm run db:migrate && npm run db:seed"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.750.0",
     "@nestjs/axios": "^3.0.3",
     "@nestjs/common": "^10.4.4",
     "@nestjs/config": "^3.3.0",
