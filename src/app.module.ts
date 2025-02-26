@@ -21,6 +21,11 @@ import { ProductService } from "./services/v1/product/product.service";
 import { ProductController } from "./controllers/v1/main/product.controller";
 import { PartnerController } from "./controllers/v1/main/partner.controller";
 import { PartnerService } from "./services/v1/partner/partner.service";
+import { EkycController } from "./controllers/v1/main/ekyc/ekyc.controller";
+import { EkycService } from "./services/v1/ekyc/ekyc.service";
+import { PdfModule } from "./shared/services/documents-consolidate/documents-consolidate.module";
+import { PdfService } from "./shared/services/documents-consolidate/documents-consolidate.service";
+import { PdfController } from "./shared/services/documents-consolidate/documents-consolidate.controller";
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -35,7 +40,7 @@ import { PartnerService } from "./services/v1/partner/partner.service";
       signOptions: { expiresIn: "1h" }, // ✅ Token expiry
     }),
   ],
-  controllers: [AppController,PartnerController, UserController, RoleController,BranchController,ProductController],
+  controllers: [AppController,PartnerController, UserController, RoleController,BranchController,ProductController,PdfController,EkycController],
   providers: [
     AppService,
     PartnerService,
@@ -44,6 +49,8 @@ import { PartnerService } from "./services/v1/partner/partner.service";
     MailerService,
     BranchService,
     ProductService,
+    PdfService,
+    EkycService,
     {
       provide: APP_INTERCEPTOR,
       useClass: AuditLoggerService,
