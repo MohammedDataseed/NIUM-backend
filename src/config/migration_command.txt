@@ -1,0 +1,147 @@
+=============== 1 =========================
+reach@MohammedTayib MINGW64 /d/DATASEED-NIUM/instadevelopers-nestjs-boilerplate-679505f0a847 (migration-test)
+$ npx sequelize-cli migration:generate --name create-my-partners-table
+
+Sequelize CLI [Node: 18.18.0, CLI: 6.6.2, ORM: 6.37.5]
+
+migrations folder at "D:\DATASEED-NIUM\instadevelopers-nestjs-boilerplate-679505f0a847\src\database\migrations" already exists.
+New migration was created at D:\DATASEED-NIUM\instadevelopers-nestjs-boilerplate-679505f0a847\src\database\migrations\20250227100800-create-my-partners-table.js .
+
+=============== 2 =========================
+reach@MohammedTayib MINGW64 /d/DATASEED-NIUM/instadevelopers-nestjs-boilerplate-679505f0a847 (migration-test)
+$ npx sequelize-cli db:migrate --env development --config=src/config/database.config.js
+
+Sequelize CLI [Node: 18.18.0, CLI: 6.6.2, ORM: 6.37.5]
+
+Loaded configuration file "src\config\database.config.js".
+Using environment "development".
+== 20250227100800-create-my-partners-table: migrating =======
+Sequelize CLI [Node: 18.18.0, CLI: 6.6.2, ORM: 6.37.5]
+
+Loaded configuration file "src\config\database.config.js".
+Using environment "development".
+== 20250227100800-create-my-partners-table: migrating =======
+== 20250227100800-create-my-partners-table: migrated (0.058s)
+
+=========================== 3 ========================
+
+reach@MohammedTayib MINGW64 /d/DATASEED-NIUM/instadevelopers-nestjs-boilerplate-679505f0a847 (migration-test)
+$ npx sequelize-cli db:migrate:undo --env development --config=src/config/database.config.js
+
+Sequelize CLI [Node: 18.18.0, CLI: 6.6.2, ORM: 6.37.5]
+
+Loaded configuration file "src\config\database.config.js".
+Using environment "development".
+== 20250227100800-create-my-partners-table: reverting =======
+== 20250227100800-create-my-partners-table: reverted (0.015s)
+
+===================================== END ===============================
+
+//mypartner.model.ts
+
+import {
+  Table,
+  Column,
+  Model,
+  PrimaryKey,
+  Default,
+  AllowNull,
+  Unique,
+  DataType
+} from "sequelize-typescript";
+
+@Table({
+  tableName: "my_partners",
+})
+export class Partner extends Model<Partner> {
+  @PrimaryKey
+  @Default(DataType.UUIDV4)
+  @Column({ type: DataType.UUID, field: "id" })
+  id: string;
+
+  @Unique
+  @AllowNull(false)
+  @Column({ type: DataType.STRING, field: "email" })
+  email: string;
+
+  @AllowNull(false)
+  @Column({ type: DataType.STRING, field: "password" })
+  password: string;
+
+}
+
+
+this is my new model this ineeds to be added via migration please help
+ChatGPT said:
+To create the my_partners table via migration, follow these steps:
+
+1️⃣ Generate a Migration File
+Run this command:
+
+sh
+Copy
+Edit
+npx sequelize-cli migration:generate --name create-my-partners-table
+This will create a new migration file inside the migrations folder.
+
+2️⃣ Edit the Migration File
+Open the newly generated migration file (it will have a timestamp in the filename, like 20250227120000-create-my-partners-table.js or .ts if you are using TypeScript). Modify it as follows:
+
+ts
+Copy
+Edit
+module.exports = {
+  up: async (queryInterface, Sequelize) => {
+    await queryInterface.createTable("my_partners", {
+      id: {
+        type: Sequelize.UUID,
+        defaultValue: Sequelize.UUIDV4,
+        allowNull: false,
+        primaryKey: true,
+      },
+      email: {
+        type: Sequelize.STRING,
+        allowNull: false,
+        unique: true,
+      },
+      password: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
+      createdAt: {
+        type: Sequelize.DATE,
+        allowNull: false,
+        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+      },
+      updatedAt: {
+        type: Sequelize.DATE,
+        allowNull: false,
+        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+      },
+    });
+  },
+
+  down: async (queryInterface, Sequelize) => {
+    await queryInterface.dropTable("my_partners");
+  },
+};
+3️⃣ Run the Migration
+Now, apply the migration to create the table:
+
+sh
+Copy
+Edit
+npx sequelize-cli db:migrate
+If successful, my_partners will be added to your database. ✅
+
+4️⃣ Verify the Table Exists
+Run this SQL query in PostgreSQL:
+
+sql
+Copy
+Edit
+SELECT table_name 
+FROM information_schema.tables 
+WHERE table_name = 'my_partners';
+If it returns my_partners, the migration was successful.
+
