@@ -30,6 +30,12 @@ export class Partner extends Model<Partner> {
   @Column({ type: DataType.STRING, field: "password" })
   password: string;
 
+  @Column({ type: DataType.STRING, allowNull: true })
+  phone_number: string;
+
+  @Column({ type: DataType.STRING, allowNull: true })
+  company_name: string;
+
   @Column({ type: DataType.BOOLEAN, allowNull: false, defaultValue: true })
   is_active: boolean;
 }
