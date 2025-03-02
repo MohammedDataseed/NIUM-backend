@@ -5,7 +5,7 @@ import { PartnerService } from "../../../services/v1/partner/partner.service";
 import { Partner } from "../../../database/models/partner.model";
 import * as opentracing from "opentracing";
 import { WhereOptions } from "sequelize";
-import { CreatePartnerDto, UpdatePartnerDto,SendEmailDto } from "../../../dto/partner.dto";
+import { CreatePartnerDto, UpdatePartnerDto} from "../../../dto/partner.dto";
 import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiBearerAuth } from "@nestjs/swagger";
 import { JwtGuard } from "../../../auth/jwt.guard";
 import { LoginDto } from "src/dto/login.dto";
@@ -108,23 +108,5 @@ export class PartnerController {
     return await this.partnerService.findByEmail(email);
   }
 
-  @UseGuards(JwtGuard) 
-  @Post('send-email')
-  @ApiOperation({ summary: 'Send an email', description: 'Sends an email to the specified recipient.' })
-  @ApiBody({ 
-    type: SendEmailDto, 
-    description: 'Email details required to send an email'
-  })
-  @ApiResponse({ status: 200, description: 'Email sent successfully' })
-  @ApiResponse({ status: 400, description: 'Invalid request data' })
-  @ApiResponse({ status: 500, description: 'Failed to send email' })
-  async sendEmail(@Body() body: SendEmailDto) {
-    const { to, subject, text, html } = body;
-    try {
-      const result = await this.mailService.sendMail(to, subject, text, html);
-      return { message: 'Email sent successfully', result };
-    } catch (error) {
-      return { message: 'Failed to send email', error: error.message };
-    }
-  }
+  
 }

@@ -1,147 +1,48 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsBoolean, IsOptional, IsUUID, IsEnum } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { IsString, IsUUID, IsOptional, IsBoolean } from "class-validator";
 
 export class CreateProductDto {
-  @ApiProperty({
-    description: 'Name of the product',
-    example: 'Product A',
-  })
+  @ApiProperty({ example: "Product Name", description: "Name of the product" })
   @IsString()
   name: string;
 
-  @ApiProperty({
-    description: 'Description of the product',
-    example: 'This is a great product.',
-    required: false,
-  })
+  @ApiPropertyOptional({ example: "This is a product description.", description: "Description of the product" })
   @IsString()
   @IsOptional()
   description?: string;
 
-  @ApiProperty({
-    description: 'Whether the product is active or not',
-    example: true,
-    required: false,
-  })
+  @ApiPropertyOptional({ example: true, description: "Whether the product is active or not" })
   @IsBoolean()
   @IsOptional()
   is_active?: boolean;
 
-  @ApiProperty({
-    description: 'User ID associated with the product',
-    example: '123e4567-e89b-12d3-a456-426614174000',
-  })
-  @IsUUID()
-  userId: string;
-
-  @ApiProperty({
-    description: 'User ID of the creator of the product',
-    example: '123e4567-e89b-12d3-a456-426614174000',
-  })
+  @ApiProperty({ example: "550e8400-e29b-41d4-a716-446655440001", description: "User ID of the creator" })
   @IsUUID()
   created_by: string;
 
-  @ApiProperty({
-    description: 'User ID of the last user who updated the product',
-    example: '123e4567-e89b-12d3-a456-426614174001',
-  })
+  @ApiProperty({ example: "550e8400-e29b-41d4-a716-446655440002", description: "User ID of the last updater" })
   @IsUUID()
   updated_by: string;
 }
 
 export class UpdateProductDto {
-  @ApiProperty({
-    description: 'Name of the product',
-    example: 'Updated Product A',
-    required: false,
-  })
+  @ApiPropertyOptional({ example: "Product Name", description: "Updated name of the product" })
   @IsString()
   @IsOptional()
   name?: string;
 
-  @ApiProperty({
-    description: 'Description of the product',
-    example: 'This is a new version of the product.',
-    required: false,
-  })
+  @ApiPropertyOptional({ example: "Updated product description.", description: "Updated description of the product" })
   @IsString()
   @IsOptional()
   description?: string;
 
-  @ApiProperty({
-    description: 'Whether the product is active or not',
-    example: true,
-    required: false,
-  })
+  @ApiPropertyOptional({ example: false, description: "Whether the product is active or not" })
   @IsBoolean()
   @IsOptional()
   is_active?: boolean;
 
-  @ApiProperty({
-    description: 'User ID of the last user who updated the product',
-    example: '123e4567-e89b-12d3-a456-426614174001',
-  })
+  @ApiPropertyOptional({ example: "550e8400-e29b-41d4-a716-446655440002", description: "User ID of the last updater" })
   @IsUUID()
-  updated_by: string;
-}
-
-export class ProductDto {
-  @ApiProperty({
-    description: 'Unique identifier of the product',
-    example: '123e4567-e89b-12d3-a456-426614174000',
-  })
-  @IsUUID()
-  id: string;
-
-  @ApiProperty({
-    description: 'Name of the product',
-    example: 'Product A',
-  })
-  name: string;
-
-  @ApiProperty({
-    description: 'Description of the product',
-    example: 'This is a great product.',
-    required: false,
-  })
-  description?: string;
-
-  @ApiProperty({
-    description: 'Whether the product is active or not',
-    example: true,
-  })
-  is_active: boolean;
-
-  @ApiProperty({
-    description: 'Timestamp of when the product was created',
-    example: '2025-02-17T12:34:56Z',
-  })
-  createdAt: Date;
-
-  @ApiProperty({
-    description: 'Timestamp of when the product was last updated',
-    example: '2025-02-17T12:34:56Z',
-  })
-  updatedAt: Date;
-
-  @ApiProperty({
-    description: 'User ID associated with the product',
-    example: '123e4567-e89b-12d3-a456-426614174000',
-  })
-  @IsUUID()
-  userId: string;
-
-  @ApiProperty({
-    description: 'User ID of the creator of the product',
-    example: '123e4567-e89b-12d3-a456-426614174000',
-  })
-  @IsUUID()
-  created_by: string;
-
-  @ApiProperty({
-    description: 'User ID of the last user who updated the product',
-    example: '123e4567-e89b-12d3-a456-426614174001',
-  })
-  @IsUUID()
-  updated_by: string;
+  @IsOptional()
+  updated_by?: string;
 }
