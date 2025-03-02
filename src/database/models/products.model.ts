@@ -9,8 +9,12 @@ import {
   DataType,
   ForeignKey,
   BelongsTo,
+  BelongsToMany,
 } from "sequelize-typescript";
 import { User } from "./user.model";
+import { Partner } from "./partner.model";
+import { PartnerProducts } from "./partner_products.model";
+
 
 @Table({
   tableName: "products",
@@ -49,7 +53,10 @@ export class Products extends Model<Products> {
   @Column({ type: DataType.DATE, field: "updated_at" })
   updated_at: Date;
 
-  // Associations
+  // Many-to-Many Association
+  @BelongsToMany(() => Partner, () => PartnerProducts)
+  partners: Partner[];
+
   @BelongsTo(() => User, { foreignKey: "created_by" })
   creator: User;
 

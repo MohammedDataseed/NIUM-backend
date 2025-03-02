@@ -8,7 +8,7 @@ import { Products } from './products.model';
 import { Purpose } from './purpose.model';
 import { Role } from './role.model';
 import { User } from './user.model';
-import { PartnerProducts } from './partner_products.model'; // ✅ Import it
+import { PartnerProducts } from './partner_products.model';
 
 export const models = [
   BankAccount,
@@ -21,5 +21,5 @@ export const models = [
   Purpose,
   Role,
   User,
-  PartnerProducts, // ✅ Add it here
+  PartnerProducts,
 ];

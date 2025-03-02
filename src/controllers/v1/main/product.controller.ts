@@ -25,7 +25,7 @@ export class ProductController {
   /**
    * Get all products with optional filters.
    */
-  @UseGuards(JwtGuard)
+  // @UseGuards(JwtGuard)
   @Get()
   @ApiOperation({ summary: "Get all products with optional filtering" })
   @ApiResponse({ status: 200, description: "List of products", type: [Products] })
@@ -84,7 +84,7 @@ export class ProductController {
   /**
    * Create a new product.
    */
-  @UseGuards(JwtGuard)
+  // @UseGuards(JwtGuard)
   @Post()
   @ApiOperation({ summary: "Create a new product" })
   @ApiResponse({ status: 201, description: "Product successfully created", type: Products })

@@ -14,7 +14,7 @@ import {
 import { Role } from "./role.model";
 import { Products } from "./products.model";
 import { User } from "./user.model";
-import { PartnerProducts } from "./partner_products.model"; // Many-to-Many Table
+import { PartnerProducts } from "./partner_products.model"; // Import Join Table
 
 @Table({
   tableName: "partners",
@@ -50,7 +50,7 @@ export class Partner extends Model<Partner> {
 
   @Unique
   @AllowNull(false)
-  @Column({ type: DataType.STRING, field: "api_key" })
+  @Column({ field: "api_key", type: DataType.STRING, unique: true  })
   api_key: string;
 
   @Default(true)
@@ -59,7 +59,7 @@ export class Partner extends Model<Partner> {
 
   @AllowNull(false)
   @Column({
-    type: DataType.ENUM("large_enterprise", "cash&carry"),
+    type: DataType.STRING, // Use the appropriate type
     field: "business_type",
   })
   business_type: string;
@@ -90,6 +90,7 @@ export class Partner extends Model<Partner> {
   @BelongsTo(() => User, { foreignKey: "updated_by" })
   updater: User;
 
-  @BelongsToMany(() => Products, () => PartnerProducts)
-  products: Products[];
+   // Many-to-Many Association
+   @BelongsToMany(() => Products, () => PartnerProducts)
+   products: Products[];
 }

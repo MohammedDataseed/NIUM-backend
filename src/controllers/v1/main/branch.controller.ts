@@ -16,7 +16,7 @@ export class BranchController {
     private readonly branchService: BranchService,
   ) {}
 
-  @UseGuards(JwtGuard) 
+  // @UseGuards(JwtGuard) 
   @Get()
   async findAll(@Query() params: Record<string, any>): Promise<Branch[]> {
     const tracer = opentracing.globalTracer();
@@ -27,7 +27,7 @@ export class BranchController {
     return result;
   }
 
-  @UseGuards(JwtGuard)
+  // @UseGuards(JwtGuard)
   @Post()
   @ApiOperation({ summary: "Create a new branch" })
   @ApiResponse({

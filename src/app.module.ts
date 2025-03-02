@@ -51,6 +51,7 @@ import { PdfController } from "./shared/services/documents-consolidate/documents
     ProductService,
     PdfService,
     EkycService,
+    
     {
       provide: APP_INTERCEPTOR,
       useClass: AuditLoggerService,

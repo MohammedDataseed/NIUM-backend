@@ -4,44 +4,61 @@ import {
 import { PartnerService } from "../../../services/v1/partner/partner.service";
 import { Partner } from "../../../database/models/partner.model";
 import * as opentracing from "opentracing";
-import { WhereOptions } from "sequelize";
-import { CreatePartnerDto, UpdatePartnerDto} from "../../../dto/partner.dto";
+import { CreatePartnerDto, UpdatePartnerDto } from "../../../dto/partner.dto";
 import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiBearerAuth } from "@nestjs/swagger";
 import { JwtGuard } from "../../../auth/jwt.guard";
-import { LoginDto } from "src/dto/login.dto";
+import { ParseUUIDPipe } from "@nestjs/common";
 import { MailerService } from "src/shared/services/mailer/mailer.service";
 
 @ApiTags("Partners")
 @Controller("partners")
-@ApiBearerAuth('access_token') // 🔹 Must match the name used in Swagger setup
+@ApiBearerAuth("access_token") // 🔹 Matches the Swagger setup
 export class PartnerController {
   constructor(
     private readonly partnerService: PartnerService,
-    private readonly mailService: MailerService) {}
+    private readonly mailService: MailerService
+  ) {}
 
-  // @UseGuards(JwtGuard) 
+  /** 🔹 Get All Partners */
+  // @UseGuards(JwtGuard)
   @Get()
-  async findAll(@Query() params: Record<string, any>): Promise<Partner[]> {
+  @ApiOperation({ summary: "Get all partners" })
+  @ApiResponse({ status: 200, description: "List of all partners", type: [Partner] })
+  async findAll(): Promise<Partner[]> {
     const tracer = opentracing.globalTracer();
-    const span = tracer.startSpan("find-all-partners-request");
-    const whereCondition: WhereOptions<Partner> = params as WhereOptions<Partner>;
-    const result = await this.partnerService.findAll(span, whereCondition);
-    span.finish();
-    return result;
+    const span = tracer.startSpan("get-all-partners");
+
+    try {
+      return await this.partnerService.findAllPartners(span);
+    } finally {
+      span.finish();
+    }
   }
 
-  // @UseGuards(JwtGuard) 
+  /** 🔹 Get Partner by ID */
+  @UseGuards(JwtGuard)
+  @Get(":id")
+  @ApiOperation({ summary: "Get a partner by ID" })
+  @ApiResponse({ status: 200, description: "Partner details", type: Partner })
+  @ApiResponse({ status: 404, description: "Partner not found" })
+  async findById(@Param("id", ParseUUIDPipe) id: string): Promise<Partner> {
+    const tracer = opentracing.globalTracer();
+    const span = tracer.startSpan("get-partner-by-id");
+
+    try {
+      return await this.partnerService.findPartnerById(span, id);
+    } finally {
+      span.finish();
+    }
+  }
+
+  /** 🔹 Create Partner */
+  // @UseGuards(JwtGuard)
   @Post()
   @ApiOperation({ summary: "Create a new partner" })
-  @ApiResponse({
-    status: 201,
-    description: "The partner has been successfully created.",
-    type: Partner,
-  })
-  @ApiResponse({
-    status: 400,
-    description: "Bad Request - Invalid data provided.",
-  })
+  @ApiResponse({ status: 201, description: "Partner created successfully.", type: Partner })
+  @ApiResponse({ status: 400, description: "Bad Request - Invalid data provided." })
+  @ApiBody({ type: CreatePartnerDto }) 
   async create(@Body() createPartnerDto: CreatePartnerDto): Promise<Partner> {
     const tracer = opentracing.globalTracer();
     const span = tracer.startSpan("create-partner-request");
@@ -53,19 +70,20 @@ export class PartnerController {
     }
   }
 
-  // @UseGuards(JwtGuard) 
-  @Put(':id')
-  @ApiOperation({ summary: 'Update a partner' })
-  @ApiResponse({ status: 200, description: 'The partner has been successfully updated.', type: Partner })
-  @ApiResponse({ status: 400, description: 'Bad Request - Invalid data provided.' })
-  @ApiResponse({ status: 404, description: 'Partner not found.' })
-  @ApiBody({ type: UpdatePartnerDto }) // ✅ Ensure Swagger shows request body
+  /** 🔹 Update Partner */
+  @UseGuards(JwtGuard)
+  @Put(":id")
+  @ApiOperation({ summary: "Update a partner" })
+  @ApiResponse({ status: 200, description: "Partner updated successfully.", type: Partner })
+  @ApiResponse({ status: 400, description: "Bad Request - Invalid data provided." })
+  @ApiResponse({ status: 404, description: "Partner not found." })
+  @ApiBody({ type: UpdatePartnerDto })
   async update(
-    @Param('id') id: string,
-    @Body() updatePartnerDto: Partial<UpdatePartnerDto>
+    @Param("id", ParseUUIDPipe) id: string,
+    @Body() updatePartnerDto: UpdatePartnerDto
   ): Promise<Partner> {
     const tracer = opentracing.globalTracer();
-    const span = tracer.startSpan('update-partner-request');
+    const span = tracer.startSpan("update-partner-request");
 
     try {
       return await this.partnerService.updatePartner(span, id, updatePartnerDto);
@@ -74,39 +92,21 @@ export class PartnerController {
     }
   }
 
-  // @UseGuards(JwtGuard) 
-  @Delete(':id')
-  @ApiOperation({ summary: 'Delete a partner' })
-  @ApiResponse({ status: 200, description: 'Partner successfully deleted.' })
-  @ApiResponse({ status: 404, description: 'Partner not found.' })
-  async delete(@Param('id') id: string): Promise<{ message: string }> {
+  /** 🔹 Delete Partner */
+  @UseGuards(JwtGuard)
+  @Delete(":id")
+  @ApiOperation({ summary: "Delete a partner" })
+  @ApiResponse({ status: 200, description: "Partner deleted successfully." })
+  @ApiResponse({ status: 404, description: "Partner not found." })
+  async delete(@Param("id", ParseUUIDPipe) id: string): Promise<{ message: string }> {
     const tracer = opentracing.globalTracer();
-    const span = tracer.startSpan('delete-partner-request');
+    const span = tracer.startSpan("delete-partner-request");
 
     try {
       await this.partnerService.deletePartner(span, id);
-      return { message: 'Partner deleted successfully' };
+      return { message: "Partner deleted successfully" };
     } finally {
       span.finish();
     }
   }
-
-  @Post("login") // ✅ Login Route
-  @ApiOperation({ summary: "Partner login" })
-  @ApiResponse({ status: 200, description: "Partner logged in successfully" })
-  @ApiResponse({ status: 401, description: "Invalid credentials" })
-  async login(@Body() loginDto: LoginDto) {
-    return this.partnerService.login(loginDto);
-  }
-  
-  @UseGuards(JwtGuard) 
-  @Get("email")
-  @ApiOperation({ summary: "Find partner by email" })
-  @ApiResponse({ status: 200, description: "Partner found", type: Partner })
-  @ApiResponse({ status: 404, description: "Partner not found" })
-  async findByEmail(@Query("email") email: string): Promise<Partner> {
-    return await this.partnerService.findByEmail(email);
-  }
-
-  
 }

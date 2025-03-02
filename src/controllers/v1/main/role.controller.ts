@@ -31,7 +31,7 @@ export class RoleController {
     return result;
   }
 
-  @UseGuards(JwtGuard)
+  // @UseGuards(JwtGuard)
   @Post()
   @ApiOperation({ summary: "Create a new role" })
   @ApiResponse({

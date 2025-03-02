@@ -4,8 +4,6 @@ import { Documents } from '../models/documents.model';
 import { DocumentMaster } from '../models/document_master.model';
 import { DocumentRequirements } from '../models/document_requirements.model';
 import { Partner } from '../models/partner.model';
-import { PartnerProducts } from '../models/partner_products.model'; // ✅ Add this import
-
 import { Products } from '../models/products.model';
 import { Purpose } from '../models/purpose.model';
 import { Role } from '../models/role.model';
@@ -35,10 +33,6 @@ export const repositoryProviders = [
   {
     provide: 'PARTNER_REPOSITORY',
     useValue: Partner,
-  },
-  {
-    provide: 'PARTNER_PRODUCTS_REPOSITORY', // ✅ Add PartnerProducts to the list
-    useValue: PartnerProducts,
   },
   {
     provide: 'PRODUCTS_REPOSITORY',
