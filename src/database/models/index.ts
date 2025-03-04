@@ -9,6 +9,7 @@ import { Purpose } from './purpose.model';
 import { Role } from './role.model';
 import { User } from './user.model';
 import { PartnerProducts } from './partner_products.model';
+import { Order } from './order.model';
 
 export const models = [
   BankAccount,
@@ -22,4 +23,5 @@ export const models = [
   Role,
   User,
   PartnerProducts,
+  Order,
 ];
