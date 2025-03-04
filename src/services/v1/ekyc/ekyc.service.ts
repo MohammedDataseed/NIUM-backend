@@ -108,6 +108,7 @@ export class EkycService {
     let esignFile = requestData.data.esign_file_details.esign_file;
     if (typeof esignFile === 'string' && esignFile.startsWith('http')) {
       this.logger.log(`Detected URL in esign_file: ${esignFile}. Converting to Base64...`);
+      console.log(`Detected URL in esign_file: ${esignFile}. Converting to Base64...`)
       const conversionResult = await this.convertUrlsToBase64([esignFile]);
       
       if (!conversionResult.success || conversionResult.data.length === 0) {
@@ -123,6 +124,7 @@ export class EkycService {
 
       // Replace the URL with the Base64 string in the request data
       esignFile = conversionResult.data[0].base64;
+      console.log(esignFile)
       requestData.data.esign_file_details.esign_file = esignFile;
     }
 
