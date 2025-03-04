@@ -6,6 +6,7 @@ import { LoggerService } from "./shared/services/logger/logger.service";
 import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
 import * as morgan from "morgan";
 import helmet from "helmet";
+import { json } from 'express'; // Import express json middleware
 import { ConfigService } from "@nestjs/config";
 const contextService = require("request-context");
 
@@ -38,6 +39,8 @@ async function bootstrap() {
   });
 
   app.use(helmet());
+  // Increase the JSON body size limit to 1MB (or adjust as needed)
+  app.use(json({ limit: '5mb' })); // 5mb = 5120 * 1024 bytes
   app.setGlobalPrefix("v1/api");
   app.use(contextService.middleware("request"));
 
