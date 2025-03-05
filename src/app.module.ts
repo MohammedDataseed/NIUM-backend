@@ -26,6 +26,8 @@ import { EkycService } from "./services/v1/ekyc/ekyc.service";
 import { PdfModule } from "./shared/services/documents-consolidate/documents-consolidate.module";
 import { PdfService } from "./shared/services/documents-consolidate/documents-consolidate.service";
 import { PdfController } from "./shared/services/documents-consolidate/documents-consolidate.controller";
+import { OrdersService } from "./services/v1/order/order.service";
+import { OrdersController } from "./controllers/v1/main/order.controller";
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -40,7 +42,7 @@ import { PdfController } from "./shared/services/documents-consolidate/documents
       signOptions: { expiresIn: "1h" }, // ✅ Token expiry
     }),
   ],
-  controllers: [AppController,PartnerController, UserController, RoleController,BranchController,ProductController,PdfController,EkycController],
+  controllers: [AppController,PartnerController, UserController, RoleController,BranchController,ProductController,PdfController,OrdersController ,EkycController],
   providers: [
     AppService,
     PartnerService,
@@ -51,6 +53,7 @@ import { PdfController } from "./shared/services/documents-consolidate/documents
     ProductService,
     PdfService,
     EkycService,
+    OrdersService,
     
     {
       provide: APP_INTERCEPTOR,

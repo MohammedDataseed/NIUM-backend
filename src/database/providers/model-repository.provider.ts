@@ -8,6 +8,7 @@ import { Products } from '../models/products.model';
 import { Purpose } from '../models/purpose.model';
 import { Role } from '../models/role.model';
 import { User } from '../models/user.model';
+import { Order } from '../models/order.model';
 
 export const repositoryProviders = [
   {
@@ -49,5 +50,9 @@ export const repositoryProviders = [
   {
     provide: 'USER_REPOSITORY',
     useValue: User,
+  },
+  {
+    provide: 'ORDER_REPOSITORY',
+    useValue: Order,
   },
 ];

@@ -22,11 +22,22 @@ export class ConvertUrlsToBase64Dto {
 export class EkycController {
   constructor(private readonly ekycService: EkycService) {}
 
-  @Post('request')
+  @Post('request-base64')
   @ApiOperation({ summary: 'Send an e-KYC request to IDfy' })
   @ApiHeader({ name: 'X-API-Key', description: 'Authentication token', required: true })
   @ApiBody({ type: EkycRequestDto })
   async sendEkyc(
+    @Headers('X-API-Key') token: string,
+    @Body() requestData: EkycRequestDto,
+  ) {
+    return this.ekycService.sendEkycRequestBase64(token, requestData);
+  }
+
+  @Post('generate-esign-with-orderid')
+  @ApiOperation({ summary: 'Send an e-KYC request to IDfy' })
+  @ApiHeader({ name: 'X-API-Key', description: 'Authentication token', required: true })
+  @ApiBody({ type: EkycRequestDto })
+  async sendEkycLink(
     @Headers('X-API-Key') token: string,
     @Body() requestData: EkycRequestDto,
   ) {

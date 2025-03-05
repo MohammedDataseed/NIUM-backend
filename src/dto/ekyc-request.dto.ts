@@ -1,4 +1,6 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty ,ApiPropertyOptional} from '@nestjs/swagger';
+
+import { ValidateIf, IsOptional, IsString } from "class-validator";
 
 class EsignFieldsDto {
   @ApiProperty({ example: {} })
@@ -6,14 +8,17 @@ class EsignFieldsDto {
 }
 
 class EsignFileDetailsDto {
-  @ApiProperty({ example: 'SWRN1iH' })
+  @ApiProperty({ example: "SWRN1iH" })
   esign_profile_id: string;
 
-  @ApiProperty({ example: 'Tayib' })
+  @ApiProperty({ example: "Tayib" })
   file_name: string;
 
-  @ApiProperty({ example: 'base64pdf starting with JVBERi0xL' })
-  esign_file: string;
+  @ValidateIf((o) => !o.order_id) // esign_file is required only if order_id is missing
+  @IsOptional()
+  @IsString()
+  @ApiPropertyOptional({ example: "base64pdf starting with JVBERi0xL" })
+  esign_file?: string;
 
   @ApiProperty({ type: EsignFieldsDto })
   esign_fields: EsignFieldsDto;
@@ -23,7 +28,13 @@ class EsignFileDetailsDto {
 
   @ApiProperty({ example: false })
   esign_allow_fill: boolean;
+
+  @ApiPropertyOptional({ example: "ORDER123" }) // Order ID is optional
+  @IsOptional()
+  @IsString()
+  order_id?: string;
 }
+
 
 class EsignStampDetailsDto {
   @ApiProperty({ example: '' })
@@ -62,10 +73,10 @@ class EsignInviteeDto {
 }
 
 class EkycDataDto {
-  @ApiProperty({ example: 'PDF' })
+  @ApiProperty({ example: "PDF" })
   flow_type: string;
 
-  @ApiProperty({ example: 'N0N0M8nTyzD3UghN6qehC9HTfwneEZJv' })
+  @ApiProperty({ example: "N0N0M8nTyzD3UghN6qehC9HTfwneEZJv" })
   user_key: string;
 
   @ApiProperty({ example: true })
@@ -79,18 +90,28 @@ class EkycDataDto {
 
   @ApiProperty({ type: [EsignInviteeDto] })
   esign_invitees: EsignInviteeDto[];
+
+  @ApiPropertyOptional({ example: "ORDER123" })
+  @IsOptional()
+  @IsString()
+  order_id?: string; // 🔹 Passing order_id to esign_file_details
 }
 
+
 export class EkycRequestDto {
-  @ApiProperty({ example: '234' })
+  @ApiProperty({ example: "234" })
   task_id: string;
 
-  @ApiProperty({ example: '1234' })
+  @ApiProperty({ example: "1234" })
   group_id: string;
+
+  @ApiProperty({ example: "ORDER123" })
+  order_id: string;
 
   @ApiProperty({ type: EkycDataDto })
   data: EkycDataDto;
 }
+
 
 export class EkycRetrieveRequestDto {
   @ApiProperty({ example: '234', description: 'Task ID for the e-KYC request' })

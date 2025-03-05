@@ -1,117 +1,75 @@
-import {
-    Table,
-    Column,
-    Model,
-    PrimaryKey,
-    Default,
-    AllowNull,
-    DataType,
-  } from 'sequelize-typescript';
-  
-  @Table({
-    tableName: 'orders',
-    timestamps: true,
-  })
-  export class Order extends Model<Order> {
-    @PrimaryKey
-    @Default(DataType.UUIDV4)
-    @Column({ type: DataType.UUID, field: 'id' })
-    id: string;
-  
-    @AllowNull(false)
-    @Column({ type: DataType.STRING, field: 'partner_id' })
-    partnerId: string;
-  
-    @AllowNull(false)
-    @Column({ type: DataType.STRING, field: 'order_id' })
-    orderId: string;
-  
-    @AllowNull(false)
-    @Column({ type: DataType.STRING, field: 'transaction_type' })
-    transactionType: string;
-  
-    @AllowNull(true)
-    @Column({ type: DataType.STRING, field: 'purpose_type' })
-    purposeType: string;
-  
-    @AllowNull(false)
-    @Column({ type: DataType.BOOLEAN, field: 'is_esign_required' })
-    isEsignRequired: boolean;
-  
-    @AllowNull(false)
-    @Column({ type: DataType.BOOLEAN, field: 'is_vkyc_required' })
-    isVkycRequired: boolean;
-  
-    // Extracted customer_details fields
-    @AllowNull(false)
-    @Column({ type: DataType.STRING, field: 'customer_name' })
-    customerName: string;
-  
-    @AllowNull(false)
-    @Column({ type: DataType.STRING, field: 'customer_email' })
-    customerEmail: string;
-  
-    @AllowNull(false)
-    @Column({ type: DataType.STRING, field: 'customer_phone' })
-    customerPhone: string;
-  
-    @AllowNull(false)
-    @Column({ type: DataType.STRING, field: 'customer_pan' })
-    customerPan: string;
-  
-    @AllowNull(true)
-    @Column({ type: DataType.STRING, field: 'aadhaar_pincode' })
-    aadhaarPincode: string;
-  
-    @AllowNull(true)
-    @Column({ type: DataType.STRING, field: 'aadhaar_yob' })
-    aadhaarYob: string;
-  
-    @AllowNull(true)
-    @Column({ type: DataType.STRING, field: 'aadhaar_gender' })
-    aadhaarGender: string;
-  
-    @AllowNull(true)
-    @Column({ type: DataType.STRING, field: 'kyc_document' })
-    kycDocument: string;
-  
-    @AllowNull(true)
-    @Column({ type: DataType.STRING, field: 'request_id' })
-    requestId: string;
-  
-    @AllowNull(true)
-    @Column({ type: DataType.STRING, field: 'task_id' })
-    taskId: string;
-  
-    @AllowNull(true)
-    @Column({ type: DataType.STRING, field: 'group_id' })
-    groupId: string;
-  
-    @AllowNull(true)
-    @Column({ type: DataType.STRING, field: 'action' })
-    action: string;
-  
-    @AllowNull(true)
-    @Column({ type: DataType.STRING, field: 'type' })
-    type: string;
-  
-    @AllowNull(true)
-    @Column({
-      type: DataType.ENUM('completed', 'failed', 'pending'),
-      field: 'status',
-      defaultValue: 'pending',
-    })
-    status: 'completed' | 'failed' | 'pending';
-  
-    @AllowNull(true)
-    @Column({ type: DataType.JSON, field: 'ekyc_response_data' })
-    ekycResponseData: any;
-  
-    @Default(DataType.NOW)
-    @Column({ type: DataType.DATE, field: 'created_at' })
-    createdAt: Date;
-  
-    @Default(DataType.NOW)
-    @Column({ type: DataType.DATE, field: 'updated_at' })
-    updatedAt: Date;
-  }
+import { Table, Column, Model, DataType, Default, ForeignKey, BelongsTo } from 'sequelize-typescript';
+import { User } from './user.model';
+
+@Table({ 
+  tableName: 'orders',
+  timestamps: true, 
+  createdAt: 'created_at', 
+  updatedAt: 'updated_at'
+})
+export class Order extends Model<Order> {
+  @Column({ type: DataType.UUID, allowNull: false })
+  partner_id: string;
+
+  @Column({ type: DataType.STRING, allowNull: false, unique: true })
+  order_id: string;
+
+  @Column({ type: DataType.STRING, allowNull: false })
+  transaction_type: string;
+
+  @Column({ type: DataType.STRING, allowNull: false })
+  purpose_type: string;
+
+  @Column({ type: DataType.BOOLEAN, allowNull: false, defaultValue: false })
+  isEsignRequired: boolean;
+
+  @Column({ type: DataType.BOOLEAN, allowNull: false, defaultValue: false })
+  isVkycRequired: boolean;
+
+  // Customer Details
+  @Column({ type: DataType.STRING, allowNull: false })
+  customer_name: string;
+
+  @Column({ type: DataType.STRING, allowNull: false })
+  customer_email: string;
+
+  @Column({ type: DataType.STRING, allowNull: false })
+  customer_phone: string;
+
+  @Column({ type: DataType.STRING, allowNull: false })
+  customer_pan: string;
+
+  // Aadhaar Details
+  @Column({ type: DataType.STRING, allowNull: false })
+  aadhaar_pincode: string;
+
+  @Column({ type: DataType.STRING, allowNull: false })
+  aadhaar_yob: string;
+
+  @Column({ type: DataType.STRING, allowNull: false })
+  aadhaar_gender: string;
+
+  // Timestamps & User Tracking
+  @Default(DataType.NOW)
+  @Column({ type: DataType.DATE, field: "created_at" })
+  created_at: Date;
+
+  @Default(DataType.NOW)
+  @Column({ type: DataType.DATE, field: "updated_at" })
+  updated_at: Date;
+
+  @ForeignKey(() => User)
+  @Column({ type: DataType.UUID, field: "created_by" })
+  created_by: string;
+
+  @ForeignKey(() => User)
+  @Column({ type: DataType.UUID, field: "updated_by" })
+  updated_by: string;
+
+  // Associations
+  @BelongsTo(() => User, { foreignKey: "created_by" })
+  creator: User;
+
+  @BelongsTo(() => User, { foreignKey: "updated_by" })
+  updater: User;
+}
