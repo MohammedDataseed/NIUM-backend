@@ -1,8 +1,9 @@
-//documents-consolidate.service.ts
-import { Injectable, BadRequestException, InternalServerErrorException } from "@nestjs/common";
-import { S3Client, ListObjectsV2Command, PutObjectCommand,ObjectCannedACL } from "@aws-sdk/client-s3";
-import { PDFDocument } from "pdf-lib";
-import axios from "axios";
+// documents-consolidate.service.ts
+import { Injectable, BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import { S3Client, ListObjectsV2Command, GetObjectCommand, PutObjectCommand, ObjectCannedACL } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { PDFDocument } from 'pdf-lib';
+import axios from 'axios';
 
 @Injectable()
 export class PdfService {
@@ -10,148 +11,118 @@ export class PdfService {
 
   constructor() {
     this.s3 = new S3Client({
-      region: process.env.DO_SPACE_REGION,
-      endpoint: `https://${process.env.DO_SPACE_REGION}.digitaloceanspaces.com`,
+      region: process.env.AWS_REGION,
       credentials: {
-        accessKeyId: process.env.DO_SPACE_ACCESS_KEY,
-        secretAccessKey: process.env.DO_SPACE_SECRET_KEY,
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
       },
     });
   }
 
-  /**
-   * Fetch all folders and files from a given path in DigitalOcean Spaces
-   */
-  async getAllFoldersAndFiles(path: string, role: string) {
-    if (!role) throw new BadRequestException("Role is required.");
-    if (!["client", "admin"].includes(role.toLowerCase())) {
-      throw new BadRequestException("Invalid role. Must be 'client' or 'admin'.");
+  async uploadFile(buffer: Buffer, originalName: string, folderName: string) {
+    const folder = folderName ? `${folderName}/` : '';
+    const fileName = `${Date.now()}_${originalName}`;
+    const key = `${folder}${fileName}`;
+  
+    const uploadParams = {
+      Bucket: process.env.AWS_S3_BUCKET_NAME,
+      Key: key,
+      Body: buffer,
+      ContentType: 'application/pdf',
+    };
+  
+    try {
+      await this.s3.send(new PutObjectCommand(uploadParams));
+      const signedUrl = await getSignedUrl(
+        this.s3,
+        new GetObjectCommand({
+          Bucket: process.env.AWS_S3_BUCKET_NAME,
+          Key: key,
+        }),
+        { expiresIn: 3600 } // URL expires in 1 hour
+      );
+      return {
+        message: 'File uploaded successfully.',
+        file_url: signedUrl,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(`Upload error: ${error.message}`);
     }
+  }
 
-    if (!path.startsWith("Fibregrid_projects/")) {
-      path = `Fibregrid_projects/${path}`;
-    }
 
-    const params = {
-      Bucket: process.env.DO_SPACE_BUCKET_NAME,
-      Prefix: path,
-      Delimiter: "/",
+  async listFilesByFolder(folderName: string) {
+    const prefix = `${folderName}/`; // Folder prefix in S3
+
+    const listParams = {
+      Bucket: process.env.AWS_S3_BUCKET_NAME,
+      Prefix: prefix,
     };
 
     try {
-      const response = await this.s3.send(new ListObjectsV2Command(params));
+      const response = await this.s3.send(new ListObjectsV2Command(listParams));
+      const files = response.Contents || [];
 
-      let subfolders = response.CommonPrefixes
-        ? response.CommonPrefixes.map((prefix) => prefix.Prefix.replace(path, "").replace(/\/$/, ""))
-        : [];
+      // Generate signed URLs for each file
+      const fileList = await Promise.all(
+        files.map(async (file) => {
+          const signedUrl = await getSignedUrl(
+            this.s3,
+            new GetObjectCommand({
+              Bucket: process.env.AWS_S3_BUCKET_NAME,
+              Key: file.Key,
+            }),
+            { expiresIn: 3600 } // URL expires in 1 hour
+          );
+          return {
+            name: file.Key.replace(prefix, ''), // Remove folder prefix from name
+            signed_url: signedUrl,
+          };
+        }),
+      );
 
-      let files = response.Contents
-        ? response.Contents.filter((obj) => obj.Key !== path).map((obj) => ({
-            name: obj.Key.replace(path, ""),
-            url: `https://${process.env.DO_SPACE_BUCKET_NAME}.${process.env.DO_SPACE_REGION}.digitaloceanspaces.com/${obj.Key}`,
-          }))
-        : [];
-
-      if (role.toLowerCase() === "client") {
-        const hiddenFolders = ["stage 1", "stage 2", "stage 3"];
-        subfolders = subfolders.filter((folder) => !hiddenFolders.includes(folder));
-      }
-
-      return { folder_path: path, subfolders, files };
-    } catch (error) {
-      throw new InternalServerErrorException(`Error fetching files: ${error.message}`);
-    }
-  }
-
-  /**
-   * Upload a file to an existing folder in DigitalOcean Spaces
-   */
-  async uploadFile(buffer: Buffer, originalName: string, folderPath: string, role: string) {
-    if (!role) throw new BadRequestException("Role is required.");
-    if (!["client", "admin"].includes(role.toLowerCase())) {
-      throw new BadRequestException("Invalid role. Must be 'client' or 'admin'.");
-    }
-
-    if (!folderPath.startsWith("Fibregrid_projects/")) {
-      folderPath = `Fibregrid_projects/${folderPath}`;
-    }
-    if (!folderPath.endsWith("/")) {
-      folderPath += "/";
-    }
-
-    const fileName = `${Date.now()}_${originalName}`;
-    const fullFilePath = `${folderPath}${fileName}`;
-
-   
-    try {
-      // const uploadParams = {
-      //   Bucket: process.env.DO_SPACE_BUCKET_NAME,
-      //   Key: fullFilePath,
-      //   Body: buffer,
-      //   ContentType: "application/pdf",
-      //   // ACL: "public-read", // ✅ Ensures the file is accessible publicly
-      //   ACL: ObjectCannedACL.PUBLIC_READ, // ✅ Use the correct enum value
-      // };
-      const uploadParams = {
-        Bucket: process.env.DO_SPACE_BUCKET_NAME,
-        Key: fullFilePath,
-        Body: buffer,
-        ContentType: "application/pdf",
-        ACL: "public-read" as ObjectCannedACL, // ✅ Explicit type casting
-      };
-      
-    
-      await this.s3.send(new PutObjectCommand(uploadParams));
-    
       return {
-        message: "File uploaded successfully.",
-        file_url: `https://${process.env.DO_SPACE_BUCKET_NAME}.${process.env.DO_SPACE_REGION}.digitaloceanspaces.com/${fullFilePath}`,
+        order_id: folderName,
+        files: fileList,
       };
     } catch (error) {
-      throw new InternalServerErrorException(`Upload Error: ${error.message}`);
+      throw new InternalServerErrorException(`Error listing files: ${error.message}`);
     }
   }
 
-  /**
-   * Merge multiple PDFs from URLs and upload to DigitalOcean Spaces
-   */
-  async mergeAndUploadPDF(documents: any[], clientName: string) {
+  async mergeAndUploadPDF(documents: any[], clientName: string, folderName: string) {
     if (!documents || !Array.isArray(documents)) {
-      throw new BadRequestException("Invalid input format. 'documents' must be an array.");
+      throw new BadRequestException('Invalid input format. "documents" must be an array.');
+    }
+    if (!clientName || typeof clientName !== 'string' || !clientName.trim()) {
+      throw new BadRequestException('Client name is required.');
     }
 
-    if (!clientName || typeof clientName !== "string" || !clientName.trim()) {
-      throw new BadRequestException("Client name is required.");
-    }
-
-    const sanitizedClientName = clientName.trim().replace(/\s+/g, "_");
+    const sanitizedClientName = clientName.trim().replace(/\s+/g, '_');
     const mergedPdfBytes = await this.mergeDocuments(documents);
-    const filename = `merged_${Date.now()}.pdf`;
-    const filePath = `Fibregrid_projects/FY_25-26/NIUM/NIUM-NODE_NIU_25-26_01_[Ekfrazo]/stage 1/documents-consolidated/${sanitizedClientName}/${filename}`;
+    const filename = `merged_${sanitizedClientName}_${Date.now()}.pdf`;
+    const key = `${folderName}/${filename}`;
+
+    const uploadParams = {
+      Bucket: process.env.AWS_S3_BUCKET_NAME,
+      Key: key,
+      Body: mergedPdfBytes,
+      ContentType: 'application/pdf',
+      // ACL removed
+    };
 
     try {
-      const uploadParams = {
-        Bucket: process.env.DO_SPACE_BUCKET_NAME,
-        Key: filePath,
-        Body: mergedPdfBytes,
-        ContentType: "application/pdf",
-        // ACL: "public-read",
-      };
-
       await this.s3.send(new PutObjectCommand(uploadParams));
-
       return {
-        message: "Merged PDF uploaded successfully!",
-        file_url: `https://${process.env.DO_SPACE_BUCKET_NAME}.${process.env.DO_SPACE_REGION}.digitaloceanspaces.com/${filePath}`,
+        message: 'Merged PDF uploaded successfully!',
+        file_url: `https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`,
       };
     } catch (error) {
       throw new InternalServerErrorException(`Error uploading merged PDF: ${error.message}`);
     }
   }
 
-  /**
-   * Merge multiple PDF documents
-   */
+  
   private async mergeDocuments(documents: any[]) {
     const mergedPdf = await PDFDocument.create();
 
@@ -160,8 +131,8 @@ export class PdfService {
         let fileData = null;
 
         if (
-          doc[key].startsWith("https://storage.idfy.com") ||
-          doc[key].startsWith("https://res.cloudinary.com")
+          doc[key].startsWith('https://storage.idfy.com') ||
+          doc[key].startsWith('https://res.cloudinary.com')
         ) {
           fileData = await this.decodeBase64PDF(doc[key]);
         } else {
@@ -188,8 +159,8 @@ export class PdfService {
   private async fetchFile(url: string) {
     try {
       const response = await axios.get(url, {
-        responseType: "arraybuffer",
-        headers: { "User-Agent": "Mozilla/5.0" },
+        responseType: 'arraybuffer',
+        headers: { 'User-Agent': 'Mozilla/5.0' },
       });
       return response.data;
     } catch (error) {
@@ -201,16 +172,15 @@ export class PdfService {
   private async decodeBase64PDF(url: string) {
     try {
       const response = await axios.get(url, {
-        responseType: "text",
-        headers: { "User-Agent": "Mozilla/5.0" },
+        responseType: 'text',
+        headers: { 'User-Agent': 'Mozilla/5.0' },
       });
 
-      let base64String = response.data.trim().replace(/[^A-Za-z0-9+/=]/g, "");
-
-      if (base64String.startsWith("JVBERi0x")) {
-        return Buffer.from(base64String, "base64");
+      const base64String = response.data.trim().replace(/[^A-Za-z0-9+/=]/g, '');
+      if (base64String.startsWith('JVBERi0x')) {
+        return Buffer.from(base64String, 'base64');
       } else {
-        throw new Error("Invalid Base64 content");
+        throw new Error('Invalid Base64 content');
       }
     } catch (error) {
       console.error(`Error decoding Base64 PDF from ${url}:`, error.message);

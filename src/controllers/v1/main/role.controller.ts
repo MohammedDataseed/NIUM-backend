@@ -111,10 +111,10 @@ export class RoleController {
   //   }
   // }
 
-  @Get("list")
-  async getFiles(@Query("path") path: string, @Query("role") role: string) {
-    return this.pdfService.getAllFoldersAndFiles(path, role);
-  }
+  // @Get("list")
+  // async getFiles(@Query("path") path: string, @Query("role") role: string) {
+  //   return this.pdfService.getAllFoldersAndFiles(path, role);
+  // }
 
   // @Post("upload")
   // @UseInterceptors(FileInterceptor("file"))
