@@ -110,43 +110,20 @@ async uploadFile(
     return await this.pdfService.listFilesByFolder(folderName);
   }
 
-  /**
-   * Merge multiple PDFs and upload to AWS S3 under a specific folder
-   */
-  @Post('merge')
-  @ApiOperation({ summary: 'Merge multiple PDFs and upload to AWS S3 under "merged_documents" folder' })
-  @ApiBody({
-    schema: {
-      type: 'object',
-      required: ['documents', 'clientName'],
-      properties: {
-        documents: {
-          type: 'array',
-          items: {
-            type: 'object',
-            properties: {
-              aadhar_url: { type: 'string', description: 'URL to Aadhar PDF' },
-              base64_image1: { type: 'string', description: 'URL to Base64 image or PDF' },
-              esign_file: { type: 'string', description: 'URL to E-Sign PDF' },
-            },
-          },
-          description: 'Array of document URLs to merge',
-        },
-        clientName: { type: 'string', description: 'Client name for naming the merged file' },
-      },
-    },
-  })
+
+ 
+  
+  @Post('merge-by-order')
+  @ApiOperation({ summary: 'Merge all PDFs in an order_id folder and upload to AWS S3' })
+  @ApiQuery({ name: 'order_id', required: true, description: 'Order ID folder containing PDFs to merge' })
   @ApiResponse({ status: 201, description: 'Merged PDF uploaded successfully' })
   @ApiResponse({ status: 400, description: 'Bad Request' })
-  async mergeAndUploadPDF(
-    @Body() body: {
-      documents: { aadhar_url?: string; base64_image1?: string; esign_file?: string }[];
-      clientName: string;
-    },
-  ) {
-    if (!body.documents || !body.documents.length) {
-      throw new BadRequestException('Documents array cannot be empty');
+  async mergeFilesByOrderId(@Query('order_id') orderId: string) {
+    if (!orderId || typeof orderId !== 'string' || !orderId.trim()) {
+      throw new BadRequestException('Order ID is required and must be a non-empty string');
     }
-    return await this.pdfService.mergeAndUploadPDF(body.documents, body.clientName, 'merged_documents'); // Fixed folder "merged_documents"
+    const folderName = orderId.trim();
+    return await this.pdfService.mergeFilesByFolder(folderName);
   }
+
 }

@@ -1,6 +1,6 @@
 // documents-consolidate.service.ts
 import { Injectable, BadRequestException, InternalServerErrorException } from '@nestjs/common';
-import { S3Client, ListObjectsV2Command, GetObjectCommand, PutObjectCommand, ObjectCannedACL } from '@aws-sdk/client-s3';
+import { S3Client, ListObjectsV2Command, GetObjectCommand, PutObjectCommand, DeleteObjectCommand,ObjectCannedACL } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { PDFDocument } from 'pdf-lib';
 import axios from 'axios';
@@ -119,6 +119,109 @@ export class PdfService {
       };
     } catch (error) {
       throw new InternalServerErrorException(`Error uploading merged PDF: ${error.message}`);
+    }
+  }
+
+
+  async mergeFilesByFolder(folderName: string) {
+    const prefix = `${folderName}/`;
+  
+    // Step 1: List files in the folder
+    const listParams = {
+      Bucket: process.env.AWS_S3_BUCKET_NAME,
+      Prefix: prefix,
+    };
+  
+    try {
+      const response = await this.s3.send(new ListObjectsV2Command(listParams));
+      const files = response.Contents || [];
+  
+      if (!files.length) {
+        throw new BadRequestException(`No files found in folder: ${folderName}`);
+      }
+  
+      // Step 2: Delete existing merged files
+      const mergedFiles = files.filter(file => file.Key.includes('merged_') && file.Key.endsWith('.pdf'));
+      for (const mergedFile of mergedFiles) {
+        const deleteParams = {
+          Bucket: process.env.AWS_S3_BUCKET_NAME,
+          Key: mergedFile.Key,
+        };
+        await this.s3.send(new DeleteObjectCommand(deleteParams));
+        console.log(`Deleted old merged file: ${mergedFile.Key}`);
+      }
+  
+      // Step 3: Filter non-merged files to merge
+      const filesToMerge = files.filter(file => !file.Key.includes('merged_') && file.Key.endsWith('.pdf'));
+      if (!filesToMerge.length) {
+        throw new BadRequestException(`No non-merged PDF files found to merge in folder: ${folderName}`);
+      }
+  
+      // Step 4: Fetch and merge all PDFs
+      const mergedPdf = await PDFDocument.create();
+  
+      for (const file of filesToMerge) {
+        const signedUrl = await getSignedUrl(
+          this.s3,
+          new GetObjectCommand({
+            Bucket: process.env.AWS_S3_BUCKET_NAME,
+            Key: file.Key,
+          }),
+          { expiresIn: 3600 }
+        );
+  
+        try {
+          const response = await axios.get(signedUrl, {
+            responseType: 'arraybuffer',
+            headers: { 'User-Agent': 'Mozilla/5.0' },
+          });
+          const fileData = response.data;
+  
+          const subPdf = await PDFDocument.load(fileData).catch(() => null);
+          if (subPdf) {
+            const copiedPages = await mergedPdf.copyPages(subPdf, subPdf.getPageIndices());
+            copiedPages.forEach((page) => mergedPdf.addPage(page));
+          }
+        } catch (err) {
+          console.error(`Error processing ${file.Key}:`, err.message);
+        }
+      }
+  
+      if (mergedPdf.getPageCount() === 0) {
+        throw new InternalServerErrorException(`No valid PDFs found to merge in folder: ${folderName}`);
+      }
+  
+      // Step 5: Upload the merged PDF
+      const mergedPdfBytes = await mergedPdf.save();
+      const mergedFileName = `merged_${Date.now()}.pdf`;
+      const mergedKey = `${prefix}${mergedFileName}`;
+  
+      const uploadParams = {
+        Bucket: process.env.AWS_S3_BUCKET_NAME,
+        Key: mergedKey,
+        Body: mergedPdfBytes,
+        ContentType: 'application/pdf',
+      };
+  
+      await this.s3.send(new PutObjectCommand(uploadParams));
+      const signedUrl = await getSignedUrl(
+        this.s3,
+        new GetObjectCommand({
+          Bucket: process.env.AWS_S3_BUCKET_NAME,
+          Key: mergedKey,
+        }),
+        { expiresIn: 3600 }
+      );
+  
+      return {
+        message: 'Merged PDF uploaded successfully.',
+        file_url: signedUrl,
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException || error instanceof InternalServerErrorException) {
+        throw error;
+      }
+      throw new InternalServerErrorException(`Error merging files: ${error.message}`);
     }
   }
 
