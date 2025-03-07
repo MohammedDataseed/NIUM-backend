@@ -1,5 +1,7 @@
 import {
   Controller,
+  Param,
+  Res,
   Get,
   Post,
   Put,
@@ -10,6 +12,7 @@ import {
   UseInterceptors,
   BadRequestException,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiTags,
@@ -156,4 +159,15 @@ export class PdfController {
     const fileKey = `${folderName}/${fileName.trim()}`;
     return await this.pdfService.deleteFile(fileKey);
   }
+
+  // @Get(':folderName/:fileName')
+  // async serveDocument(
+  //   @Param('folderName') folderName: string,
+  //   @Param('fileName') fileName: string,
+  //   @Res() res: Response,
+  // ) {
+  //   const fileStream = await this.pdfService.serveDocument(folderName, fileName);
+  //   res.setHeader('Content-Type', 'application/pdf');
+  //   fileStream.pipe(res);
+  // }
 }
