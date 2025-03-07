@@ -28,6 +28,8 @@ import { PdfService } from "./shared/services/documents-consolidate/documents-co
 import { PdfController } from "./shared/services/documents-consolidate/documents-consolidate.controller";
 import { OrdersService } from "./services/v1/order/order.service";
 import { OrdersController } from "./controllers/v1/main/order.controller";
+import { VideokycService } from "./services/v1/videokyc/videokyc.service";
+import { VideokycController } from "./controllers/v1/main/videokyc/videokyc.controller";
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -42,7 +44,7 @@ import { OrdersController } from "./controllers/v1/main/order.controller";
       signOptions: { expiresIn: "1h" }, // ✅ Token expiry
     }),
   ],
-  controllers: [AppController,PartnerController, UserController, RoleController,BranchController,ProductController,PdfController,OrdersController ,EkycController],
+  controllers: [AppController,PartnerController, UserController, RoleController,BranchController,ProductController,PdfController,OrdersController ,EkycController,VideokycController],
   providers: [
     AppService,
     PartnerService,
@@ -53,6 +55,7 @@ import { OrdersController } from "./controllers/v1/main/order.controller";
     ProductService,
     PdfService,
     EkycService,
+    VideokycService,
     OrdersService,
     
     {

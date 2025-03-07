@@ -10,9 +10,21 @@ export class VideokycService {
 
   private readonly API_KEY = 'fbb65739-9015-4d88-b2f5-5057e1b1f07e';
   private readonly ACCOUNT_ID = 'e1628d9a6e50/7afd3aae-730e-41ff-aa4c-0914ef4dbbe0';
+  private readonly CONFIG_ID = 'c480f12f-c209-4d88-ad7c-c1c70a783149'
 
-  async sendVideokycRequest(token: string, requestData: any) {
+ async sendVideokycRequest(token: string, referenceId: string) {
     try {
+      const requestData = {
+        reference_id: referenceId,
+        config: {
+          id: this.CONFIG_ID,
+          overrides: {}
+        },
+        data: {
+          addresses: []
+        }
+      };
+
       const response = await axios.post(this.REQUEST_API_URL, requestData, {
         headers: {
           'api-key': this.API_KEY,
