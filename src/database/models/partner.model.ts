@@ -10,11 +10,13 @@ import {
   ForeignKey,
   BelongsTo,
   BelongsToMany,
+  BeforeCreate,
 } from "sequelize-typescript";
 import { Role } from "./role.model";
 import { Products } from "./products.model";
 import { User } from "./user.model";
-import { PartnerProducts } from "./partner_products.model"; // Import Join Table
+import { PartnerProducts } from "./partner_products.model";
+import * as crypto from "crypto"; // Import Node.js crypto module
 
 @Table({
   tableName: "partners",
@@ -25,6 +27,11 @@ export class Partner extends Model<Partner> {
   @Default(DataType.UUIDV4)
   @Column({ type: DataType.UUID, field: "id" })
   id: string;
+
+  @Unique
+  @AllowNull(false)
+  @Column({ type: DataType.STRING, field: "hashed_key" }) // New hashed_key field
+  hashed_key: string;
 
   @ForeignKey(() => Role)
   @AllowNull(false)
@@ -50,7 +57,7 @@ export class Partner extends Model<Partner> {
 
   @Unique
   @AllowNull(false)
-  @Column({ field: "api_key", type: DataType.STRING, unique: true  })
+  @Column({ field: "api_key", type: DataType.STRING, unique: true })
   api_key: string;
 
   @Default(true)
@@ -59,7 +66,7 @@ export class Partner extends Model<Partner> {
 
   @AllowNull(false)
   @Column({
-    type: DataType.STRING, // Use the appropriate type
+    type: DataType.STRING,
     field: "business_type",
   })
   business_type: string;
@@ -90,7 +97,16 @@ export class Partner extends Model<Partner> {
   @BelongsTo(() => User, { foreignKey: "updated_by" })
   updater: User;
 
-   // Many-to-Many Association
-   @BelongsToMany(() => Products, () => PartnerProducts)
-   products: Products[];
+  @BelongsToMany(() => Products, () => PartnerProducts)
+  products: Products[];
+
+  // Hook to generate hashed_key before creating the record
+  @BeforeCreate
+  static generateHashedKey(instance: Partner) {
+    const hash = crypto
+      .createHash("sha256") // You can use md5, sha256, etc.
+      .update(instance.id + Date.now().toString()) // Combine id and timestamp for uniqueness
+      .digest("hex"); // Output as hexadecimal string
+    instance.hashed_key = hash;
+  }
 }
