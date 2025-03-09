@@ -79,8 +79,8 @@ export class PartnerService {
 
       const partner = await this.partnerRepository.create(createPartnerDto, { transaction });
 
-      if (createPartnerDto.productIds?.length) {
-        await partner.$set('products', createPartnerDto.productIds, { transaction });
+      if (createPartnerDto.product_ids?.length) {
+        await partner.$set('products', createPartnerDto.product_ids, { transaction });
       }
 
       await transaction.commit();
@@ -123,8 +123,8 @@ export class PartnerService {
 
       await partner.update(updatePartnerDto, { transaction });
 
-      if (updatePartnerDto.productIds) {
-        await partner.$set('products', updatePartnerDto.productIds, { transaction });
+      if (updatePartnerDto.product_ids) {
+        await partner.$set('products', updatePartnerDto.product_ids, { transaction });
       }
 
       await transaction.commit();
@@ -166,11 +166,9 @@ export class PartnerService {
       api_key: partner.api_key,
       is_active: partner.is_active,
       business_type: businessTypeValue,
-      created_at: partner.created_at,
-      updated_at: partner.updated_at,
       created_by: partner.created_by,
       updated_by: partner.updated_by,
-      productIds: partner.products?.map((product) => product.id) || [],
+      product_ids: partner.products?.map((product) => product.id) || [],
     };
   }
 }

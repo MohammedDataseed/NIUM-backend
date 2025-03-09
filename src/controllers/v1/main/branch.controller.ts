@@ -1,22 +1,20 @@
-import { Controller, Get, Query, Post, Body,UseGuards } from "@nestjs/common";
+import { Controller, Get, Query, Post, Body, UseGuards } from "@nestjs/common";
 import { BranchService } from "../../../services/v1/branch/branch.service";
 import { Branch } from "../../../database/models/branch.model";
 import * as opentracing from "opentracing";
 import { TracerService } from "../../../shared/services/tracer/tracer.service";
 import { WhereOptions } from "sequelize";
 import { CreateBranchDto } from "src/dto/branch.dto";
-import { ApiTags, ApiOperation, ApiResponse,ApiBody } from "@nestjs/swagger";
+import { ApiTags, ApiOperation, ApiResponse, ApiBody } from "@nestjs/swagger";
 import { JwtGuard } from "../../../auth/jwt.guard";
 import { PdfService } from "src/shared/services/documents-consolidate/documents-consolidate.service";
 
 @ApiTags("Branches")
 @Controller("branches")
 export class BranchController {
-  constructor(
-    private readonly branchService: BranchService,
-  ) {}
+  constructor(private readonly branchService: BranchService) {}
 
-  // @UseGuards(JwtGuard) 
+  // //@UseGuards(JwtGuard)
   @Get()
   async findAll(@Query() params: Record<string, any>): Promise<Branch[]> {
     const tracer = opentracing.globalTracer();
@@ -27,7 +25,7 @@ export class BranchController {
     return result;
   }
 
-  // @UseGuards(JwtGuard)
+  // //@UseGuards(JwtGuard)
   @Post()
   @ApiOperation({ summary: "Create a new branch" })
   @ApiResponse({
@@ -39,7 +37,9 @@ export class BranchController {
     status: 400,
     description: "Bad Request - Invalid data provided.",
   })
-  async createBranch(@Body() createBranchDto: CreateBranchDto): Promise<Branch> {
+  async createBranch(
+    @Body() createBranchDto: CreateBranchDto
+  ): Promise<Branch> {
     const tracer = opentracing.globalTracer();
     const span = tracer.startSpan("create-branch-request");
 
@@ -49,6 +49,4 @@ export class BranchController {
       span.finish();
     }
   }
-
-
 }

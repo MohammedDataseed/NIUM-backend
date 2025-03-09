@@ -15,6 +15,7 @@ import { DocumentRequirements } from "./document_requirements.model";
 // Documents Model
 @Table({
   tableName: "documents",
+  timestamps: true,
 })
 export class Documents extends Model<Documents> {
   @PrimaryKey
@@ -75,13 +76,13 @@ export class Documents extends Model<Documents> {
   @Column({ type: DataType.BOOLEAN, field: "is_customer" })
   isCustomer: boolean;
 
-  @Default(DataType.NOW)
-  @Column({ type: DataType.DATE, field: "created_at" })
-  createdAt: Date;
+  // @Default(DataType.NOW)
+  // @Column({ type: DataType.DATE, field: "created_at" })
+  // created_at: Date;
 
-  @Default(DataType.NOW)
-  @Column({ type: DataType.DATE, field: "updated_at" })
-  updatedAt: Date;
+  // @Default(DataType.NOW)
+  // @Column({ type: DataType.DATE, field: "updated_at" })
+  // updated_at: Date;
 
   @ForeignKey(() => User)
   @Column({ type: DataType.UUID, field: "created_by" })

@@ -1,11 +1,17 @@
-import { Table, Column, Model, DataType, Default, ForeignKey, BelongsTo } from 'sequelize-typescript';
-import { User } from './user.model';
+import {
+  Table,
+  Column,
+  Model,
+  DataType,
+  Default,
+  ForeignKey,
+  BelongsTo,
+} from "sequelize-typescript";
+import { User } from "./user.model";
 
-@Table({ 
-  tableName: 'orders',
-  timestamps: true, 
-  createdAt: 'created_at', 
-  updatedAt: 'updated_at'
+@Table({
+  tableName: "orders",
+  timestamps: true,
 })
 export class Order extends Model<Order> {
   @Column({ type: DataType.UUID, allowNull: false })
@@ -49,14 +55,14 @@ export class Order extends Model<Order> {
   @Column({ type: DataType.STRING, allowNull: false })
   aadhaar_gender: string;
 
-  // Timestamps & User Tracking
-  @Default(DataType.NOW)
-  @Column({ type: DataType.DATE, field: "created_at" })
-  created_at: Date;
+  // // Timestamps & User Tracking
+  // @Default(DataType.NOW)
+  // @Column({ type: DataType.DATE, field: "created_at" })
+  // created_at: Date;
 
-  @Default(DataType.NOW)
-  @Column({ type: DataType.DATE, field: "updated_at" })
-  updated_at: Date;
+  // @Default(DataType.NOW)
+  // @Column({ type: DataType.DATE, field: "updated_at" })
+  // updated_at: Date;
 
   @ForeignKey(() => User)
   @Column({ type: DataType.UUID, field: "created_by" })
@@ -66,10 +72,10 @@ export class Order extends Model<Order> {
   @Column({ type: DataType.UUID, field: "updated_by" })
   updated_by: string;
 
-  // Associations
-  @BelongsTo(() => User, { foreignKey: "created_by" })
-  creator: User;
+  // // Associations
+  // @BelongsTo(() => User, { foreignKey: "created_by" })
+  // creator: User;
 
-  @BelongsTo(() => User, { foreignKey: "updated_by" })
-  updater: User;
+  // @BelongsTo(() => User, { foreignKey: "updated_by" })
+  // updater: User;
 }

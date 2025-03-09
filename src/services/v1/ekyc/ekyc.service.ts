@@ -7,7 +7,7 @@ import { PDFDocument } from 'pdf-lib';
 interface EkycApiResponse {
   action: string;
   completed_at: string;
-  created_at: string;
+  // created_at: string;
   group_id: string;
   request_id: string;
   status: 'completed' | 'failed';

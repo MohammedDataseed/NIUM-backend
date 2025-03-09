@@ -1,7 +1,11 @@
 import { Injectable, Inject, ConflictException } from "@nestjs/common";
 import { Branch } from "../../../database/models/branch.model";
 import * as opentracing from "opentracing";
-import { BranchDto,CreateBranchDto,UpdateBranchDto } from "../../../dto/branch.dto";
+import {
+  BranchDto,
+  CreateBranchDto,
+  UpdateBranchDto,
+} from "../../../dto/branch.dto";
 import { WhereOptions } from "sequelize";
 
 @Injectable()
@@ -28,8 +32,10 @@ export class BranchService {
     span: opentracing.Span,
     createBranchDto: CreateBranchDto
   ): Promise<Branch> {
-    const childSpan = span.tracer().startSpan("create-branch", { childOf: span });
-  
+    const childSpan = span
+      .tracer()
+      .startSpan("create-branch", { childOf: span });
+
     try {
       // Check if branch already exists
       const existingBranch = await this.branchRepository.findOne({
@@ -38,16 +44,16 @@ export class BranchService {
       if (existingBranch) {
         throw new ConflictException("Branch already exists");
       }
-  
+
       console.log("Received DTO:", createBranchDto); // Debugging log
-  
+
       // Ensure all required fields are passed to create()
       return await this.branchRepository.create({
         name: createBranchDto.name,
         location: createBranchDto.location,
         city: createBranchDto.city,
         state: createBranchDto.state,
-        businessType: createBranchDto.businessType,
+        business_type: createBranchDto.business_type,
         created_by: createBranchDto.created_by, // Ensure UUIDs are provided
         updated_by: createBranchDto.updated_by,
       });
@@ -55,5 +61,4 @@ export class BranchService {
       childSpan.finish();
     }
   }
-  
 }

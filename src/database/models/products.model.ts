@@ -18,7 +18,7 @@ import { PartnerProducts } from "./partner_products.model";
 
 @Table({
   tableName: "products",
-  timestamps: false, // Since we have manual created_at & updated_at fields
+  timestamps: true, // Since we have manual created_at & updated_at fields
 })
 export class Products extends Model<Products> {
   @PrimaryKey
@@ -45,21 +45,21 @@ export class Products extends Model<Products> {
   @Column({ type: DataType.UUID, field: "updated_by" })
   updated_by: string;
 
-  @Default(DataType.NOW)
-  @Column({ type: DataType.DATE, field: "created_at" })
-  created_at: Date;
+  // @Default(DataType.NOW)
+  // @Column({ type: DataType.DATE, field: "created_at" })
+  // created_at: Date;
 
-  @Default(DataType.NOW)
-  @Column({ type: DataType.DATE, field: "updated_at" })
-  updated_at: Date;
+  // @Default(DataType.NOW)
+  // @Column({ type: DataType.DATE, field: "updated_at" })
+  // updated_at: Date;
 
-  // Many-to-Many Association
-  @BelongsToMany(() => Partner, () => PartnerProducts)
-  partners: Partner[];
+  // // Many-to-Many Association
+  // @BelongsToMany(() => Partner, () => PartnerProducts)
+  // partners: Partner[];
 
-  @BelongsTo(() => User, { foreignKey: "created_by" })
-  creator: User;
+  // @BelongsTo(() => User, { foreignKey: "created_by" })
+  // creator: User;
 
-  @BelongsTo(() => User, { foreignKey: "updated_by" })
-  updater: User;
+  // @BelongsTo(() => User, { foreignKey: "updated_by" })
+  // updater: User;
 }

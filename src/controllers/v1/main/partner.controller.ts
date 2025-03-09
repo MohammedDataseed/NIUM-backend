@@ -1,10 +1,28 @@
-import { 
-  UseGuards, Controller, Get, Post, Put, Delete, Body, Param 
+import {
+  UseGuards,
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
 } from "@nestjs/common";
 import { PartnerService } from "../../../services/v1/partner/partner.service";
 import * as opentracing from "opentracing";
-import { CreatePartnerDto, UpdatePartnerDto, PartnerResponseDto } from "../../../dto/partner.dto";
-import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiBearerAuth, ApiParam } from "@nestjs/swagger";
+import {
+  CreatePartnerDto,
+  UpdatePartnerDto,
+  PartnerResponseDto,
+} from "../../../dto/partner.dto";
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBody,
+  ApiBearerAuth,
+  ApiParam,
+} from "@nestjs/swagger";
 import { JwtGuard } from "../../../auth/jwt.guard";
 import { MailerService } from "src/shared/services/mailer/mailer.service";
 
@@ -20,14 +38,14 @@ export class PartnerController {
   /** 🔹 Get All Partners */
   @Get()
   @ApiOperation({ summary: "Get all partners" })
-  @ApiResponse({ 
-    status: 200, 
-    description: "List of all partners", 
-    type: [PartnerResponseDto] 
+  @ApiResponse({
+    status: 200,
+    description: "List of all partners",
+    type: [PartnerResponseDto],
   })
-  @ApiResponse({ 
-    status: 500, 
-    description: "Internal server error" 
+  @ApiResponse({
+    status: 500,
+    description: "Internal server error",
   })
   async findAll(): Promise<PartnerResponseDto[]> {
     const tracer = opentracing.globalTracer();
@@ -41,28 +59,30 @@ export class PartnerController {
   }
 
   /** 🔹 Get Partner by Hashed Key */
-  @UseGuards(JwtGuard)
+  //@UseGuards(JwtGuard)
   @Get(":hashed_key")
   @ApiOperation({ summary: "Get a partner by hashed key" })
-  @ApiParam({ 
-    name: "hashed_key", 
-    description: "Unique hashed key of the partner", 
-    example: "a1b2c3d4e5f6..." 
+  @ApiParam({
+    name: "hashed_key",
+    description: "Unique hashed key of the partner",
+    example: "a1b2c3d4e5f6...",
   })
-  @ApiResponse({ 
-    status: 200, 
-    description: "Partner details", 
-    type: PartnerResponseDto 
+  @ApiResponse({
+    status: 200,
+    description: "Partner details",
+    type: PartnerResponseDto,
   })
-  @ApiResponse({ 
-    status: 404, 
-    description: "Partner not found" 
+  @ApiResponse({
+    status: 404,
+    description: "Partner not found",
   })
-  @ApiResponse({ 
-    status: 401, 
-    description: "Unauthorized" 
+  @ApiResponse({
+    status: 401,
+    description: "Unauthorized",
   })
-  async findByHashedKey(@Param("hashed_key") hashed_key: string): Promise<PartnerResponseDto> {
+  async findByHashedKey(
+    @Param("hashed_key") hashed_key: string
+  ): Promise<PartnerResponseDto> {
     const tracer = opentracing.globalTracer();
     const span = tracer.startSpan("get-partner-by-hashed-key");
 
@@ -77,20 +97,22 @@ export class PartnerController {
   @Post()
   @ApiOperation({ summary: "Create a new partner" })
   @ApiBody({ type: CreatePartnerDto })
-  @ApiResponse({ 
-    status: 201, 
-    description: "Partner created successfully", 
-    type: PartnerResponseDto 
+  @ApiResponse({
+    status: 201,
+    description: "Partner created successfully",
+    type: PartnerResponseDto,
   })
-  @ApiResponse({ 
-    status: 400, 
-    description: "Bad Request - Invalid data provided" 
+  @ApiResponse({
+    status: 400,
+    description: "Bad Request - Invalid data provided",
   })
-  @ApiResponse({ 
-    status: 500, 
-    description: "Internal server error" 
+  @ApiResponse({
+    status: 500,
+    description: "Internal server error",
   })
-  async create(@Body() createPartnerDto: CreatePartnerDto): Promise<PartnerResponseDto> {
+  async create(
+    @Body() createPartnerDto: CreatePartnerDto
+  ): Promise<PartnerResponseDto> {
     const tracer = opentracing.globalTracer();
     const span = tracer.startSpan("create-partner-request");
 
@@ -102,31 +124,31 @@ export class PartnerController {
   }
 
   /** 🔹 Update Partner */
-  @UseGuards(JwtGuard)
+  //@UseGuards(JwtGuard)
   @Put(":hashed_key")
   @ApiOperation({ summary: "Update a partner by hashed key" })
-  @ApiParam({ 
-    name: "hashed_key", 
-    description: "Unique hashed key of the partner", 
-    example: "a1b2c3d4e5f6..." 
+  @ApiParam({
+    name: "hashed_key",
+    description: "Unique hashed key of the partner",
+    example: "a1b2c3d4e5f6...",
   })
   @ApiBody({ type: UpdatePartnerDto })
-  @ApiResponse({ 
-    status: 200, 
-    description: "Partner updated successfully", 
-    type: PartnerResponseDto 
+  @ApiResponse({
+    status: 200,
+    description: "Partner updated successfully",
+    type: PartnerResponseDto,
   })
-  @ApiResponse({ 
-    status: 400, 
-    description: "Bad Request - Invalid data provided" 
+  @ApiResponse({
+    status: 400,
+    description: "Bad Request - Invalid data provided",
   })
-  @ApiResponse({ 
-    status: 404, 
-    description: "Partner not found" 
+  @ApiResponse({
+    status: 404,
+    description: "Partner not found",
   })
-  @ApiResponse({ 
-    status: 401, 
-    description: "Unauthorized" 
+  @ApiResponse({
+    status: 401,
+    description: "Unauthorized",
   })
   async update(
     @Param("hashed_key") hashed_key: string,
@@ -136,36 +158,42 @@ export class PartnerController {
     const span = tracer.startSpan("update-partner-request");
 
     try {
-      return await this.partnerService.updatePartnerByHashedKey(span, hashed_key, updatePartnerDto);
+      return await this.partnerService.updatePartnerByHashedKey(
+        span,
+        hashed_key,
+        updatePartnerDto
+      );
     } finally {
       span.finish();
     }
   }
 
   /** 🔹 Delete Partner */
-  @UseGuards(JwtGuard)
+  //@UseGuards(JwtGuard)
   @Delete(":hashed_key")
   @ApiOperation({ summary: "Delete a partner by hashed key" })
-  @ApiParam({ 
-    name: "hashed_key", 
-    description: "Unique hashed key of the partner", 
-    example: "a1b2c3d4e5f6..." 
+  @ApiParam({
+    name: "hashed_key",
+    description: "Unique hashed key of the partner",
+    example: "a1b2c3d4e5f6...",
   })
-  @ApiResponse({ 
-    status: 200, 
-    description: "Partner deleted successfully", 
+  @ApiResponse({
+    status: 200,
+    description: "Partner deleted successfully",
     type: Object, // For { message: string }
-    example: { message: "Partner deleted successfully" }
+    example: { message: "Partner deleted successfully" },
   })
-  @ApiResponse({ 
-    status: 404, 
-    description: "Partner not found" 
+  @ApiResponse({
+    status: 404,
+    description: "Partner not found",
   })
-  @ApiResponse({ 
-    status: 401, 
-    description: "Unauthorized" 
+  @ApiResponse({
+    status: 401,
+    description: "Unauthorized",
   })
-  async delete(@Param("hashed_key") hashed_key: string): Promise<{ message: string }> {
+  async delete(
+    @Param("hashed_key") hashed_key: string
+  ): Promise<{ message: string }> {
     const tracer = opentracing.globalTracer();
     const span = tracer.startSpan("delete-partner-request");
 

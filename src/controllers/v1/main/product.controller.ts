@@ -14,7 +14,13 @@ import { Products } from "../../../database/models/products.model";
 import * as opentracing from "opentracing";
 import { WhereOptions } from "sequelize";
 import { CreateProductDto, UpdateProductDto } from "src/dto/product.dto";
-import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiParam } from "@nestjs/swagger";
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBody,
+  ApiParam,
+} from "@nestjs/swagger";
 import { JwtGuard } from "../../../auth/jwt.guard";
 
 @ApiTags("Products")
@@ -25,10 +31,14 @@ export class ProductController {
   /**
    * Get all products with optional filters.
    */
-  // @UseGuards(JwtGuard)
+  // //@UseGuards(JwtGuard)
   @Get()
   @ApiOperation({ summary: "Get all products with optional filtering" })
-  @ApiResponse({ status: 200, description: "List of products", type: [Products] })
+  @ApiResponse({
+    status: 200,
+    description: "List of products",
+    type: [Products],
+  })
   async findAll(@Query() params: Record<string, any>): Promise<Products[]> {
     const tracer = opentracing.globalTracer();
     const span = tracer.startSpan("find-all-products-request");
@@ -36,7 +46,8 @@ export class ProductController {
     try {
       span.log({ event: "query-start", filters: params });
 
-      const whereCondition: WhereOptions<Products> = params as WhereOptions<Products>;
+      const whereCondition: WhereOptions<Products> =
+        params as WhereOptions<Products>;
       const products = await this.productService.findAll(span, whereCondition);
 
       span.log({ event: "query-success", count: products.length });
@@ -54,7 +65,7 @@ export class ProductController {
   /**
    * Get a single product by ID.
    */
-  @UseGuards(JwtGuard)
+  //@UseGuards(JwtGuard)
   @Get(":id")
   @ApiOperation({ summary: "Get a product by ID" })
   @ApiParam({ name: "id", description: "Product ID", type: "string" })
@@ -84,19 +95,31 @@ export class ProductController {
   /**
    * Create a new product.
    */
-  // @UseGuards(JwtGuard)
+  // //@UseGuards(JwtGuard)
   @Post()
   @ApiOperation({ summary: "Create a new product" })
-  @ApiResponse({ status: 201, description: "Product successfully created", type: Products })
+  @ApiResponse({
+    status: 201,
+    description: "Product successfully created",
+    type: Products,
+  })
   @ApiResponse({ status: 400, description: "Invalid data provided" })
-  async createProduct(@Body() createProductDto: CreateProductDto): Promise<Products> {
+  async createProduct(
+    @Body() createProductDto: CreateProductDto
+  ): Promise<Products> {
     const tracer = opentracing.globalTracer();
     const span = tracer.startSpan("create-product-request");
 
     try {
-      span.log({ event: "creating-product", productName: createProductDto.name });
+      span.log({
+        event: "creating-product",
+        productName: createProductDto.name,
+      });
 
-      const product = await this.productService.createProduct(span, createProductDto);
+      const product = await this.productService.createProduct(
+        span,
+        createProductDto
+      );
 
       span.log({ event: "product-created", productId: product.id });
 
@@ -113,11 +136,15 @@ export class ProductController {
   /**
    * Update a product.
    */
-  @UseGuards(JwtGuard)
+  //@UseGuards(JwtGuard)
   @Put(":id")
   @ApiOperation({ summary: "Update an existing product" })
   @ApiParam({ name: "id", description: "Product ID", type: "string" })
-  @ApiResponse({ status: 200, description: "Product successfully updated", type: Products })
+  @ApiResponse({
+    status: 200,
+    description: "Product successfully updated",
+    type: Products,
+  })
   @ApiResponse({ status: 404, description: "Product not found" })
   async updateProduct(
     @Param("id") id: string,
@@ -129,7 +156,11 @@ export class ProductController {
     try {
       span.log({ event: "updating-product", productId: id });
 
-      const product = await this.productService.updateProduct(span, id, updateProductDto);
+      const product = await this.productService.updateProduct(
+        span,
+        id,
+        updateProductDto
+      );
 
       span.log({ event: "product-updated", productId: product.id });
 
@@ -146,7 +177,7 @@ export class ProductController {
   /**
    * Delete a product.
    */
-  @UseGuards(JwtGuard)
+  //@UseGuards(JwtGuard)
   @Delete(":id")
   @ApiOperation({ summary: "Delete a product" })
   @ApiParam({ name: "id", description: "Product ID", type: "string" })

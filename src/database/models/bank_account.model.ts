@@ -13,8 +13,9 @@ import { User } from "./user.model";
 
 @Table({
   tableName: "bank_accounts",
+  timestamps: true,
 })
-export class BankAccount extends Model<BankAccount> {
+export class bank_account extends Model<bank_account> {
   @PrimaryKey
   @Default(DataType.UUIDV4)
   @Column({ type: DataType.UUID, field: "id" })
@@ -44,13 +45,13 @@ export class BankAccount extends Model<BankAccount> {
   @Column({ type: DataType.BOOLEAN, field: "is_beneficiary" })
   isBeneficiary: boolean;
 
-  @Default(DataType.NOW)
-  @Column({ type: DataType.DATE, field: "created_at" })
-  createdAt: Date;
+  // @Default(DataType.NOW)
+  // @Column({ type: DataType.DATE, field: "created_at" })
+  // created_at: Date;
 
-  @Default(DataType.NOW)
-  @Column({ type: DataType.DATE, field: "updated_at" })
-  updatedAt: Date;
+  // @Default(DataType.NOW)
+  // @Column({ type: DataType.DATE, field: "updated_at" })
+  // updated_at: Date;
 
   @ForeignKey(() => User)
   @Column({ type: DataType.UUID, field: "created_by" })

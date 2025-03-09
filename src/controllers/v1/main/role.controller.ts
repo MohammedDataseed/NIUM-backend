@@ -1,5 +1,14 @@
 // import { Controller, Get, Query, Post, Body, UseGuards } from "@nestjs/common";
-import { Controller, Get, Post, Body, Query,UseGuards, UploadedFile, UseInterceptors } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Query,
+  UseGuards,
+  UploadedFile,
+  UseInterceptors,
+} from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { PdfService } from "../../../shared/services/documents-consolidate/documents-consolidate.service";
 import { RoleService } from "../../../services/v1/role/role.service";
@@ -20,7 +29,7 @@ export class RoleController {
     private readonly pdfService: PdfService
   ) {}
 
-  // @UseGuards(JwtGuard)
+  // //@UseGuards(JwtGuard)
   @Get()
   async findAll(@Query() params: Record<string, any>): Promise<Role[]> {
     const tracer = opentracing.globalTracer();
@@ -31,7 +40,7 @@ export class RoleController {
     return result;
   }
 
-  // @UseGuards(JwtGuard)
+  // //@UseGuards(JwtGuard)
   @Post()
   @ApiOperation({ summary: "Create a new role" })
   @ApiResponse({
@@ -53,5 +62,4 @@ export class RoleController {
       span.finish();
     }
   }
-
 }

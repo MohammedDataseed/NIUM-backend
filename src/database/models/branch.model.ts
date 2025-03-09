@@ -8,10 +8,12 @@ import {
   Unique,
   DataType,
   ForeignKey,
+  BelongsTo,
 } from "sequelize-typescript";
 import { User } from "./user.model";
 @Table({
   tableName: "branches",
+  timestamps: true,
 })
 export class Branch extends Model<Branch> {
   @PrimaryKey
@@ -40,24 +42,29 @@ export class Branch extends Model<Branch> {
     type: DataType.ENUM("cash&carry", "large_enterprise"),
     field: "business_type",
   })
-  businessType: string;
+  business_type: string;
 
-  @Default(DataType.NOW)
-  @Column({ type: DataType.DATE, field: "created_at" })
-  createdAt: Date;
+  // Timestamps & User Tracking
+  // @Default(DataType.NOW)
+  // @Column({ type: DataType.DATE, field: "created_at" })
+  // created_at: Date;
 
-  @Default(DataType.NOW)
-  @Column({ type: DataType.DATE, field: "updated_at" })
-  updatedAt: Date;
+  // @Default(DataType.NOW)
+  // @Column({ type: DataType.DATE, field: "updated_at" })
+  // updated_at: Date;
 
   @ForeignKey(() => User)
-  @AllowNull(true)  // Make it optional
   @Column({ type: DataType.UUID, field: "created_by" })
-  created_by?: string;
-  
+  created_by: string;
+
   @ForeignKey(() => User)
-  @AllowNull(true)  // Make it optional
   @Column({ type: DataType.UUID, field: "updated_by" })
-  updated_by?: string;
-  
+  updated_by: string;
+
+  // // Associations
+  // @BelongsTo(() => User, { foreignKey: "created_by" })
+  // creator: User;
+
+  // @BelongsTo(() => User, { foreignKey: "updated_by" })
+  // updater: User;
 }

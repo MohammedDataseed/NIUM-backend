@@ -14,6 +14,7 @@ import { Purpose } from "./purpose.model";
 // Document Master Model
 @Table({
   tableName: "document_master",
+  timestamps: true,
 })
 export class DocumentMaster extends Model<DocumentMaster> {
   @PrimaryKey
@@ -29,13 +30,13 @@ export class DocumentMaster extends Model<DocumentMaster> {
   @Column({ type: DataType.UUID, field: "purpose_id" })
   purposeId: string;
 
-  @Default(DataType.NOW)
-  @Column({ type: DataType.DATE, field: "created_at" })
-  createdAt: Date;
+  // @Default(DataType.NOW)
+  // @Column({ type: DataType.DATE, field: "created_at" })
+  // created_at: Date;
 
-  @Default(DataType.NOW)
-  @Column({ type: DataType.DATE, field: "updated_at" })
-  updatedAt: Date;
+  // @Default(DataType.NOW)
+  // @Column({ type: DataType.DATE, field: "updated_at" })
+  // updated_at: Date;
 
   @ForeignKey(() => User)
   @Column({ type: DataType.UUID, field: "created_by" })

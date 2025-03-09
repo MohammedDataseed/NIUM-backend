@@ -20,7 +20,7 @@ import * as crypto from "crypto"; // Import Node.js crypto module
 
 @Table({
   tableName: "partners",
-  timestamps: false,
+  timestamps: true,
 })
 export class Partner extends Model<Partner> {
   @PrimaryKey
@@ -71,13 +71,13 @@ export class Partner extends Model<Partner> {
   })
   business_type: string;
 
-  @Default(DataType.NOW)
-  @Column({ type: DataType.DATE, field: "created_at" })
-  created_at: Date;
+  // @Default(DataType.NOW)
+  // @Column({ type: DataType.DATE, field: "created_at" })
+  // created_at: Date;
 
-  @Default(DataType.NOW)
-  @Column({ type: DataType.DATE, field: "updated_at" })
-  updated_at: Date;
+  // @Default(DataType.NOW)
+  // @Column({ type: DataType.DATE, field: "updated_at" })
+  // updated_at: Date;
 
   @ForeignKey(() => User)
   @Column({ type: DataType.UUID, field: "created_by" })

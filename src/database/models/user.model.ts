@@ -12,12 +12,13 @@ import {
 } from "sequelize-typescript";
 import { Role } from "./role.model";
 import { Branch } from "./branch.model";
-import { BankAccount } from "./bankAccount.model";
+import { bank_account } from "./bank_account.model";
 import { Products } from "./products.model";
 import { DocumentMaster } from "./document_master.model";
 
 @Table({
   tableName: "users",
+  timestamps: true, // Enable timestamps
 })
 export class User extends Model<User> {
   @PrimaryKey
@@ -42,7 +43,7 @@ export class User extends Model<User> {
   @Column({ type: DataType.UUID, field: "branch_id" })
   branch_id: string;
 
-  @ForeignKey(() => BankAccount)
+  @ForeignKey(() => bank_account)
   @Column({ type: DataType.UUID, field: "bank_account_id" })
   bank_account_id: string;
 
@@ -56,23 +57,23 @@ export class User extends Model<User> {
   })
   business_type: string;
 
-  // Associations
-  @BelongsTo(() => Role)
-  role: Role;
+  // // Associations
+  // @BelongsTo(() => Role)
+  // role: Role;
 
-  @BelongsTo(() => Branch)
-  branch: Branch;
+  // @BelongsTo(() => Branch)
+  // branch: Branch;
 
-  @BelongsTo(() => BankAccount)
-  bankAccount: BankAccount;
+  // @BelongsTo(() => bank_account)
+  // bank_account: bank_account;
 
-  @Default(DataType.NOW)
-  @Column({ type: DataType.DATE, field: "created_at" })
-  createdAt: Date;
+  // @Default(DataType.NOW)
+  // @Column({ type: DataType.DATE, field: "created_at" })
+  // created_at: Date;
 
-  @Default(DataType.NOW)
-  @Column({ type: DataType.DATE, field: "updated_at" })
-  updatedAt: Date;
+  // @Default(DataType.NOW)
+  // @Column({ type: DataType.DATE, field: "updated_at" })
+  // updated_at: Date;
 
   @ForeignKey(() => User)
   @Column({ type: DataType.UUID, field: "created_by" })
