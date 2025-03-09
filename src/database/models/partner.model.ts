@@ -20,7 +20,7 @@ import * as crypto from "crypto"; // Import Node.js crypto module
 
 @Table({
   tableName: "partners",
-  timestamps: true,
+  timestamps: true, // Sequelize will automatically manage createdAt and updatedAt
 })
 export class Partner extends Model<Partner> {
   @PrimaryKey
@@ -29,7 +29,7 @@ export class Partner extends Model<Partner> {
   id: string;
 
   @Unique
-  @AllowNull(false)
+  @AllowNull(true)
   @Column({ type: DataType.STRING, field: "hashed_key" }) // New hashed_key field
   hashed_key: string;
 
@@ -71,14 +71,6 @@ export class Partner extends Model<Partner> {
   })
   business_type: string;
 
-  // @Default(DataType.NOW)
-  // @Column({ type: DataType.DATE, field: "created_at" })
-  // created_at: Date;
-
-  // @Default(DataType.NOW)
-  // @Column({ type: DataType.DATE, field: "updated_at" })
-  // updated_at: Date;
-
   @ForeignKey(() => User)
   @Column({ type: DataType.UUID, field: "created_by" })
   created_by: string;
@@ -103,6 +95,10 @@ export class Partner extends Model<Partner> {
   // Hook to generate hashed_key before creating the record
   @BeforeCreate
   static generateHashedKey(instance: Partner) {
+    if (!instance.id) {
+      throw new Error("ID must be set before generating hashed_key");
+    }
+
     const hash = crypto
       .createHash("sha256") // You can use md5, sha256, etc.
       .update(instance.id + Date.now().toString()) // Combine id and timestamp for uniqueness

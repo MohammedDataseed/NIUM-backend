@@ -4,9 +4,10 @@ import { Products } from "./products.model";
 
 @Table({
   tableName: "partner_products",
-  timestamps: false, // Junction tables typically don’t need timestamps
+  timestamps: true, // Enable timestamps for this table
 })
 export class PartnerProducts extends Model<PartnerProducts> {
+  
   @ForeignKey(() => Partner)
   @Column({ type: DataType.UUID, field: "partner_id" })
   partner_id: string;

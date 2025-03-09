@@ -10,6 +10,7 @@ import {
   ForeignKey,
   BelongsTo,
   BeforeCreate,
+  BelongsToMany,
 } from "sequelize-typescript";
 import { User } from "./user.model";
 import { Partner } from "./partner.model";
@@ -50,31 +51,23 @@ export class Products extends Model<Products> {
   @Column({ type: DataType.UUID, field: "updated_by" })
   updated_by: string;
 
-  // @Default(DataType.NOW)
-  // @Column({ type: DataType.DATE, field: "created_at" })
-  // created_at: Date;
+  // Many-to-Many Association
+  @BelongsToMany(() => Partner, () => PartnerProducts)
+  partners: Partner[];
 
-  // @Default(DataType.NOW)
-  // @Column({ type: DataType.DATE, field: "updated_at" })
-  // updated_at: Date;
+  @BelongsTo(() => User, { foreignKey: "created_by" })
+  creator: User;
 
-  // // Many-to-Many Association
-  // @BelongsToMany(() => Partner, () => PartnerProducts)
-  // partners: Partner[];
+  @BelongsTo(() => User, { foreignKey: "updated_by" })
+  updater: User;
 
-  // @BelongsTo(() => User, { foreignKey: "created_by" })
-  // creator: User;
-
-  // @BelongsTo(() => User, { foreignKey: "updated_by" })
-  // updater: User;
-
-  
-    @BeforeCreate
-    static generateHashedKey(instance: Products) {
-      const hash = crypto
-        .createHash("sha256")
-        .update(`${instance.name}-${Date.now()}`) // Use name + timestamp for uniqueness
-        .digest("hex");
-      instance.hashed_key = hash;
-    }
+  // Hook to generate hashed_key before creating the product
+  @BeforeCreate
+  static generateHashedKey(instance: Products) {
+    const hash = crypto
+      .createHash("sha256")
+      .update(`${instance.name}-${Date.now()}`) // Use name + timestamp for uniqueness
+      .digest("hex");
+    instance.hashed_key = hash;
+  }
 }

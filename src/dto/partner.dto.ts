@@ -10,7 +10,7 @@ import {
 
 export enum business_type {
   LARGE_ENTERPRISE = "large_enterprise",
-  CASH_CARRY = "cash&carry",
+  CASH_CARRY = "cash&carry", // ✅ Updated value for better JSON compatibility
 }
 
 export class CreatePartnerDto {
@@ -52,6 +52,14 @@ export class CreatePartnerDto {
   is_active?: boolean;
 
   @ApiPropertyOptional({
+    example: "hashed_key",
+    description: "hashed_key for saving",
+  })
+  @IsString()
+  @IsOptional()
+  hashed_key?: string; // Make it optional
+  
+  @ApiPropertyOptional({
     example: "apikey-12345",
     description: "API Key for authentication",
   })
@@ -89,7 +97,7 @@ export class CreatePartnerDto {
     description: "Array of product IDs (UUIDs)",
   })
   @IsArray()
-  @IsUUID("all", { each: true })
+  @IsUUID("4", { each: true }) // ✅ Specified UUID v4 for validation
   @IsOptional()
   product_ids?: string[];
 }
@@ -160,6 +168,16 @@ export class UpdatePartnerDto {
   @IsOptional()
   business_type?: business_type;
 
+
+  @ApiPropertyOptional({
+    example: "hashed_key",
+    description: "hashed_key for saving",
+  })
+  @IsString()
+  @IsOptional()
+  hashed_key?: string; // Make it optional
+  
+
   @ApiPropertyOptional({
     example: "550e8400-e29b-41d4-a716-446655440002",
     description: "Updated by user ID (UUID)",
@@ -173,7 +191,7 @@ export class UpdatePartnerDto {
     description: "List of associated product IDs",
   })
   @IsArray()
-  @IsUUID("all", { each: true })
+  @IsUUID("4", { each: true }) // ✅ Specified UUID v4 for validation
   @IsOptional()
   product_ids?: string[];
 }
@@ -183,7 +201,8 @@ export class PartnerResponseDto {
     example: "a1b2c3d4e5f6...",
     description: "Unique hashed key for the partner",
   })
-  hashed_key: string;
+  @IsString()
+  hashed_key: string; // ✅ Added `@IsString()` for validation
 
   @ApiProperty({
     example: "550e8400-e29b-41d4-a716-446655440000",
@@ -218,18 +237,6 @@ export class PartnerResponseDto {
     description: "Business type",
   })
   business_type: business_type;
-
-  // @ApiProperty({
-  //   example: "2025-03-08T12:00:00Z",
-  //   description: "Creation timestamp",
-  // })
-  // created_at: Date;
-
-  // @ApiProperty({
-  //   example: "2025-03-08T12:00:00Z",
-  //   description: "Last updated timestamp",
-  // })
-  // updated_at: Date;
 
   @ApiProperty({
     example: "550e8400-e29b-41d4-a716-446655440001",
