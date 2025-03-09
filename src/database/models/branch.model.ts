@@ -10,7 +10,9 @@ import {
   ForeignKey,
   BelongsTo,
 } from "sequelize-typescript";
+import * as crypto from "crypto";
 import { User } from "./user.model";
+import { CreateBranchDto } from "src/dto/branch.dto";
 @Table({
   tableName: "branches",
   timestamps: true,
@@ -44,14 +46,10 @@ export class Branch extends Model<Branch> {
   })
   business_type: string;
 
-  // Timestamps & User Tracking
-  // @Default(DataType.NOW)
-  // @Column({ type: DataType.DATE, field: "created_at" })
-  // created_at: Date;
-
-  // @Default(DataType.NOW)
-  // @Column({ type: DataType.DATE, field: "updated_at" })
-  // updated_at: Date;
+  @AllowNull(false)
+  @Unique
+  @Column({ type: DataType.STRING, field: "hashed_key" })
+  hashed_key: string;
 
   @ForeignKey(() => User)
   @Column({ type: DataType.UUID, field: "created_by" })
@@ -61,10 +59,9 @@ export class Branch extends Model<Branch> {
   @Column({ type: DataType.UUID, field: "updated_by" })
   updated_by: string;
 
-  // // Associations
-  // @BelongsTo(() => User, { foreignKey: "created_by" })
-  // creator: User;
-
-  // @BelongsTo(() => User, { foreignKey: "updated_by" })
-  // updater: User;
+  // Generate a hashed key based on branch details
+  static generateHashedKey(branch: CreateBranchDto): string {
+    const data = `${branch.name}-${branch.location}-${branch.city}-${branch.state}-${branch.business_type}`;
+    return crypto.createHash("sha256").update(data).digest("hex");
+  }
 }

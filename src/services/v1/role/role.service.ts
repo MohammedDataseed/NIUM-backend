@@ -48,34 +48,6 @@ export class RoleService {
   }
 
   // Create a new role
-  // async createRole(span: opentracing.Span, createRoleDto: CreateRoleDto): Promise<Role> {
-  //   const childSpan = span.tracer().startSpan("create-role", { childOf: span });
-  
-  //   try {
-  //     const existingRole = await this.roleRepository.findOne({
-  //       where: { name: createRoleDto.name },
-  //     });
-  //     if (existingRole) {
-  //       throw new ConflictException("Role already exists");
-  //     }
-  
-  //     // Create new role instance
-  //     const role = this.roleRepository.build({
-  //       name: createRoleDto.name,
-  //       status: createRoleDto.status ?? true,
-  //       created_by: createRoleDto.created_by,
-  //     });
-  
-  //     // Manually set `hashed_key`
-  //     role.hashed_key = crypto.createHash("sha256").update(`${role.name}-${Date.now()}`).digest("hex");
-  
-  //     await role.save(); // Save the role
-  
-  //     return role;
-  //   } finally {
-  //     childSpan.finish();
-  //   }
-  // }
 
   async createRole(span: opentracing.Span, createRoleDto: CreateRoleDto): Promise<Role> {
     const childSpan = span.tracer().startSpan("create-role", { childOf: span });
@@ -122,46 +94,46 @@ export class RoleService {
 }
 
   
- 
-  async updateRole(
+   // update a new role
+
+   async updateRole(
     span: opentracing.Span,
-    id: string,
+    hashedKey: string,
     updateRoleDto: UpdateRoleDto
   ): Promise<Role> {
     const childSpan = span.tracer().startSpan("update-role", { childOf: span });
-
+  
     try {
-      const role = await this.roleRepository.findByPk(id);
+      const role = await this.roleRepository.findOne({ where: { hashed_key: hashedKey } });
       if (!role) {
         throw new NotFoundException("Role not found");
       }
-
+  
+      // Resolve hashed_key to ID for updated_by
+      let updatedById: string | null = role.updated_by;
+  
+      if (updateRoleDto.updated_by) {
+        const updaterRole = await this.roleRepository.findOne({
+          where: { hashed_key: updateRoleDto.updated_by },
+        });
+        if (!updaterRole) {
+          throw new NotFoundException("Updater role not found");
+        }
+        updatedById = updaterRole.id;
+      }
+  
       // Update the role
       await role.update({
         name: updateRoleDto.name ?? role.name,
         status: updateRoleDto.status ?? role.status,
-        updated_by: updateRoleDto.updated_by,
+        updated_by: updatedById,
       });
-
+  
       return role;
     } finally {
       childSpan.finish();
     }
   }
+  
 
-  // Delete a role
-  async deleteRole(span: opentracing.Span, id: string): Promise<void> {
-    const childSpan = span.tracer().startSpan("delete-role", { childOf: span });
-
-    try {
-      const role = await this.roleRepository.findByPk(id);
-      if (!role) {
-        throw new NotFoundException("Role not found");
-      }
-
-      await role.destroy();
-    } finally {
-      childSpan.finish();
-    }
-  }
 }

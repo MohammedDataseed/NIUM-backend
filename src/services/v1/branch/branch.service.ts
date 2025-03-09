@@ -54,8 +54,8 @@ export class BranchService {
         city: createBranchDto.city,
         state: createBranchDto.state,
         business_type: createBranchDto.business_type,
-        created_by: createBranchDto.created_by, // Ensure UUIDs are provided
-        updated_by: createBranchDto.updated_by,
+        // created_by: createBranchDto.created_by, // Ensure UUIDs are provided
+        // updated_by: createBranchDto.updated_by,
       });
     } finally {
       childSpan.finish();

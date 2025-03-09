@@ -24,11 +24,16 @@ export class CreateRoleDto {
   })
   @IsUUID()
   created_by: string;
-
-  
 }
 
 export class UpdateRoleDto {
+  @ApiProperty({
+    description: "Unique hashed key for the role",
+    example: "a1b2c3d4e5f6...",
+  })
+  @IsString()
+  hashed_key: string; // ✅ Add this
+
   @ApiPropertyOptional({
     description: "Role name (must be one of the predefined roles)",
     example: "checker",
@@ -46,12 +51,29 @@ export class UpdateRoleDto {
   @IsOptional()
   status?: boolean;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "UUID of the user updating the role",
     example: "123e4567-e89b-12d3-a456-426614174000",
   })
   @IsUUID()
-  updated_by: string;
+  @IsOptional()
+  updated_by?: string;
+}
+
+export class DeleteRoleDto {
+  @ApiProperty({
+    description: "Hashed key of the role to be deleted",
+    example: "a1b2c3d4e5f6...",
+  })
+  @IsString()
+  hashed_key: string;
+
+  @ApiProperty({
+    description: "UUID of the user deleting the role",
+    example: "123e4567-e89b-12d3-a456-426614174000",
+  })
+  @IsUUID()
+  deleted_by: string;
 }
 
 export class RoleResponseDto {
@@ -79,11 +101,10 @@ export class RoleResponseDto {
   })
   created_by: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: "Updated by user ID",
     example: "123e4567-e89b-12d3-a456-426614174000",
   })
-  updated_by: string;
-
- 
+  @IsOptional()
+  updated_by?: string; // ✅ Now optional
 }

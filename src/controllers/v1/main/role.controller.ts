@@ -1,57 +1,48 @@
-// import { Controller, Get, Query, Post, Body, UseGuards } from "@nestjs/common";
 import {
   Controller,
   Get,
   Post,
+  Put,
+  Delete,
   Body,
   Query,
-  UseGuards,
-  UploadedFile,
-  UseInterceptors,
 } from "@nestjs/common";
-import { FileInterceptor } from "@nestjs/platform-express";
-import { PdfService } from "../../../shared/services/documents-consolidate/documents-consolidate.service";
 import { RoleService } from "../../../services/v1/role/role.service";
 import { Role } from "../../../database/models/role.model";
 import * as opentracing from "opentracing";
-import { TracerService } from "../../../shared/services/tracer/tracer.service";
-import { WhereOptions } from "sequelize";
-import { CreateRoleDto } from "src/dto/role.dto";
-import { ApiTags, ApiOperation, ApiResponse, ApiBody } from "@nestjs/swagger";
-import { JwtGuard } from "../../../auth/jwt.guard";
-// import { PdfService } from "src/shared/services/documents-consolidate/documents-consolidate.service";
+import { CreateRoleDto,UpdateRoleDto,DeleteRoleDto } from "src/dto/role.dto";
+import { ApiTags, ApiOperation, ApiResponse } from "@nestjs/swagger";
 
 @ApiTags("Roles")
 @Controller("roles")
 export class RoleController {
-  constructor(
-    private readonly roleService: RoleService,
-    private readonly pdfService: PdfService
-  ) {}
+  constructor(private readonly roleService: RoleService) {}
 
-  // //@UseGuards(JwtGuard)
+  /** ================================
+   * 🔹 Get All Roles
+   * ================================ */
   @Get()
+  @ApiOperation({ summary: "Get all roles with optional filters" })
+  @ApiResponse({ status: 200, description: "Roles retrieved successfully", type: [Role] })
   async findAll(@Query() params: Record<string, any>): Promise<Role[]> {
     const tracer = opentracing.globalTracer();
     const span = tracer.startSpan("find-all-roles-request");
-    const whereCondition: WhereOptions<Role> = params as WhereOptions<Role>;
-    const result = await this.roleService.findAll(span, whereCondition);
-    span.finish();
-    return result;
+
+    try {
+      const whereCondition = params as any;
+      return await this.roleService.findAll(span, whereCondition);
+    } finally {
+      span.finish();
+    }
   }
 
-  // //@UseGuards(JwtGuard)
+  /** ================================
+   * 🔹 Create a New Role
+   * ================================ */
   @Post()
   @ApiOperation({ summary: "Create a new role" })
-  @ApiResponse({
-    status: 201,
-    description: "The role has been successfully created.",
-    type: Role,
-  })
-  @ApiResponse({
-    status: 400,
-    description: "Bad Request - Invalid data provided.",
-  })
+  @ApiResponse({ status: 201, description: "Role created successfully", type: Role })
+  @ApiResponse({ status: 400, description: "Bad Request - Invalid data" })
   async createRole(@Body() createRoleDto: CreateRoleDto): Promise<Role> {
     const tracer = opentracing.globalTracer();
     const span = tracer.startSpan("create-role-request");
@@ -62,4 +53,28 @@ export class RoleController {
       span.finish();
     }
   }
+
+  
+  /** ================================
+   * 🔹 Update Role by hashed_key
+   * ================================ */
+  @Put("status")
+  @ApiOperation({ summary: "Update role status using hashed_key" })
+  @ApiResponse({ status: 200, description: "Role status updated successfully" })
+  @ApiResponse({ status: 404, description: "Role not found" })
+  async updateStatus(@Body() body: UpdateRoleDto): Promise<Role> {
+    const tracer = opentracing.globalTracer();
+    const span = tracer.startSpan("update-role-status");
+
+    try {
+      return await this.roleService.updateRole(
+        span,
+        body.hashed_key,  // ✅ Use directly from body
+        body // ✅ Pass the entire `UpdateRoleDto`
+      );
+    } finally {
+      span.finish();
+    }
+  }
+
 }
