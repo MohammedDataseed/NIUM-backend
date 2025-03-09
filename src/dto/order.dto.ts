@@ -1,77 +1,114 @@
+// create-order.dto.ts
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsBoolean,  IsEmail,IsArray, IsUUID, IsObject,IsNotEmpty, ValidateNested  } from 'class-validator';
-
-
-class AadhaarDetailsDto {
-  @ApiProperty({ example: "560005" })
-  @IsString()
-  @IsNotEmpty()
-  aadhaar_pincode: string;
-
-  @ApiProperty({ example: "2002" })
-  @IsString()
-  @IsNotEmpty()
-  aadhaar_yob: string;
-
-  @ApiProperty({ example: "M" })
-  @IsString()
-  @IsNotEmpty()
-  aadhaar_gender: string;
-}
-
-export class CustomerDetailsDto {
-  @ApiProperty({ example: "John Doe" })
-  @IsString()
-  @IsNotEmpty()
-  customer_name: string;
-
-  @ApiProperty({ example: "john@gmail.com" })
-  @IsEmail()
-  customer_email: string;
-
-  @ApiProperty({ example: "9912345678" })
-  @IsString()
-  @IsNotEmpty()
-  customer_phone: string;
-
-  @ApiProperty({ example: "ACTPAN123" })
-  @IsString()
-  @IsNotEmpty()
-  customer_pan: string;
-
-  @ApiProperty({ type: AadhaarDetailsDto })
-  @IsObject()
-  @IsNotEmpty()
-  customer_aadhaar_details: AadhaarDetailsDto;
-}
+import { IsString, IsBoolean, IsEmail, IsUUID ,IsOptional} from 'class-validator';
 
 export class CreateOrderDto {
-  @ApiProperty({ example: "550e8400-e29b-41d4-a716-446655440000" })
-  @IsUUID()
-  partner_id: string;
-
-  @ApiProperty({ example: "BMFORDERID4321" })
+  @ApiProperty({ type: String, description: 'Order ID', uniqueItems: true })
   @IsString()
   order_id: string;
 
-  @ApiProperty({ example: "1" })
-  @IsString()
-  transaction_type: string;
+  // @ApiProperty({ type: String, description: 'Transaction Type ID' })
+  // @IsUUID()
+  // transaction_type_id: string;
 
-  @ApiProperty({ example: "BTQ" })
-  @IsString()
-  purpose_type: string;
-
-  @ApiProperty({ example: true })
+  // @ApiProperty({ type: String, description: 'Purpose Type ID' })
+  // @IsUUID()
+  // purpose_type_id: string;
+  @ApiProperty({ type: Boolean, description: 'Indicates if e-signature is required' })
   @IsBoolean()
-  isEsignRequired: boolean;
+  is_e_sign_required: boolean;
 
-  @ApiProperty({ example: true })
+  @ApiProperty({ type: Boolean, description: 'Indicates if V-KYC is required' })
   @IsBoolean()
-  isVkycRequired: boolean;
+  is_v_kyc_required: boolean;
 
-  @ApiProperty({ type: [CustomerDetailsDto] })
-  @IsArray()
-  @ValidateNested({ each: true })
-  customer_details: CustomerDetailsDto[];
+
+  @ApiProperty({ type: String, description: 'Customer Name' })
+  @IsString()
+  customer_name: string;
+
+  @ApiProperty({ type: String, description: 'Customer Email' })
+  @IsEmail()
+  customer_email: string;
+
+  @ApiProperty({ type: String, description: 'Customer Phone' })
+  @IsString()
+  customer_phone: string;
+
+  @ApiProperty({ type: String, description: 'Customer PAN' })
+  @IsString()
+  customer_pan: string;
+
+  @ApiProperty({ type: String, description: 'Customer Aadhaar Pincode' })
+  @IsString()
+  customer_aadhaar_pincode: string;
+
+  @ApiProperty({ type: String, description: 'Customer Aadhaar Date of Birth' })
+  @IsString()
+  customer_aadhaar_dob: string;
+
+  @ApiProperty({ type: String, description: 'Customer Aadhaar Year of Birth' })
+  @IsString()
+  customer_aadhaar_yob: string;
+
+  @ApiProperty({ type: String, description: 'Customer Gender' })
+  @IsString()
+  customer_gender: string;
+}
+
+export class UpdateOrderDto {
+  @ApiProperty({ type: String, description: 'Transaction Type ID', required: false })
+  @IsOptional()
+  @IsUUID()
+  transaction_type_id?: string;
+
+  @ApiProperty({ type: Boolean, description: 'Indicates if e-signature is required', required: false })
+  @IsOptional()
+  @IsBoolean()
+  is_e_sign_required?: boolean;
+
+  @ApiProperty({ type: Boolean, description: 'Indicates if V-KYC is required', required: false })
+  @IsOptional()
+  @IsBoolean()
+  is_v_kyc_required?: boolean;
+
+  @ApiProperty({ type: String, description: 'Purpose Type ID', required: false })
+  @IsOptional()
+  @IsUUID()
+  purpose_type_id?: string;
+
+  @ApiProperty({ type: String, description: 'Customer Name', required: false })
+  @IsOptional()
+  @IsString()
+  customer_name?: string;
+
+  @ApiProperty({ type: String, description: 'Customer Email', required: false })
+  @IsOptional()
+  @IsEmail()
+  customer_email?: string;
+
+  @ApiProperty({ type: String, description: 'Customer Phone', required: false })
+  @IsOptional()
+  @IsString()
+  customer_phone?: string;
+
+  @ApiProperty({ type: String, description: 'Customer PAN', required: false })
+  @IsOptional()
+  @IsString()
+  customer_pan?: string;
+
+  @ApiProperty({ type: String, description: 'Customer Aadhaar Pincode', required: false })
+  @IsOptional()
+  @IsString()
+  customer_aadhaar_pincode?: string;
+
+  @ApiProperty({ type: String, description: 'Customer Aadhaar Year of Birth', required: false })
+  @IsOptional()
+  @IsString()
+  customer_aadhaar_yob?: string;
+
+  @ApiProperty({ type: String, description: 'Customer Gender', required: false })
+  @IsOptional()
+  @IsString()
+  customer_gender?: string;
 }
