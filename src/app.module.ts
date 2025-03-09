@@ -30,6 +30,8 @@ import { OrdersService } from "./services/v1/order/order.service";
 import { OrdersController } from "./controllers/v1/main/order.controller";
 import { VideokycService } from "./services/v1/videokyc/videokyc.service";
 import { VideokycController } from "./controllers/v1/main/videokyc/videokyc.controller";
+import { BankAccountController } from "./controllers/v1/main/bank_account.controller";
+import { BankAccountService } from "./services/v1/bank_account/bank_account.service";
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -44,12 +46,13 @@ import { VideokycController } from "./controllers/v1/main/videokyc/videokyc.cont
       signOptions: { expiresIn: "1h" }, // ✅ Token expiry
     }),
   ],
-  controllers: [AppController,PartnerController, UserController, RoleController,BranchController,ProductController,PdfController,OrdersController ,EkycController,VideokycController],
+  controllers: [AppController,PartnerController, UserController, RoleController,BranchController,BankAccountController,ProductController,PdfController,OrdersController ,EkycController,VideokycController],
   providers: [
     AppService,
     PartnerService,
     UserService,
     RoleService,
+    BankAccountService,
     MailerService,
     BranchService,
     ProductService,

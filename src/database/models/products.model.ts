@@ -9,12 +9,12 @@ import {
   DataType,
   ForeignKey,
   BelongsTo,
-  BelongsToMany,
+  BeforeCreate,
 } from "sequelize-typescript";
 import { User } from "./user.model";
 import { Partner } from "./partner.model";
 import { PartnerProducts } from "./partner_products.model";
-
+import * as crypto from "crypto";
 
 @Table({
   tableName: "products",
@@ -25,6 +25,11 @@ export class Products extends Model<Products> {
   @Default(DataType.UUIDV4)
   @Column({ type: DataType.UUID, field: "id" })
   id: string;
+
+  @Unique
+  @AllowNull(false)
+  @Column({ type: DataType.STRING, field: "hashed_key" }) // Add hashed_key
+  hashed_key: string;
 
   @AllowNull(false)
   @Column({ type: DataType.STRING, field: "name" })
@@ -62,4 +67,14 @@ export class Products extends Model<Products> {
 
   // @BelongsTo(() => User, { foreignKey: "updated_by" })
   // updater: User;
+
+  
+    @BeforeCreate
+    static generateHashedKey(instance: Products) {
+      const hash = crypto
+        .createHash("sha256")
+        .update(`${instance.name}-${Date.now()}`) // Use name + timestamp for uniqueness
+        .digest("hex");
+      instance.hashed_key = hash;
+    }
 }

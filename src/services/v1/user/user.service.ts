@@ -19,6 +19,9 @@ import { JwtService } from "@nestjs/jwt";
 import { LoginDto } from "src/dto/login.dto";
 import { MailerService } from "src/shared/services/mailer/mailer.service";
 import { verify } from "jsonwebtoken";
+import * as crypto from "crypto";
+
+
 @Injectable()
 export class UserService {
   constructor(
@@ -81,21 +84,47 @@ export class UserService {
     };
   }
 
+  // async findAll(
+  //   span: opentracing.Span,
+  //   params: WhereOptions<User>
+  // ): Promise<User[]> {
+  //   const childSpan = span.tracer().startSpan("db-query", { childOf: span });
+
+  //   try {
+  //     return await this.userRepository.findAll({
+  //       where: params,
+  //       attributes: { exclude: ["password"] },
+  //     });
+  //   } finally {
+  //     childSpan.finish();
+  //   }
+  // }
+
   async findAll(
     span: opentracing.Span,
     params: WhereOptions<User>
   ): Promise<User[]> {
     const childSpan = span.tracer().startSpan("db-query", { childOf: span });
-
+  
     try {
       return await this.userRepository.findAll({
         where: params,
         attributes: { exclude: ["password"] },
+        include: [
+          { model: Role, as: "role", attributes: ["id", "name"] },
+          { model: Branch, as: "branch", attributes: ["id", "name"] },
+          {
+            model: bank_account,
+            as: "bank_account",
+            attributes: ["id", "account_number", "ifsc_code", "bank_name", "bank_branch"],
+          },
+        ],
       });
     } finally {
       childSpan.finish();
     }
   }
+  
 
   async findByEmail(email: string): Promise<User> {
     const user = await this.userRepository.findOne({ where: { email } });
@@ -103,15 +132,48 @@ export class UserService {
     return user;
   }
 
-  async createUser(
-    span: opentracing.Span,
-    createUserDto: CreateUserDto
-  ): Promise<User> {
+  async createUser(span: opentracing.Span, createUserDto: CreateUserDto): Promise<User> {
     const childSpan = span.tracer().startSpan("db-query", { childOf: span });
-
+  
     try {
+      // Hash the password
       createUserDto.password = await bcrypt.hash(createUserDto.password, 10);
-      return await this.userRepository.create(createUserDto);
+  
+      // Generate a hashed_key for the user
+      const hashedKey = crypto.createHash("sha256").update(createUserDto.email).digest("hex");
+  
+      // Hash related entity IDs
+      const hashedRoleId = createUserDto.role_id
+        ? crypto.createHash("sha256").update(createUserDto.role_id.toString()).digest("hex")
+        : null;
+  
+      const hashedBranchId = createUserDto.branch_id
+        ? crypto.createHash("sha256").update(createUserDto.branch_id.toString()).digest("hex")
+        : null;
+  
+      const hashedBankAccountId = createUserDto.bank_account_id
+        ? crypto.createHash("sha256").update(createUserDto.bank_account_id.toString()).digest("hex")
+        : null;
+  
+      // // Store hashed values in the database
+      // const user = await this.userRepository.create({
+      //   ...createUserDto,
+      //   hashed_key: hashedKey,
+      //   role_id: hashedRoleId,
+      //   branch_id: hashedBranchId,
+      //   bank_account_id: hashedBankAccountId,
+      // });
+
+      const user = await this.userRepository.create({
+        ...createUserDto,
+        hashed_key: hashedKey,
+        role_id: createUserDto.role_id,
+        branch_id: createUserDto.branch_id,
+        bank_account_id: createUserDto.bank_account_id,
+      });
+      
+  
+      return user;
     } catch (error) {
       console.error("Error creating user:", error);
       throw error;

@@ -3,7 +3,7 @@ import { Products } from "../../../database/models/products.model";
 import * as opentracing from "opentracing";
 import { CreateProductDto, UpdateProductDto } from "../../../dto/product.dto";
 import { WhereOptions } from "sequelize";
-
+import * as crypto from "crypto";
 @Injectable()
 export class ProductService {
   constructor(
@@ -39,31 +39,35 @@ export class ProductService {
    */
   async createProduct(span: opentracing.Span, createProductDto: CreateProductDto): Promise<Products> {
     const childSpan = span.tracer().startSpan("create-product", { childOf: span });
-
+  
     try {
       childSpan.log({ event: "create-check-existence", name: createProductDto.name });
-
+  
       // Check if product already exists
       const existingProduct = await this.productRepository.findOne({
         where: { name: createProductDto.name },
       });
-
+  
       if (existingProduct) {
         childSpan.setTag("error", true);
         childSpan.log({ event: "product-exists", productId: existingProduct.id });
         throw new ConflictException("Product already exists");
       }
-
+  
+      // Generate a hashed key
+      const hashedKey = crypto.createHash("sha256").update(createProductDto.name + Date.now()).digest("hex");
+  
       // Create a new product
       const newProduct = await this.productRepository.create({
         name: createProductDto.name,
         is_active: createProductDto.is_active ?? true, // Default is_active to true if not provided
         created_by: createProductDto.created_by,
-        updated_by: createProductDto.updated_by
+        updated_by: createProductDto.updated_by,
+        hashed_key: hashedKey, // Add hashed_key here
       });
-
-      childSpan.log({ event: "product-created", productId: newProduct.id });
-
+  
+      childSpan.log({ event: "product-created", productId: newProduct.id, hashedKey });
+  
       return newProduct;
     } catch (error) {
       childSpan.setTag("error", true);
@@ -73,6 +77,42 @@ export class ProductService {
       childSpan.finish();
     }
   }
+  // async createProduct(span: opentracing.Span, createProductDto: CreateProductDto): Promise<Products> {
+  //   const childSpan = span.tracer().startSpan("create-product", { childOf: span });
+
+  //   try {
+  //     childSpan.log({ event: "create-check-existence", name: createProductDto.name });
+
+  //     // Check if product already exists
+  //     const existingProduct = await this.productRepository.findOne({
+  //       where: { name: createProductDto.name },
+  //     });
+
+  //     if (existingProduct) {
+  //       childSpan.setTag("error", true);
+  //       childSpan.log({ event: "product-exists", productId: existingProduct.id });
+  //       throw new ConflictException("Product already exists");
+  //     }
+
+  //     // Create a new product
+  //     const newProduct = await this.productRepository.create({
+  //       name: createProductDto.name,
+  //       is_active: createProductDto.is_active ?? true, // Default is_active to true if not provided
+  //       created_by: createProductDto.created_by,
+  //       updated_by: createProductDto.updated_by
+  //     });
+
+  //     childSpan.log({ event: "product-created", productId: newProduct.id });
+
+  //     return newProduct;
+  //   } catch (error) {
+  //     childSpan.setTag("error", true);
+  //     childSpan.log({ event: "create-failed", error: error.message });
+  //     throw error;
+  //   } finally {
+  //     childSpan.finish();
+  //   }
+  // }
 
   /**
    * Find a product by ID.
