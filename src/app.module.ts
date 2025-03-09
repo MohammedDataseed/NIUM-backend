@@ -23,9 +23,8 @@ import { PartnerController } from "./controllers/v1/main/partner.controller";
 import { PartnerService } from "./services/v1/partner/partner.service";
 import { EkycController } from "./controllers/v1/main/ekyc/ekyc.controller";
 import { EkycService } from "./services/v1/ekyc/ekyc.service";
-import { PdfModule } from "./shared/services/documents-consolidate/documents-consolidate.module";
-import { PdfService } from "./shared/services/documents-consolidate/documents-consolidate.service";
-import { PdfController } from "./shared/services/documents-consolidate/documents-consolidate.controller";
+import { PdfService } from "./services/v1/document-consolidate/document-consolidate.service";
+import { PdfController } from "./controllers/v1/main/documents-consolidate.controller";
 import { OrdersService } from "./services/v1/order/order.service";
 import { OrdersController } from "./controllers/v1/main/order.controller";
 import { VideokycService } from "./services/v1/videokyc/videokyc.service";
@@ -40,13 +39,25 @@ import { BankAccountService } from "./services/v1/bank_account/bank_account.serv
     GracefulShutdownModule,
     MiddlewareModule,
     AuthModule,
-    
+
     JwtModule.register({
       secret: process.env.JWT_SECRET || "123456", // ✅ Use environment variable
       signOptions: { expiresIn: "1h" }, // ✅ Token expiry
     }),
   ],
-  controllers: [AppController,PartnerController, UserController, RoleController,BranchController,BankAccountController,ProductController,PdfController,OrdersController ,EkycController,VideokycController],
+  controllers: [
+    AppController,
+    PartnerController,
+    UserController,
+    RoleController,
+    BranchController,
+    BankAccountController,
+    ProductController,
+    OrdersController,
+    EkycController,
+    VideokycController,
+    PdfController
+  ],
   providers: [
     AppService,
     PartnerService,
@@ -60,7 +71,7 @@ import { BankAccountService } from "./services/v1/bank_account/bank_account.serv
     EkycService,
     VideokycService,
     OrdersService,
-    
+
     {
       provide: APP_INTERCEPTOR,
       useClass: AuditLoggerService,

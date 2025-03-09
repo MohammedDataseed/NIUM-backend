@@ -7,7 +7,6 @@ import { WhereOptions } from "sequelize";
 import { CreateBranchDto } from "src/dto/branch.dto";
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from "@nestjs/swagger";
 import { JwtGuard } from "../../../auth/jwt.guard";
-import { PdfService } from "src/shared/services/documents-consolidate/documents-consolidate.service";
 
 @ApiTags("Branches")
 @Controller("branches")

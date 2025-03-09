@@ -6,7 +6,9 @@ import {
   IsEmail, 
   IsUUID, 
   IsOptional, 
-  IsDateString, 
+  IsDateString,
+  IsArray,
+  IsObject, 
   Matches, 
   IsPhoneNumber 
 } from 'class-validator';
@@ -221,6 +223,41 @@ export class CreateOrderDto {
   })
   @IsUUID()
   checker_id: string;
+
+  @ApiProperty({
+    type: Object,
+    description: "Merged document details",
+    required: false,
+    example: { url: "http://example.com/merged.pdf", mimeType: "application/pdf", size: 1024 },
+  })
+  @IsOptional()
+  @IsObject()
+  merged_document?: {
+    url: string;
+    mimeType?: string;
+    size?: number;
+    createdAt?: string;
+    documentIds?: string[];
+  };
+
+  @ApiProperty({
+    type: [Object],
+    description: "Array of documents associated with the order",
+    required: false,
+  })
+  @IsOptional()
+  @IsArray()
+  documents?: {
+    purposeId: string;
+    documentTypeId: string;
+    documentName: string;
+    documentUrl: { url: string; mimeType?: string; size?: number; uploadedAt?: string };
+    status?: "pending" | "approved" | "rejected";
+    documentExpiry?: string;
+    isDocFrontImage?: boolean;
+    isDocBackImage?: boolean;
+    isUploaded?: boolean;
+  }[];
 }
 
 export class UpdateOrderDto{

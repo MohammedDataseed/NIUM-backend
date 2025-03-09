@@ -144,6 +144,15 @@ export class Order extends Model<Order> {
   @BelongsTo(() => User, { foreignKey: "checker_id" })
   checker: User;
 
+  @Column({ type: DataType.JSONB, allowNull: true }) // Store structured data
+  merged_document: {
+    url: string;
+    mimeType: string;
+    size: number;
+    createdAt: string;
+    documentIds: string[];
+  };
+
   // @BelongsTo(() => ESign, { foreignKey: "order_id" })
   // esign: ESign;
 

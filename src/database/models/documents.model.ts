@@ -3,25 +3,31 @@ import {
   Column,
   Model,
   PrimaryKey,
-  Default,
   AllowNull,
   DataType,
   ForeignKey,
+  Default,
+  BeforeCreate,
 } from "sequelize-typescript";
-
+import { validate as isUUID, v4 as uuidv4 } from "uuid";
+import { createHash } from "crypto"; // For generating hashed keys
 import { User } from "./user.model";
 import { Purpose } from "./purpose.model";
 import { DocumentRequirements } from "./document_requirements.model";
-// Documents Model
+
 @Table({
   tableName: "documents",
   timestamps: true,
 })
 export class Documents extends Model<Documents> {
-  @PrimaryKey
-  @Default(DataType.UUIDV4)
-  @Column({ type: DataType.UUID, field: "id" })
-  id: string;
+  @Column({
+    type: DataType.UUID, // Change to UUID
+    defaultValue: DataType.UUIDV4, // Auto-generate UUID v4
+    field: "id",
+  })
+  documentId: string;
+
+  
 
   @Column({ type: DataType.UUID, field: "entity_id" })
   entityId: string;
@@ -34,21 +40,33 @@ export class Documents extends Model<Documents> {
   @Column({ type: DataType.UUID, field: "purpose_id" })
   purposeId: string;
 
-  //   @ForeignKey(() => CustomerDetails)
-  //   @Column({ type: DataType.UUID, field: 'customer_id' })
-  //   customerId: string;
-
-  @ForeignKey(() => DocumentRequirements)
-  @Column({ type: DataType.UUID, field: "document_type_id" })
-  documentTypeId: string;
+  // @ForeignKey(() => DocumentRequirements)
+  // @Column({ type: DataType.UUID, field: "document_type_id" })
+  // documentTypeId: string;
 
   @AllowNull(false)
   @Column({ type: DataType.STRING, field: "document_name" })
   documentName: string;
 
+  // Store file details as JSON (e.g., URL, MIME type, size)
   @AllowNull(false)
-  @Column({ type: DataType.JSON, field: "document_url" })
-  documentUrl: object;
+  @Column({
+    type: DataType.JSON,
+    field: "document_url",
+    validate: {
+      isObject(value: any) {
+        if (typeof value !== "object" || value === null) {
+          throw new Error("document_url must be a valid JSON object");
+        }
+      },
+    },
+  })
+  documentUrl: {
+    url: string;
+    mimeType?: string; // e.g., "application/pdf"
+    size?: number; // Size in bytes
+    uploadedAt?: string; // ISO timestamp
+  };
 
   @Default("pending")
   @Column({
@@ -76,14 +94,6 @@ export class Documents extends Model<Documents> {
   @Column({ type: DataType.BOOLEAN, field: "is_customer" })
   isCustomer: boolean;
 
-  // @Default(DataType.NOW)
-  // @Column({ type: DataType.DATE, field: "created_at" })
-  // created_at: Date;
-
-  // @Default(DataType.NOW)
-  // @Column({ type: DataType.DATE, field: "updated_at" })
-  // updated_at: Date;
-
   @ForeignKey(() => User)
   @Column({ type: DataType.UUID, field: "created_by" })
   created_by: string;
@@ -91,4 +101,6 @@ export class Documents extends Model<Documents> {
   @ForeignKey(() => User)
   @Column({ type: DataType.UUID, field: "updated_by" })
   updated_by: string;
+
+
 }
