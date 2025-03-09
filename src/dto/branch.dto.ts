@@ -147,17 +147,17 @@ export class BranchDto {
   })
   business_type: string;
 
-  @ApiProperty({
-    description: "Timestamp of when the branch was created",
-    example: "2025-02-17T12:34:56Z",
-  })
-  created_at: Date;
+  // @ApiProperty({
+  //   description: "Timestamp of when the branch was created",
+  //   example: "2025-02-17T12:34:56Z",
+  // })
+  // created_at: Date;
 
-  @ApiProperty({
-    description: "Timestamp of when the branch was last updated",
-    example: "2025-02-17T12:34:56Z",
-  })
-  updated_at: Date;
+  // @ApiProperty({
+  //   description: "Timestamp of when the branch was last updated",
+  //   example: "2025-02-17T12:34:56Z",
+  // })
+  // updated_at: Date;
 
   @ApiProperty({
     description: "User ID of the creator of the branch",

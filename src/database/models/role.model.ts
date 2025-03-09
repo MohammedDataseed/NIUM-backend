@@ -9,8 +9,10 @@ import {
   DataType,
   ForeignKey,
   BelongsTo,
+  BeforeCreate,
 } from "sequelize-typescript";
 import { User } from "./user.model";
+import * as crypto from "crypto";
 
 @Table({
   tableName: "roles",
@@ -22,15 +24,14 @@ export class Role extends Model<Role> {
   @Column({ type: DataType.UUID, field: "id" })
   id: string;
 
+  @Unique
+  @AllowNull(false)
+  @Column({ type: DataType.STRING, field: "hashed_key" }) // Add hashed_key
+  hashed_key: string;
+
   @AllowNull(false)
   @Column({
-    type: DataType.ENUM(
-      "admin",
-      "co-admin",
-      "maker",
-      "checker",
-      "maker-checker"
-    ),
+    type: DataType.ENUM("admin", "co-admin", "maker", "checker", "maker-checker"),
     field: "name",
   })
   name: string;
@@ -47,18 +48,18 @@ export class Role extends Model<Role> {
   @Column({ type: DataType.UUID, field: "updated_by" })
   updated_by: string;
 
-  // @Default(DataType.NOW)
-  // @Column({ type: DataType.DATE, field: "created_at" })
-  // created_at: Date;
+  @BelongsTo(() => User, "created_by")
+  creator: User;
 
-  // @Default(DataType.NOW)
-  // @Column({ type: DataType.DATE, field: "updated_at" })
-  // updated_at: Date;
+  @BelongsTo(() => User, "updated_by")
+  updater: User;
 
-  // // Add these relationships
-  // @BelongsTo(() => User, "created_by")
-  // creator: User;
-
-  // @BelongsTo(() => User, "updated_by")
-  // updater: User;
+  @BeforeCreate
+  static generateHashedKey(instance: Role) {
+    const hash = crypto
+      .createHash("sha256")
+      .update(`${instance.name}-${Date.now()}`) // Use name + timestamp for uniqueness
+      .digest("hex");
+    instance.hashed_key = hash;
+  }
 }
