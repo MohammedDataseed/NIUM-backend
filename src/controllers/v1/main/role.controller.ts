@@ -1,4 +1,5 @@
 import {
+  UseGuards,
   Controller,
   Get,
   Post,
@@ -11,16 +12,20 @@ import { RoleService } from "../../../services/v1/role/role.service";
 import { Role } from "../../../database/models/role.model";
 import * as opentracing from "opentracing";
 import { CreateRoleDto,UpdateRoleDto,DeleteRoleDto } from "src/dto/role.dto";
-import { ApiTags, ApiOperation, ApiResponse } from "@nestjs/swagger";
+import { ApiTags, ApiOperation, ApiResponse,ApiBearerAuth, } from "@nestjs/swagger";
+import { JwtGuard } from "../../../auth/jwt.guard";
 
 @ApiTags("Roles")
 @Controller("roles")
+@ApiBearerAuth("access_token") // 🔹 Must match the name used in Swagger setup
+
 export class RoleController {
   constructor(private readonly roleService: RoleService) {}
 
   /** ================================
    * 🔹 Get All Roles
    * ================================ */
+  @UseGuards(JwtGuard)
   @Get()
   @ApiOperation({ summary: "Get all roles with optional filters" })
   @ApiResponse({ status: 200, description: "Roles retrieved successfully", type: [Role] })
@@ -39,6 +44,7 @@ export class RoleController {
   /** ================================
    * 🔹 Create a New Role
    * ================================ */
+  @UseGuards(JwtGuard)
   @Post()
   @ApiOperation({ summary: "Create a new role" })
   @ApiResponse({ status: 201, description: "Role created successfully", type: Role })
@@ -58,6 +64,7 @@ export class RoleController {
   /** ================================
    * 🔹 Update Role by hashed_key
    * ================================ */
+  @UseGuards(JwtGuard)
   @Put("status")
   @ApiOperation({ summary: "Update role status using hashed_key" })
   @ApiResponse({ status: 200, description: "Role status updated successfully" })

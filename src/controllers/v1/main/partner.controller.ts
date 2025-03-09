@@ -36,6 +36,7 @@ export class PartnerController {
   ) {}
 
   /** 🔹 Get All Partners */
+  @UseGuards(JwtGuard)
   @Get()
   @ApiOperation({ summary: "Get all partners" })
   @ApiResponse({
@@ -111,7 +112,8 @@ export class PartnerController {
     description: "Internal server error",
   })
   async create(
-    @Body() createPartnerDto: CreatePartnerDto
+    @Body() createPartnerDto: CreatePartnerDto,
+    
   ): Promise<PartnerResponseDto> {
     const tracer = opentracing.globalTracer();
     const span = tracer.startSpan("create-partner-request");

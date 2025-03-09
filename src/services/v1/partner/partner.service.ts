@@ -22,42 +22,28 @@ export class PartnerService {
     private readonly jwtService: JwtService
   ) {}
 
-  // async findAllPartners(span: opentracing.Span): Promise<PartnerResponseDto[]> {
-  //   const childSpan = span.tracer().startSpan('db-query', { childOf: span });
 
-  //   try {
-  //     const partners = await this.partnerRepository.findAll({
-  //       include: [{ model: Products }],
-  //     });
-  //     return partners.map((partner) => this.toResponseDto(partner));
-  //   } catch (error) {
-  //     console.error('Error fetching partners:', error);
-  //     throw new InternalServerErrorException('Failed to fetch partners');
-  //   } finally {
-  //     childSpan.finish();
-  //   }
-  // }
   async findAllPartners(span: opentracing.Span): Promise<PartnerResponseDto[]> {
-    const childSpan = span.tracer().startSpan('db-query', { childOf: span });
-  
-    try {
-      const partners = await this.partnerRepository.findAll({
-        include: [
-          {
-            model: Products,
-            through: { attributes: [] }, // Exclude the fields from the junction table
-          },
-        ],
-      });
-      return partners.map((partner) => this.toResponseDto(partner));
-    } catch (error) {
-      console.error('Error fetching partners:', error);
-      throw new InternalServerErrorException('Failed to fetch partners');
-    } finally {
-      childSpan.finish();
-    }
+  const childSpan = span.tracer().startSpan('db-query', { childOf: span });
+
+  try {
+    const partners = await this.partnerRepository.findAll({
+      include: [
+        {
+          model: Products,
+          through: { attributes: [] }, // Exclude the fields from the junction table
+        },
+      ],
+    });
+    return partners.map((partner) => this.toResponseDto(partner));
+  } catch (error) {
+    console.error('Error fetching partners:', error);
+    throw new InternalServerErrorException('Failed to fetch partners');
+  } finally {
+    childSpan.finish();
   }
-  
+}
+
 
   async findPartnerById(span: opentracing.Span, id: number): Promise<PartnerResponseDto> {
     const childSpan = span.tracer().startSpan('db-query', { childOf: span });

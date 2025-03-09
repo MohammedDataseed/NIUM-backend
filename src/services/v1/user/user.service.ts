@@ -5,6 +5,8 @@ import {
   UnauthorizedException,
   InternalServerErrorException,
   BadRequestException,
+  HttpException,
+  HttpStatus
 } from "@nestjs/common";
 import { WhereOptions } from "sequelize";
 import { User } from "../../../database/models/user.model";
@@ -15,12 +17,16 @@ import * as opentracing from "opentracing";
 import { TracerService } from "../../../shared/services/tracer/tracer.service";
 import { CreateUserDto, UpdateUserDto } from "src/dto/user.dto";
 import * as bcrypt from "bcryptjs";
+import * as crypto from "crypto";
 import { JwtService } from "@nestjs/jwt";
 import { LoginDto } from "src/dto/login.dto";
 import { MailerService } from "src/shared/services/mailer/mailer.service";
 import { verify } from "jsonwebtoken";
-import * as crypto from "crypto";
 
+export interface UserCreationResponse {
+  message: string;
+  user: User;
+}
 
 @Injectable()
 export class UserService {
@@ -31,109 +37,33 @@ export class UserService {
     private readonly jwtService: JwtService,
     private readonly mailService: MailerService
   ) {}
-  async login(loginDto: LoginDto): Promise<{
-    user: Partial<User>;
-    access_token: string;
-    refresh_token: string;
-  }> {
-    const { email, password } = loginDto;
+  
 
-    const user = await this.userRepository.findOne({
-      where: { email },
-      attributes: { exclude: ["role_id", "branch_id", "bank_account_id"] }, // Do NOT exclude password
-      include: [
-        { model: Role, as: "role", attributes: ["id", "name"] },
-        { model: Branch, as: "branch", attributes: ["id", "name"] },
-        {
-          model: bank_account,
-          as: "bank_account",
-          attributes: [
-            "id",
-            "account_number",
-            "ifsc_code",
-            "bank_name",
-            "bank_branch",
-          ],
-        },
-      ],
-    });
-
-    if (!user || !user.password) {
-      throw new UnauthorizedException("Invalid credentials");
-    }
-
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) {
-      throw new UnauthorizedException("Invalid credentials");
-    }
-
-    const payload = { email: user.email, sub: user.id };
-
-    // 🔹 Convert Sequelize instance to plain object and remove password
-    const safeUser = user.get({ plain: true });
-    delete safeUser.password;
-
-    return {
-      user: safeUser, // Return user object without password
-      access_token: this.jwtService.sign(payload, {
-        expiresIn: process.env.ACCESS_TOKEN_EXPIRY || "1h",
-      }),
-      refresh_token: this.jwtService.sign(payload, {
-        expiresIn: process.env.REFRESH_TOKEN_EXPIRY || "1d",
-      }),
-    };
-  }
-
-  // async findAll(
-  //   span: opentracing.Span,
-  //   params: WhereOptions<User>
-  // ): Promise<User[]> {
-  //   const childSpan = span.tracer().startSpan("db-query", { childOf: span });
-
-  //   try {
-  //     return await this.userRepository.findAll({
-  //       where: params,
-  //       attributes: { exclude: ["password"] },
-  //     });
-  //   } finally {
-  //     childSpan.finish();
-  //   }
-  // }
-
-  async findAll(
-    span: opentracing.Span,
-    params: WhereOptions<User>
-  ): Promise<User[]> {
+  async createUser(span: opentracing.Span, createUserDto: CreateUserDto, jwt: string): Promise<any> {
     const childSpan = span.tracer().startSpan("db-query", { childOf: span });
   
+    // Decode JWT and extract role
+    let decodedToken;
     try {
-      return await this.userRepository.findAll({
-        where: params,
-        attributes: { exclude: ["password"] },
-        include: [
-          { model: Role, as: "role", attributes: ["id", "name"] },
-          { model: Branch, as: "branch", attributes: ["id", "name"] },
-          {
-            model: bank_account,
-            as: "bank_account",
-            attributes: ["id", "account_number", "ifsc_code", "bank_name", "bank_branch"],
-          },
-        ],
-      });
-    } finally {
-      childSpan.finish();
+      decodedToken = this.jwtService.verify(jwt);
+    } catch (error) {
+      throw new UnauthorizedException('Invalid or expired token');
     }
-  }
   
-
-  async findByEmail(email: string): Promise<User> {
-    const user = await this.userRepository.findOne({ where: { email } });
-    if (!user) throw new NotFoundException("User not found");
-    return user;
-  }
-
-  async createUser(span: opentracing.Span, createUserDto: CreateUserDto): Promise<User> {
-    const childSpan = span.tracer().startSpan("db-query", { childOf: span });
+    // Check if the user has the role of "admin" or "co-admin"
+    const userRole = decodedToken.role;
+    if (!(userRole === 'admin' || userRole === 'co-admin')) {
+      throw new HttpException('Unauthorized to create user', HttpStatus.FORBIDDEN);
+    }
+  
+    const existingUser = await this.userRepository.findOne({
+      where: { email: createUserDto.email },
+    });
+  
+    // If the email already exists, throw a conflict error
+    if (existingUser) {
+      throw new HttpException('Email already exists', HttpStatus.CONFLICT);
+    }
   
     try {
       // Hash the password
@@ -155,15 +85,7 @@ export class UserService {
         ? crypto.createHash("sha256").update(createUserDto.bank_account_id.toString()).digest("hex")
         : null;
   
-      // // Store hashed values in the database
-      // const user = await this.userRepository.create({
-      //   ...createUserDto,
-      //   hashed_key: hashedKey,
-      //   role_id: hashedRoleId,
-      //   branch_id: hashedBranchId,
-      //   bank_account_id: hashedBankAccountId,
-      // });
-
+      // Create the user in the database
       const user = await this.userRepository.create({
         ...createUserDto,
         hashed_key: hashedKey,
@@ -171,17 +93,21 @@ export class UserService {
         branch_id: createUserDto.branch_id,
         bank_account_id: createUserDto.bank_account_id,
       });
-      
   
-      return user;
+      // Return the success message along with the user details
+      return {
+        message: "User added successfully",
+        user,
+      };
     } catch (error) {
       console.error("Error creating user:", error);
-      throw error;
+      throw new HttpException('Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
     } finally {
       childSpan.finish();
     }
   }
 
+  
   async updateUser(
     span: opentracing.Span,
     id: string,
@@ -222,6 +148,99 @@ export class UserService {
     }
   }
 
+  async login(loginDto: LoginDto): Promise<{
+    user: Partial<User>;
+    access_token: string;
+    refresh_token: string;
+  }> {
+    const { email, password } = loginDto;
+  
+    // Fetch the user and include role in the query
+    const user = await this.userRepository.findOne({
+      where: { email },
+      attributes: { exclude: ["role_id", "branch_id", "bank_account_id"] }, // Do NOT exclude password
+      include: [
+        { model: Role, as: "role", attributes: ["id", "name"] }, // Make sure role is included
+        { model: Branch, as: "branch", attributes: ["id", "name"] },
+        {
+          model: bank_account,
+          as: "bank_account",
+          attributes: [
+            "id",
+            "account_number",
+            "ifsc_code",
+            "bank_name",
+            "bank_branch",
+          ],
+        },
+      ],
+    });
+  
+    if (!user || !user.password) {
+      throw new UnauthorizedException("Invalid credentials");
+    }
+  
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException("Invalid credentials");
+    }
+  
+    // Include role in the JWT payload (either admin or co-admin)
+    const payload = { 
+      email: user.email, 
+      sub: user.id, 
+      role: user.role.name // Add the role here
+    };
+  
+    // 🔹 Convert Sequelize instance to plain object and remove password
+    const safeUser = user.get({ plain: true });
+    delete safeUser.password;
+  
+    return {
+      user: safeUser, // Return user object without password
+      access_token: this.jwtService.sign(payload, {
+        expiresIn: process.env.ACCESS_TOKEN_EXPIRY || "1h",
+      }),
+      refresh_token: this.jwtService.sign(payload, {
+        expiresIn: process.env.REFRESH_TOKEN_EXPIRY || "1d",
+      }),
+    };
+  }
+  
+
+  async findAll(
+    span: opentracing.Span,
+    params: WhereOptions<User>
+  ): Promise<User[]> {
+    const childSpan = span.tracer().startSpan("db-query", { childOf: span });
+  
+    try {
+      return await this.userRepository.findAll({
+        where: params,
+        attributes: { exclude: ["password"] },
+        include: [
+          { model: Role, as: "role", attributes: ["id", "name"] },
+          { model: Branch, as: "branch", attributes: ["id", "name"] },
+          {
+            model: bank_account,
+            as: "bank_account",
+            attributes: ["id", "account_number", "ifsc_code", "bank_name", "bank_branch"],
+          },
+        ],
+      });
+    } finally {
+      childSpan.finish();
+    }
+  }
+  
+
+  async findByEmail(email: string): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { email } });
+    if (!user) throw new NotFoundException("User not found");
+    return user;
+  }
+
+  
   async refreshToken(refreshToken: string): Promise<{ access_token: string }> {
     try {
       const payload = this.jwtService.verify(refreshToken);
@@ -248,7 +267,7 @@ export class UserService {
       { email, type: "reset" },
       { expiresIn: "15m" }
     );
-    const resetUrl = `https://tayib-jet.vercel.app/reset-password?token=${resetToken}`;
+    const resetUrl = `https://nium-forex-agent-portal.vercel.app/reset-password?token=${resetToken}`;
 
     try {
       // Send password reset email
