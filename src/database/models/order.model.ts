@@ -66,20 +66,20 @@ export class Order extends Model<Order> {
   aadhaar_gender: string;
 
   // Order Details
-  @Column({ type: DataType.STRING, allowNull: false })
+  @Column({ type: DataType.STRING, allowNull: true })
   order_status: string;
 
   // E-Sign Details
-  @Column({ type: DataType.STRING, allowNull: false })
+  @Column({ type: DataType.STRING, allowNull: true })
   e_sign_status: string; // Values: "Pending", "Completed"
 
-  @Column({ type: DataType.STRING, allowNull: false })
+  @Column({ type: DataType.STRING, allowNull: true })
   e_sign_link_status: string;
 
-  @Column({ type: DataType.DATE, allowNull: false })
+  @Column({ type: DataType.DATE, allowNull: true })
   e_sign_link_expires: Date;
 
-  @Column({ type: DataType.BOOLEAN, allowNull: false })
+  @Column({ type: DataType.BOOLEAN, allowNull: true })
   e_sign_completed_by_customer: boolean;
 
   @Column({ type: DataType.DATE, allowNull: true })
@@ -89,16 +89,16 @@ export class Order extends Model<Order> {
   e_sign_doc_comments: string;
 
   // V-KYC Details
-  @Column({ type: DataType.STRING, allowNull: false })
+  @Column({ type: DataType.STRING, allowNull: true })
   v_kyc_status: string; // Values: "Pending", "Completed"
 
-  @Column({ type: DataType.STRING, allowNull: false })
+  @Column({ type: DataType.STRING, allowNull: true })
   v_kyc_link_status: string;
 
-  @Column({ type: DataType.DATE, allowNull: false })
+  @Column({ type: DataType.DATE, allowNull: true })
   v_kyc_link_expires: Date;
 
-  @Column({ type: DataType.BOOLEAN, allowNull: false })
+  @Column({ type: DataType.BOOLEAN, allowNull: true })
   v_kyc_completed_by_customer: boolean;
 
   @Column({ type: DataType.DATE, allowNull: true })
@@ -108,14 +108,14 @@ export class Order extends Model<Order> {
   v_kyc_comments: string;
 
   // E-Sign Regeneration
-  @Column({ type: DataType.BOOLEAN, allowNull: false, defaultValue: false })
+  @Column({ type: DataType.BOOLEAN, allowNull:true, defaultValue: false })
   is_esign_regenerated: boolean;
 
   @Column({ type: DataType.JSONB, allowNull: true })
   is_esign_regenerated_details: any;
 
   // Video KYC Link Regeneration
-  @Column({ type: DataType.BOOLEAN, allowNull: false, defaultValue: false })
+  @Column({ type: DataType.BOOLEAN, allowNull: true, defaultValue: false })
   is_video_kyc_link_regenerated: boolean;
 
   @Column({ type: DataType.JSONB, allowNull: true })

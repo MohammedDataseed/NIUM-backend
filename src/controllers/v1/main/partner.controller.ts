@@ -36,7 +36,7 @@ export class PartnerController {
   ) {}
 
   /** 🔹 Get All Partners */
-  @UseGuards(JwtGuard)
+  // @UseGuards(JwtGuard)
   @Get()
   @ApiOperation({ summary: "Get all partners" })
   @ApiResponse({

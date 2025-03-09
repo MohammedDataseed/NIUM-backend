@@ -5,6 +5,7 @@ import {
   ConflictException,
   BadRequestException,
   NotFoundException,
+  UnauthorizedException
 } from '@nestjs/common';
 import { Order } from '../../../database/models/order.model';
 import { CreateOrderDto } from '../../../dto/order.dto';
@@ -25,8 +26,35 @@ export class OrdersService {
   ) {}
 
   // CREATE: Create a new order
+  
+ // New method to validate headers
+ async validatePartnerHeaders(partnerId: string, apiKey: string): Promise<void> {
+  console.log(`Validating partnerId: ${partnerId}, apiKey: ${apiKey}`); // Debug log
+  const partner = await this.partnerRepository.findOne({
+    where: { id: partnerId },
+  });
 
+  console.log('Partner found:', partner ? JSON.stringify(partner.toJSON()) : 'null'); // Debug log
 
+  if (!partner) {
+    throw new BadRequestException('Invalid partner ID');
+  }
+
+  // // Check if the partner has the "maker" role
+  // if (!partner.role 
+  //   // || 
+  //   // partner.role_id == "a141eecb-19bc-4807-ba90-1b8edd407608" 
+  //   // || partner.role.name !== 'maker'
+  // ) {
+  //   console.log("partner",partner);
+  //   throw new UnauthorizedException('Partner does not have the maker role');
+  // }
+
+  // Check if the api-key matches the partner's api_key
+  if (!partner.api_key || partner.api_key !== apiKey) {
+    throw new UnauthorizedException('Invalid API key for this partner');
+  }
+}
   async createOrder(
     span: opentracing.Span,
     createOrderDto: CreateOrderDto,
@@ -51,22 +79,10 @@ export class OrdersService {
         throw new BadRequestException('Invalid partner ID');
       }
   
-      // Hardcoded checkerUserId for now; replace with dynamic value in production
-      // const checkerUserId = '2207958e-513e-47a6-82a8-628b25db5c68';
-  
-      // // Validate checker_id exists in the users table
-      // const checker = await this.userRepository.findOne({
-      //   where: { id: checkerUserId },
-      // });
-      // if (!checker) {
-      //   throw new BadRequestException('Invalid checker ID');
-      // }
-  
+      // Use all data from the DTO directly
       const orderData = {
-        partner_id: partnerId,
+        partner_id: partnerId, // Still from header for consistency
         order_id: createOrderDto.order_id,
-        // transaction_type: createOrderDto.transaction_type_id,
-        // purpose_type: createOrderDto.purpose_type_id,
         is_esign_required: createOrderDto.is_e_sign_required,
         is_v_kyc_required: createOrderDto.is_v_kyc_required,
         customer_name: createOrderDto.customer_name,
@@ -76,26 +92,24 @@ export class OrdersService {
         aadhaar_pincode: createOrderDto.customer_aadhaar_pincode,
         aadhaar_yob: createOrderDto.customer_aadhaar_yob,
         aadhaar_gender: createOrderDto.customer_gender,
-        order_status: 'Pending',
-        e_sign_status: createOrderDto.is_e_sign_required ? 'Pending' : 'Not Required',
-        e_sign_link_status: 'Not Generated',
-        e_sign_link_expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-        e_sign_completed_by_customer: false,
-        v_kyc_status: createOrderDto.is_v_kyc_required ? 'Pending' : 'Not Required',
-        v_kyc_link_status: 'Not Generated',
-        v_kyc_link_expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-        v_kyc_completed_by_customer: false,
-        is_esign_regenerated: false,
-        is_video_kyc_link_regenerated: false,
-        // created_by: partnerId,
-        // updated_by: partnerId,
-        // checker_id: checkerUserId,
+        order_status: createOrderDto.order_status,
+        e_sign_status: createOrderDto.e_sign_status,
+        e_sign_link_status: createOrderDto.e_sign_link_status,
+        e_sign_link_expires: new Date(createOrderDto.e_sign_link_expires), // Convert string to Date
+        e_sign_completed_by_customer: createOrderDto.e_sign_completed_by_customer,
+        v_kyc_status: createOrderDto.v_kyc_status,
+        v_kyc_link_status: createOrderDto.v_kyc_link_status,
+        v_kyc_link_expires: new Date(createOrderDto.v_kyc_link_expires), // Convert string to Date
+        v_kyc_completed_by_customer: createOrderDto.v_kyc_completed_by_customer,
+        is_esign_regenerated: createOrderDto.is_esign_regenerated,
+        is_video_kyc_link_regenerated: createOrderDto.is_video_kyc_link_regenerated,
+        created_by: createOrderDto.created_by,
+        updated_by: createOrderDto.updated_by,
+        checker_id: createOrderDto.checker_id,
       };
   
-      // Use create to ensure default values like id are handled
+      console.log('orderData:', JSON.stringify(orderData, null, 2)); // Debug log
       const order = await this.orderRepository.create(orderData);
-      console.log(order)
-  
       return order;
     } catch (error) {
       childSpan.log({ event: 'error', message: error.message });
@@ -105,8 +119,6 @@ export class OrdersService {
     }
   }
 
-
-  // READ: Fetch all orders with optional filters
   async findAll(span: opentracing.Span, filters: WhereOptions<Order> = {}): Promise<Order[]> {
     const childSpan = span.tracer().startSpan('find-all-orders', { childOf: span });
 
