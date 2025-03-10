@@ -196,7 +196,23 @@ export class UpdatePartnerDto {
   product_ids?: string[];
 }
 
+class ProductResponseDto {
+  @ApiProperty({ example: "550e8400-e29b-41d4-a716-446655440003", description: "Product ID (UUID)" })
+  id: string;
+
+  @ApiProperty({ example: "Product A", description: "Product Name" })
+  name: string;
+}
+
 export class PartnerResponseDto {
+
+  @ApiProperty({
+    example: "uuid",
+    description: "Unique primary key for the partner",
+  })
+  @IsString()
+  partner_id: string; // ✅ Added `@IsString()` for validation
+
   @ApiProperty({
     example: "a1b2c3d4e5f6...",
     description: "Unique hashed key for the partner",
@@ -251,11 +267,8 @@ export class PartnerResponseDto {
   updated_by: string;
 
   @ApiProperty({
-    example: [
-      "550e8400-e29b-41d4-a716-446655440003",
-      "550e8400-e29b-41d4-a716-446655440004",
-    ],
-    description: "Array of product IDs (UUIDs)",
+    type: [ProductResponseDto], // ✅ Updated to return full product details
+    description: "Array of associated products",
   })
-  product_ids: string[];
+  products: ProductResponseDto[];
 }

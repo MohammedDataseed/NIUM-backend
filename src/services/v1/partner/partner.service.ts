@@ -24,26 +24,25 @@ export class PartnerService {
 
 
   async findAllPartners(span: opentracing.Span): Promise<PartnerResponseDto[]> {
-  const childSpan = span.tracer().startSpan('db-query', { childOf: span });
-
-  try {
-    const partners = await this.partnerRepository.findAll({
-      include: [
-        {
-          model: Products,
-          through: { attributes: [] }, // Exclude the fields from the junction table
-        },
-      ],
-    });
-    return partners.map((partner) => this.toResponseDto(partner));
-  } catch (error) {
-    console.error('Error fetching partners:', error);
-    throw new InternalServerErrorException('Failed to fetch partners');
-  } finally {
-    childSpan.finish();
+    const childSpan = span.tracer().startSpan('db-query', { childOf: span });
+    try {
+      const partners = await this.partnerRepository.findAll({
+        include: [
+          {
+            model: Products,
+            attributes: ['id', 'name'], // Explicitly select product fields
+            through: { attributes: [] }, // Exclude the junction table fields
+          },
+        ],
+      });
+      return partners.map((partner) => this.toResponseDto(partner));
+    } catch (error) {
+      console.error('Error fetching partners:', error);
+      throw new InternalServerErrorException('Failed to fetch partners');
+    } finally {
+      childSpan.finish();
+    }
   }
-}
-
 
   async findPartnerById(span: opentracing.Span, id: number): Promise<PartnerResponseDto> {
     const childSpan = span.tracer().startSpan('db-query', { childOf: span });
@@ -236,8 +235,9 @@ export class PartnerService {
     if (!Object.values(business_type).includes(partner.business_type as business_type)) {
       throw new InternalServerErrorException(`Invalid business_type value: ${partner.business_type}`);
     }
-
+  
     return {
+      partner_id: partner.id,
       hashed_key: partner.hashed_key,
       role_id: partner.role_id,
       email: partner.email,
@@ -248,7 +248,11 @@ export class PartnerService {
       business_type: partner.business_type as business_type,
       created_by: partner.created_by,
       updated_by: partner.updated_by,
-      product_ids: partner.products?.map((product) => product.id) || [],
+      products: partner.products?.map((product) => ({
+        id: product.id,
+        name: product.name,
+      })) || [],
     };
   }
+  
 }
