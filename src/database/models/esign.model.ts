@@ -58,6 +58,15 @@ import {
   
     @Column({ type: DataType.DATE, allowNull: true })
     esign_expiry: Date;
+
+    @Column({ type: DataType.BOOLEAN, allowNull: false, defaultValue: false })
+    active: boolean;
+
+    @Column({ type: DataType.BOOLEAN, allowNull: false, defaultValue: false })
+    expired: boolean;
+
+    @Column({ type: DataType.BOOLEAN, allowNull: false, defaultValue: false })
+    rejected: boolean;
   
     // Associations
     @BelongsTo(() => Order, { foreignKey: "order_id" })
