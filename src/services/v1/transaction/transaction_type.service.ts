@@ -16,7 +16,7 @@ import { WhereOptions } from "sequelize";
 @Injectable()
 export class transaction_typeService {
   constructor(
-    @Inject("transaction_type_REPOSITORY")
+    @Inject("TRANSACTION_TYPE_REPOSITORY")
     private readonly transaction_typeRepository: typeof transaction_type
   ) {}
 

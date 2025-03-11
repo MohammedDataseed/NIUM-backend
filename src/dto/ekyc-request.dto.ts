@@ -1,5 +1,5 @@
 //ekyc-request.dto.ts
-import { ApiProperty ,ApiPropertyOptional} from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { ValidateIf, IsOptional, IsString } from "class-validator";
 
 class EsignFieldsDto {
@@ -17,7 +17,7 @@ class EsignFileDetailsDto {
   @ValidateIf((o) => !o.order_id) // esign_file is required only if order_id is missing
   @IsOptional()
   @IsString()
-  @ApiPropertyOptional({ example: "base64pdf starting with JVBERi0xL" })
+  @ApiPropertyOptional({ example: "base64_file starting with JVBERi0xL" })
   esign_file?: string;
 
   @ApiProperty({ type: EsignFieldsDto })
@@ -35,40 +35,39 @@ class EsignFileDetailsDto {
   order_id?: string;
 }
 
-
 class EsignStampDetailsDto {
-  @ApiProperty({ example: '' })
+  @ApiProperty({ example: "" })
   esign_stamp_series: string;
 
-  @ApiProperty({ example: '' })
+  @ApiProperty({ example: "" })
   esign_series_group: string;
 
-  @ApiProperty({ example: '' })
+  @ApiProperty({ example: "" })
   esign_stamp_value: string;
 }
 
 class AadhaarEsignVerificationDto {
-  @ApiProperty({ example: '' })
+  @ApiProperty({ example: "" })
   @IsOptional()
   aadhaar_pincode: string;
 
-  @ApiProperty({ example: '' })
+  @ApiProperty({ example: "" })
   @IsOptional()
   aadhaar_yob: string;
 
-  @ApiProperty({ example: '' })
+  @ApiProperty({ example: "" })
   @IsOptional()
   aadhaar_gender: string;
 }
 
 class EsignInviteeDto {
-  @ApiProperty({ example: 'Mohammed Tayibulla' })
+  @ApiProperty({ example: "Mohammed Tayibulla" })
   esigner_name: string;
 
-  @ApiProperty({ example: 'contact2tayib@gmail.com' })
+  @ApiProperty({ example: "contact2tayib@gmail.com" })
   esigner_email: string;
 
-  @ApiProperty({ example: '8550895486' })
+  @ApiProperty({ example: "8550895486" })
   esigner_phone: string;
 
   @ApiProperty({ type: AadhaarEsignVerificationDto })
@@ -93,9 +92,7 @@ class EkycDataDto {
 
   @ApiProperty({ type: [EsignInviteeDto] })
   esign_invitees: EsignInviteeDto[];
-
 }
-
 
 export class EkycRequestDto {
   @ApiProperty({ example: "234" })
@@ -111,24 +108,25 @@ export class EkycRequestDto {
   data: EkycDataDto;
 }
 
-
 export class EkycRetrieveRequestDto {
-  @ApiProperty({ example: '234', description: 'Task ID for the e-KYC request' })
+  @ApiProperty({ example: "234", description: "Task ID for the e-KYC request" })
   task_id: string;
 
-  @ApiProperty({ example: '1234', description: 'Group ID associated with the e-KYC request' })
+  @ApiProperty({
+    example: "1234",
+    description: "Group ID associated with the e-KYC request",
+  })
   group_id: string;
 
   @ApiProperty({
     example: {
-      user_key: 'N0N0M8nTyzD3UghN6qehC9HTfwneEZJv',
-      esign_doc_id: 'MMtdWgP',
+      user_key: "N0N0M8nTyzD3UghN6qehC9HTfwneEZJv",
+      esign_doc_id: "MMtdWgP",
     },
-    description: 'Additional data for the request',
+    description: "Additional data for the request",
   })
   data: {
     user_key: string;
     esign_doc_id: string;
   };
 }
-

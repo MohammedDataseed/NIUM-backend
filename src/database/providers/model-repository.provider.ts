@@ -55,11 +55,11 @@ export const repositoryProviders = [
     useValue: Purpose,
   },
   {
-    provide: "DOCUMENTTYPE_REPOSITORY",
+    provide: "DOCUMENT_TYPE_REPOSITORY",
     useValue: DocumentType,
   },
   {
-    provide: "transaction_type_REPOSITORY",
+    provide: "TRANSACTION_TYPE_REPOSITORY",
     useValue: transaction_type,
   },
   {

@@ -27,10 +27,9 @@ import { Express } from "express";
 
 class UploadPdfDto {
   orderId: string;
-  documentTypeId: string;
-  base64Pdf: string;
-  mergeDoc?: boolean;
-  // uploaded_by: string;
+  document_type_id: string;
+  base64_file: string;
+  merge_doc?: boolean;
 }
 
 @ApiTags("Document Management")
@@ -38,47 +37,62 @@ class UploadPdfDto {
 export class PdfController {
   constructor(private readonly pdfService: PdfService) {}
 
-  
-
-  @Post('upload')
-  @Post('upload')
-  @ApiOperation({ summary: 'Upload a PDF document by Order ID' })
-  @ApiConsumes('application/json')
+  @Post("upload")
+  @ApiOperation({ summary: "Upload a PDF document by Order ID" })
+  @ApiConsumes("application/json")
   @ApiBody({
     schema: {
-      type: 'object',
+      type: "object",
       properties: {
-        orderId: { type: 'string', example: '123e4567-e89b-12d3-a456-426614174000' },
-        // documentTypeId: { type: 'string', example: 'agreement' },
-        base64Pdf: { 
-          type: 'string',
-          example: 'data:application/pdf;base64,JVBERi0xLjQKJ...',
-          description: 'Base64 encoded PDF document'
+        orderId: {
+          type: "string",
+          example: "123e4567-e89b-12d3-a456-426614174000",
         },
-        mergeDoc: { type: 'boolean', example: false },
+        document_type_id:
+         { type: 'string',
+          example: "123e4567-e89b-12d3-a456-426614174000",
+         },
+        base64_file: {
+          type: "string",
+          example: "data:application/pdf;base64,JVBERi0xLjQKJ...",
+          description: "Base64 encoded PDF document",
+        },
+        merge_doc: { type: "boolean", example: false },
         // uploaded_by: { type: 'string', example: '987e4567-e89b-12d3-a456-426614174111' },
       },
-      required: ['orderId', 'base64Pdf'],
+      required: ["orderId", "base64_file"],
     },
   })
-  @ApiResponse({ status: 201, description: 'PDF document uploaded successfully' })
-  @ApiResponse({ status: 400, description: 'Invalid base64 format or order not found' })
-  @ApiResponse({ status: 500, description: 'Internal server error' })
+  @ApiResponse({
+    status: 201,
+    description: "PDF document uploaded successfully",
+  })
+  @ApiResponse({
+    status: 400,
+    description: "Invalid base64 format or order not found",
+  })
+  @ApiResponse({ status: 500, description: "Internal server error" })
   async uploadDocument(@Body() uploadPdfDto: UploadPdfDto) {
     // Ensure only PDF files are allowed
-    if (!uploadPdfDto.base64Pdf.startsWith('data:application/pdf;base64,')) {
-      throw new BadRequestException('Only PDF files are allowed');
+    if (!uploadPdfDto.base64_file.startsWith("data:application/pdf;base64,")) {
+      throw new BadRequestException("Only PDF files are allowed");
     }
 
-    // uploadPdfDto.documentTypeId,
+    // // uploadPdfDto.document_type_id,
+    // return this.pdfService.uploadDocumentByOrderId(
+    //   uploadPdfDto.orderId,
+    //   uploadPdfDto.base64_file,
+    //   uploadPdfDto.merge_doc,
+    //   // uploadPdfDto.uploaded_by
+    // );
+
     return this.pdfService.uploadDocumentByOrderId(
       uploadPdfDto.orderId,
-      uploadPdfDto.base64Pdf,
-      uploadPdfDto.mergeDoc,
-      // uploadPdfDto.uploaded_by
+      uploadPdfDto.document_type_id, // ✅ Now correctly passing document_type_id
+      uploadPdfDto.base64_file,
+      uploadPdfDto.merge_doc
     );
   }
-
 
   @Post("upload-file")
   @UseInterceptors(FileInterceptor("file"))

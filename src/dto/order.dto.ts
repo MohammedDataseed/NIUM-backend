@@ -323,7 +323,7 @@ export class CreateOrderDto {
   @IsArray()
   documents?: {
     purposeId: string;
-    documentTypeId: string;
+    document_type_id: string;
     documentName: string;
     documentUrl: { url: string; mimeType?: string; size?: number; uploadedAt?: string };
     status?: "pending" | "approved" | "rejected";

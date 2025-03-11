@@ -16,7 +16,7 @@ import { WhereOptions } from "sequelize";
 @Injectable()
 export class DocumentTypeService {
   constructor(
-    @Inject("DOCUMENTTYPE_REPOSITORY")
+    @Inject("DOCUMENT_TYPE_REPOSITORY")
     private readonly documentTypeRepository: typeof DocumentType
   ) {}
 
