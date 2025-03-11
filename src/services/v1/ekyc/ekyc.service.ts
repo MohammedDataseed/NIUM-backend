@@ -1,10 +1,12 @@
-  import { Injectable, HttpException, HttpStatus, Logger } from "@nestjs/common";
+  import { Inject,Injectable, HttpException, HttpStatus, Logger } from "@nestjs/common";
   import * as opentracing from 'opentracing';
   import axios, { AxiosError } from "axios";
   import { GetObjectCommand } from "@aws-sdk/client-s3"; // Add this import
   import { PdfService } from "../document-consolidate/document-consolidate.service";
   import { OrdersService } from "../order/order.service";
   import { PDFDocument } from "pdf-lib";
+  import { Order } from "src/database/models/order.model";
+  import { ESign } from "src/database/models/esign.model";
   // Define interfaces for the API response structure
   interface EkycApiResponse {
     action: string;
@@ -49,6 +51,10 @@
     private readonly logger = new Logger(EkycService.name);
 
     constructor(
+       @Inject('ORDER_REPOSITORY')
+          private readonly orderRepository: typeof Order,
+          @Inject('E_SIGN_REPOSITORY')
+          private readonly esignRepository: typeof ESign,
       private readonly pdfService: PdfService,
       private readonly orderService: OrdersService,
     ) {} // Inject PdfService
@@ -271,8 +277,6 @@ span.finish(); // Ensure span is properly finished after use
         );
       }
     }
-    
-  
     async sendEkycRequest(token: string, orderId: string): Promise<any> {
       if (!token || typeof token !== "string") {
         throw new HttpException("Invalid or missing X-API-Key token", HttpStatus.BAD_REQUEST);
@@ -280,7 +284,6 @@ span.finish(); // Ensure span is properly finished after use
     
       this.logger.log(`Processing e-KYC request for order: ${orderId}`);
     
-      let esignFile: string;
       let orderDetails: any;
     
       try {
@@ -302,52 +305,12 @@ span.finish(); // Ensure span is properly finished after use
         );
       }
     
-      // // Merge PDFs if available
-      // try {
-      //   const fileList = await this.pdfService.listFilesByFolder(orderId);
-      //   const files = fileList.files?.filter(file => file.name.endsWith(".pdf") && !file.name.includes("merged_")) || [];
-    
-      //   if (files.length === 0) {
-      //     throw new HttpException(`No valid PDFs found in folder: ${orderId}`, HttpStatus.BAD_REQUEST);
-      //   }
-    
-      //   const mergedPdf = await PDFDocument.create();
-      //   for (const file of files) {
-      //     try {
-      //       const response = await axios.get(file.signed_url, { responseType: "arraybuffer" });
-      //       const subPdf = await PDFDocument.load(response.data);
-      //       const copiedPages = await mergedPdf.copyPages(subPdf, subPdf.getPageIndices());
-      //       copiedPages.forEach(page => mergedPdf.addPage(page));
-      //       this.logger.log(`Merged ${file.name} into the final PDF`);
-      //     } catch (err) {
-      //       this.logger.error(`Skipping ${file.name} due to error: ${err.message}`, err.stack);
-      //     }
-      //   }
-    
-      //   if (mergedPdf.getPageCount() === 0) {
-      //     throw new HttpException(`No valid pages found for merging PDFs in folder: ${orderId}`, HttpStatus.INTERNAL_SERVER_ERROR);
-      //   }
-    
-      //   esignFile = Buffer.from(await mergedPdf.save()).toString("base64");
-      //   this.logger.log(`Merged PDFs successfully for order: ${orderId}`);
-      //   const data={
-      //     'esignFile':esignFile,
-      //   }
-      //   console.log(data);
-      // } catch (error) {
-      //   this.logger.error(`Failed to merge PDFs: ${error.message}`, error.stack);
-      //   throw new HttpException(
-      //     { success: false, message: `Failed to merge PDFs for order: ${orderId}`, details: error.message },
-      //     HttpStatus.INTERNAL_SERVER_ERROR
-      //   );
-      // }
-    
       const mergedPdfBase64 = await this.getMergedPdfBase64(orderId);
-
+    
       // **Prepare Request Payload**
-      const requestData={
-        task_id: orderDetails.order_id || "default_task",
-        group_id: "44",
+      const requestData = {
+        task_id: orderDetails.order_id,
+        group_id: orderDetails.partner_id,
         order_id: orderId,
         data: {
           flow_type: "PDF",
@@ -356,11 +319,10 @@ span.finish(); // Ensure span is properly finished after use
           esign_file_details: {
             esign_profile_id: "SWRN1iH",
             file_name: `${orderDetails.order_id}-file`,
-            esign_file:mergedPdfBase64, // Attach the merged PDF as base64
+            esign_file: mergedPdfBase64,
             esign_fields: { esign_fields: orderDetails.esign_fields || {} },
             esign_additional_files: orderDetails.esign_additional_files || [],
             esign_allow_fill: orderDetails.esign_allow_fill || false,
-          
           },
           esign_stamp_details: {
             esign_stamp_series: "",
@@ -383,11 +345,11 @@ span.finish(); // Ensure span is properly finished after use
       };
     
       this.logger.log("Final Request Payload:");
-      console.log(requestData);
-
-        // Make e-KYC request
+      // console.log(requestData);
+    
+      // **Step 1: Make e-KYC request first**
+      let responseData: any;
       try {
-        // return requestData
         const response = await axios.post(this.REQUEST_API_URL, requestData, {
           headers: {
             "api-key": this.API_KEY,
@@ -396,32 +358,249 @@ span.finish(); // Ensure span is properly finished after use
             "X-API-Key": token,
           },
         });
-    
-        const responseData = response.data;
-        if (responseData.status === "completed" && responseData.result?.source_output?.status === "Success") {
-          this.logger.log(`e-KYC request succeeded for order: ${orderId}, request ID: ${responseData.request_id}`);
-          return { success: true, data: responseData, message: "e-KYC document generation completed successfully" };
-        } else {
-          this.logger.warn(`e-KYC request completed with unexpected status for order: ${orderId}`, responseData);
-          throw new HttpException({ success: false, message: "Unexpected e-KYC response", details: responseData }, HttpStatus.BAD_REQUEST);
-        }
+        responseData = response.data;
+        this.logger.log(`e-KYC API request completed for order: ${orderId}`);
       } catch (error) {
-        this.logger.error(`Error in sendEkycRequest: ${error.message}`, error.stack);
+        this.logger.error(`Error in e-KYC API request: ${error.message}`, error.stack);
+    
+        let errorMessage = error.message;
+        let errorDetails = null;
+        let httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
     
         if (error.response) {
           const { status, data } = error.response;
-          throw new HttpException(
-            { success: false, message: data.message || "e-KYC request failed", details: data },
-            status || HttpStatus.INTERNAL_SERVER_ERROR
-          );
+          errorMessage = data.message || "e-KYC request failed";
+          errorDetails = data;
+          httpStatus = status || HttpStatus.INTERNAL_SERVER_ERROR;
+        } else {
+          errorMessage = "Network error: Unable to reach e-KYC service";
+          errorDetails = error.message;
+          httpStatus = HttpStatus.SERVICE_UNAVAILABLE;
         }
     
+        // Store the failed request and response details in ESign
+        const previousAttempts = await ESign.count({ where: { order_id: orderId } });
+        const attemptNumber = previousAttempts + 1;
+    
+        await ESign.create({
+          order_id: orderId,
+          attempt_number: attemptNumber,
+          task_id: requestData.task_id,
+          group_id: requestData.group_id,
+          esign_file_details: requestData.data.esign_file_details,
+          esign_stamp_details: requestData.data.esign_stamp_details,
+          esign_invitees: requestData.data.esign_invitees,
+          status: "failed",
+          esign_details: errorDetails || { error: errorMessage },
+          active: false,
+          expired: false,
+          rejected: false,
+        });
+    
         throw new HttpException(
-          { success: false, message: "Network error: Unable to reach e-KYC service", details: error.message },
-          HttpStatus.SERVICE_UNAVAILABLE
+          { success: false, message: errorMessage, details: errorDetails },
+          httpStatus
+        );
+      }
+    
+      // **Step 2: Calculate the attempt number**
+      const previousAttempts = await ESign.count({ where: { order_id: orderId } });
+      const attemptNumber = previousAttempts + 1;
+    
+      // **Step 3: Store both request and response data in ESign**
+      let esignRecord: ESign;
+      try {
+        esignRecord = await ESign.create({
+          order_id: orderId,
+          attempt_number: attemptNumber,
+          task_id: requestData.task_id,
+          group_id: requestData.group_id,
+          esign_file_details: requestData.data.esign_file_details,
+          esign_stamp_details: requestData.data.esign_stamp_details,
+          esign_invitees: requestData.data.esign_invitees,
+          status: responseData.status === "completed" && responseData.result?.source_output?.status === "Success" ? "completed" : "failed",
+          esign_details: responseData.result?.source_output || responseData,
+          esign_doc_id: responseData.result?.source_output?.document_id || null,
+          request_id: responseData.request_id || null,
+          completed_at: responseData.status === "completed" ? new Date() : null,
+          esign_expiry: responseData.result?.source_output?.expiry || null,
+          active: responseData.status === "completed" && responseData.result?.source_output?.status === "Success",
+          expired: false,
+          rejected: false,
+        });
+    
+        this.logger.log(`Saved e-KYC request and response data to ESign model for order: ${orderId}`);
+      } catch (error) {
+        this.logger.error(`Failed to save e-KYC request and response data: ${error.message}`, error.stack);
+        throw new HttpException(
+          { success: false, message: "Failed to save e-KYC request and response data", details: error.message },
+          HttpStatus.INTERNAL_SERVER_ERROR
+        );
+      }
+    
+      // **Step 4: Return response based on API result**
+      if (responseData.status === "completed" && responseData.result?.source_output?.status === "Success") {
+        this.logger.log(`e-KYC request succeeded for order: ${orderId}, request ID: ${responseData.request_id}`);
+        return { success: true, data: responseData, message: "e-KYC document generation completed successfully" };
+      } else {
+        this.logger.warn(`e-KYC request completed with unexpected status for order: ${orderId}`, responseData);
+        throw new HttpException(
+          { success: false, message: "Unexpected e-KYC response", details: responseData },
+          HttpStatus.BAD_REQUEST
         );
       }
     }
+  
+    // async sendEkycRequest(token: string, orderId: string): Promise<any> {
+    //   if (!token || typeof token !== "string") {
+    //     throw new HttpException("Invalid or missing X-API-Key token", HttpStatus.BAD_REQUEST);
+    //   }
+    
+    //   this.logger.log(`Processing e-KYC request for order: ${orderId}`);
+    
+    //   let esignFile: string;
+    //   let orderDetails: any;
+    
+    //   try {
+    //     // Fetch order details
+    //     const span = opentracing.globalTracer().startSpan("fetch-order-details");
+    //     orderDetails = await this.orderService.findOne(span, orderId);
+    //     span.finish();
+    
+    //     if (!orderDetails) {
+    //       throw new HttpException(`Order not found: ${orderId}`, HttpStatus.NOT_FOUND);
+    //     }
+    
+    //     this.logger.log(`Fetched order details successfully for ${orderId}`);
+    //   } catch (error) {
+    //     this.logger.error(`Error fetching order details: ${error.message}`, error.stack);
+    //     throw new HttpException(
+    //       { success: false, message: "Failed to fetch order details", details: error.message },
+    //       HttpStatus.INTERNAL_SERVER_ERROR
+    //     );
+    //   }
+    
+    //   // // Merge PDFs if available
+    //   // try {
+    //   //   const fileList = await this.pdfService.listFilesByFolder(orderId);
+    //   //   const files = fileList.files?.filter(file => file.name.endsWith(".pdf") && !file.name.includes("merged_")) || [];
+    
+    //   //   if (files.length === 0) {
+    //   //     throw new HttpException(`No valid PDFs found in folder: ${orderId}`, HttpStatus.BAD_REQUEST);
+    //   //   }
+    
+    //   //   const mergedPdf = await PDFDocument.create();
+    //   //   for (const file of files) {
+    //   //     try {
+    //   //       const response = await axios.get(file.signed_url, { responseType: "arraybuffer" });
+    //   //       const subPdf = await PDFDocument.load(response.data);
+    //   //       const copiedPages = await mergedPdf.copyPages(subPdf, subPdf.getPageIndices());
+    //   //       copiedPages.forEach(page => mergedPdf.addPage(page));
+    //   //       this.logger.log(`Merged ${file.name} into the final PDF`);
+    //   //     } catch (err) {
+    //   //       this.logger.error(`Skipping ${file.name} due to error: ${err.message}`, err.stack);
+    //   //     }
+    //   //   }
+    
+    //   //   if (mergedPdf.getPageCount() === 0) {
+    //   //     throw new HttpException(`No valid pages found for merging PDFs in folder: ${orderId}`, HttpStatus.INTERNAL_SERVER_ERROR);
+    //   //   }
+    
+    //   //   esignFile = Buffer.from(await mergedPdf.save()).toString("base64");
+    //   //   this.logger.log(`Merged PDFs successfully for order: ${orderId}`);
+    //   //   const data={
+    //   //     'esignFile':esignFile,
+    //   //   }
+    //   //   console.log(data);
+    //   // } catch (error) {
+    //   //   this.logger.error(`Failed to merge PDFs: ${error.message}`, error.stack);
+    //   //   throw new HttpException(
+    //   //     { success: false, message: `Failed to merge PDFs for order: ${orderId}`, details: error.message },
+    //   //     HttpStatus.INTERNAL_SERVER_ERROR
+    //   //   );
+    //   // }
+    
+    //   const mergedPdfBase64 = await this.getMergedPdfBase64(orderId);
+
+    //   // **Prepare Request Payload**
+    //   const requestData={
+    //     task_id: orderDetails.order_id || "default_task",
+    //     group_id: "44",
+    //     order_id: orderId,
+    //     data: {
+    //       flow_type: "PDF",
+    //       user_key: "N0N0M8nTyzD3UghN6qehC9HTfwneEZJv",
+    //       verify_aadhaar_details: false,
+    //       esign_file_details: {
+    //         esign_profile_id: "SWRN1iH",
+    //         file_name: `${orderDetails.order_id}-file`,
+    //         esign_file:mergedPdfBase64, // Attach the merged PDF as base64
+    //         esign_fields: { esign_fields: orderDetails.esign_fields || {} },
+    //         esign_additional_files: orderDetails.esign_additional_files || [],
+    //         esign_allow_fill: orderDetails.esign_allow_fill || false,
+          
+    //       },
+    //       esign_stamp_details: {
+    //         esign_stamp_series: "",
+    //         esign_series_group: "",
+    //         esign_stamp_value: "",
+    //       },
+    //       esign_invitees: [
+    //         {
+    //           esigner_name: orderDetails.customer_name,
+    //           esigner_email: orderDetails.customer_email,
+    //           esigner_phone: orderDetails.customer_phone,
+    //           aadhaar_esign_verification: {
+    //             aadhaar_pincode: "",
+    //             aadhaar_yob: "",
+    //             aadhaar_gender: "",
+    //           },
+    //         },
+    //       ],
+    //     },
+    //   };
+    
+    //   this.logger.log("Final Request Payload:");
+    //   console.log(requestData);
+
+    //     // Make e-KYC request
+    //   try {
+    //     // return requestData
+    //     const response = await axios.post(this.REQUEST_API_URL, requestData, {
+    //       headers: {
+    //         "api-key": this.API_KEY,
+    //         "account-id": this.ACCOUNT_ID,
+    //         "Content-Type": "application/json",
+    //         "X-API-Key": token,
+    //       },
+    //     });
+    
+    //     const responseData = response.data;
+    //     if (responseData.status === "completed" && responseData.result?.source_output?.status === "Success") {
+    //       this.logger.log(`e-KYC request succeeded for order: ${orderId}, request ID: ${responseData.request_id}`);
+    //       return { success: true, data: responseData, message: "e-KYC document generation completed successfully" };
+    //     } else {
+    //       this.logger.warn(`e-KYC request completed with unexpected status for order: ${orderId}`, responseData);
+    //       throw new HttpException({ success: false, message: "Unexpected e-KYC response", details: responseData }, HttpStatus.BAD_REQUEST);
+    //     }
+    //   } catch (error) {
+    //     this.logger.error(`Error in sendEkycRequest: ${error.message}`, error.stack);
+    
+    //     if (error.response) {
+    //       const { status, data } = error.response;
+    //       throw new HttpException(
+    //         { success: false, message: data.message || "e-KYC request failed", details: data },
+    //         status || HttpStatus.INTERNAL_SERVER_ERROR
+    //       );
+    //     }
+    
+    //     throw new HttpException(
+    //       { success: false, message: "Network error: Unable to reach e-KYC service", details: error.message },
+    //       HttpStatus.SERVICE_UNAVAILABLE
+    //     );
+    //   }
+    // }
+    
     
 
   async sendEkycRequestBase64(token: string, requestData: any): Promise<any> {

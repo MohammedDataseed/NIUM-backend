@@ -10,6 +10,7 @@ import { Role } from "./role.model";
 import { User } from "./user.model";
 import { PartnerProducts } from "./partner_products.model";
 import { Order } from "./order.model";
+import { ESign } from "./esign.model";
 
 export const models = [
   bank_account,
@@ -24,4 +25,5 @@ export const models = [
   User,
   PartnerProducts,
   Order,
+  ESign,
 ];

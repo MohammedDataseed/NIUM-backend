@@ -5,6 +5,7 @@ import {
   DataType,
   ForeignKey,
   BelongsTo,
+  HasMany
 } from "sequelize-typescript";
 import { User } from "./user.model";
 import { Partner } from "./partner.model";
@@ -162,6 +163,10 @@ export class Order extends Model<Order> {
     createdAt: string;
     documentIds: string[];
   };
+
+   // Corrected Relationship (One Order -> Many ESigns)
+   @HasMany(() => ESign, { foreignKey: "order_id" })
+   esigns: ESign[];
 
   // @BelongsTo(() => ESign, { foreignKey: "order_id" })
   // esign: ESign;
