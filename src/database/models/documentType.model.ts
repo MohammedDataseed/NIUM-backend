@@ -8,6 +8,7 @@ import {
   ForeignKey,
   BelongsTo,
   BeforeCreate,
+  BeforeValidate,
   Unique,
   DataType,
 } from "sequelize-typescript";
@@ -68,10 +69,12 @@ export class DocumentType extends Model<DocumentType> {
   updater: User;
 
   /** Generate `hashed_key` before creation */
-  @BeforeCreate
-  static generatehashed_key(instance: DocumentType) {
+  // @BeforeCreate
+  @BeforeValidate
+  static generateHashedKey(instance: DocumentType) {
     const randomPart = crypto.randomBytes(16).toString("hex"); // 16-character random string
     const timestampPart = Date.now().toString(36); // Convert timestamp to base36 for compactness
     instance.hashed_key = `${randomPart}${timestampPart}`; // 16-char random + timestamp
   }
+  
 }

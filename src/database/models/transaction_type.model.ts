@@ -8,6 +8,7 @@ import {
   ForeignKey,
   BelongsTo,
   BeforeCreate,
+  BeforeValidate,
   Unique,
   DataType,
 } from "sequelize-typescript";
@@ -75,10 +76,17 @@ export class transaction_type extends Model<transaction_type> {
   // }
 
   /** Generate `publicKey` before creation */
-  @BeforeCreate
-  static generatePublicKey(instance: transaction_type) {
-    const randomPart = crypto.randomBytes(16).toString("hex"); // 16-character random string
+  // @BeforeCreate
+  // static generatePublicKey(instance: transaction_type) {
+  //   const randomPart = crypto.randomBytes(16).toString("hex"); // 16-character random string
+  //   const timestampPart = Date.now().toString(36); // Convert timestamp to base36 for compactness
+  //   instance.hashed_key = `${randomPart}${timestampPart}`; // 16-char random + timestamp
+  // }
+
+   @BeforeValidate
+    static generateHashedKey(instance: transaction_type) {
+        const randomPart = crypto.randomBytes(16).toString("hex"); // 16-character random string
     const timestampPart = Date.now().toString(36); // Convert timestamp to base36 for compactness
     instance.hashed_key = `${randomPart}${timestampPart}`; // 16-char random + timestamp
-  }
+   }
 }
