@@ -96,6 +96,8 @@ async createOrder(
       order_status: 'pending', // Default value
       e_sign_status: 'not generated', // Default value
       v_kyc_status: 'not generated', // Default value
+      created_by:partnerId,
+      updated_by:partnerId
     };
 
     console.log('orderData:', JSON.stringify(orderData, null, 2));
