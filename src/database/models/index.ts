@@ -1,3 +1,4 @@
+
 import { bank_account } from './bank_account.model';
 import { Branch } from './branch.model';
 import { Documents } from './documents.model';
@@ -12,6 +13,7 @@ import { PartnerProducts } from './partner_products.model';
 import { Order } from './order.model';
 import { DocumentType } from './documentType.model';
 import { TransactionType } from './transactionType.model';
+import { ESign } from "./esign.model";
 
 export const models = [
   bank_account,
@@ -28,4 +30,5 @@ export const models = [
   Order,
   DocumentType,
   TransactionType,
+  ESign,
 ];

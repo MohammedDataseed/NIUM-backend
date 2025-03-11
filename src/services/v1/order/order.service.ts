@@ -8,7 +8,7 @@ import {
   UnauthorizedException
 } from '@nestjs/common';
 import { Order } from '../../../database/models/order.model';
-import { CreateOrderDto } from '../../../dto/order.dto';
+import { CreateOrderDto,CreateMinimalOrderDto } from '../../../dto/order.dto';
 import * as opentracing from 'opentracing';
 import { User } from '../../../database/models/user.model';
 import { Partner } from '../../../database/models/partner.model';
@@ -55,69 +55,62 @@ export class OrdersService {
     throw new UnauthorizedException('Invalid API key for this partner');
   }
 }
-  async createOrder(
-    span: opentracing.Span,
-    createOrderDto: CreateOrderDto,
-    partnerId: string,
-  ): Promise<Order> {
-    const childSpan = span.tracer().startSpan('create-order', { childOf: span });
-  
-    try {
-      // Check for existing order with the same order_id
-      const existingOrder = await this.orderRepository.findOne({
-        where: { order_id: createOrderDto.order_id },
-      });
-      if (existingOrder) {
-        throw new ConflictException('Order ID already exists');
-      }
-  
-      // Validate partner_id exists in the partners table
-      const partner = await this.partnerRepository.findOne({
-        where: { id: partnerId },
-      });
-      if (!partner) {
-        throw new BadRequestException('Invalid partner ID');
-      }
-  
-      // Use all data from the DTO directly
-      const orderData = {
-        partner_id: partnerId, // Still from header for consistency
-        order_id: createOrderDto.order_id,
-        is_esign_required: createOrderDto.is_e_sign_required,
-        is_v_kyc_required: createOrderDto.is_v_kyc_required,
-        customer_name: createOrderDto.customer_name,
-        customer_email: createOrderDto.customer_email,
-        customer_phone: createOrderDto.customer_phone,
-        customer_pan: createOrderDto.customer_pan,
-        aadhaar_pincode: createOrderDto.customer_aadhaar_pincode,
-        aadhaar_yob: createOrderDto.customer_aadhaar_yob,
-        aadhaar_gender: createOrderDto.customer_gender,
-        order_status: createOrderDto.order_status,
-        e_sign_status: createOrderDto.e_sign_status,
-        e_sign_link_status: createOrderDto.e_sign_link_status,
-        e_sign_link_expires: new Date(createOrderDto.e_sign_link_expires), // Convert string to Date
-        e_sign_completed_by_customer: createOrderDto.e_sign_completed_by_customer,
-        v_kyc_status: createOrderDto.v_kyc_status,
-        v_kyc_link_status: createOrderDto.v_kyc_link_status,
-        v_kyc_link_expires: new Date(createOrderDto.v_kyc_link_expires), // Convert string to Date
-        v_kyc_completed_by_customer: createOrderDto.v_kyc_completed_by_customer,
-        is_esign_regenerated: createOrderDto.is_esign_regenerated,
-        is_video_kyc_link_regenerated: createOrderDto.is_video_kyc_link_regenerated,
-        created_by: createOrderDto.created_by,
-        updated_by: createOrderDto.updated_by,
-        checker_id: createOrderDto.checker_id,
-      };
-  
-      console.log('orderData:', JSON.stringify(orderData, null, 2)); // Debug log
-      const order = await this.orderRepository.create(orderData);
-      return order;
-    } catch (error) {
-      childSpan.log({ event: 'error', message: error.message });
-      throw error;
-    } finally {
-      childSpan.finish();
+
+// New method for creating minimal order
+async createOrder(
+  span: opentracing.Span,
+  createMinimalOrderDto: CreateMinimalOrderDto,
+  partnerId: string,
+): Promise<Order> {
+  const childSpan = span.tracer().startSpan('create-minimal-order', { childOf: span });
+
+  try {
+    // Check for existing order with the same partner_order_id
+    const existingOrder = await this.orderRepository.findOne({
+      where: { order_id: createMinimalOrderDto.partner_order_id },
+    });
+    if (existingOrder) {
+      throw new ConflictException('Order ID already exists');
     }
+
+    // Validate partner_id exists
+    const partner = await this.partnerRepository.findOne({
+      where: { id: partnerId },
+    });
+    if (!partner) {
+      throw new BadRequestException('Invalid partner ID');
+    }
+
+    const orderData = {
+      partner_id: partnerId,
+      order_id: createMinimalOrderDto.partner_order_id,
+      transaction_type: createMinimalOrderDto.transaction_type_id,
+      is_esign_required: createMinimalOrderDto.is_e_sign_required,
+      is_v_kyc_required: createMinimalOrderDto.is_v_kyc_required,
+      purpose_type: createMinimalOrderDto.purpose_type_id,
+      customer_name: createMinimalOrderDto.customer_name,
+      customer_email: createMinimalOrderDto.customer_email,
+      customer_phone: createMinimalOrderDto.customer_phone,
+      customer_pan: createMinimalOrderDto.customer_pan,
+      aadhaar_dob: new Date(createMinimalOrderDto.customer_aadhaar_dob),
+      order_status: 'pending', // Default value
+      e_sign_status: 'not generated', // Default value
+      v_kyc_status: 'not generated', // Default value
+      created_by:partnerId,
+      updated_by:partnerId
+    };
+
+    console.log('orderData:', JSON.stringify(orderData, null, 2));
+    const order = await this.orderRepository.create(orderData);
+    return order;
+  } catch (error) {
+    childSpan.log({ event: 'error', message: error.message });
+    throw error;
+  } finally {
+    childSpan.finish();
   }
+}
+
 
   async findAll(span: opentracing.Span, filters: WhereOptions<Order> = {}): Promise<Order[]> {
     const childSpan = span.tracer().startSpan('find-all-orders', { childOf: span });
@@ -179,9 +172,6 @@ export class OrdersService {
         ...(updateOrderDto.customer_email && { customer_email: updateOrderDto.customer_email }),
         ...(updateOrderDto.customer_phone && { customer_phone: updateOrderDto.customer_phone }),
         ...(updateOrderDto.customer_pan && { customer_pan: updateOrderDto.customer_pan }),
-        ...(updateOrderDto.customer_aadhaar_pincode && { aadhaar_pincode: updateOrderDto.customer_aadhaar_pincode }),
-        ...(updateOrderDto.customer_aadhaar_yob && { aadhaar_yob: updateOrderDto.customer_aadhaar_yob }),
-        ...(updateOrderDto.customer_gender && { aadhaar_gender: updateOrderDto.customer_gender }),
      
       };
 

@@ -5,11 +5,13 @@ import {
   DataType,
   ForeignKey,
   BelongsTo,
+  HasMany
 } from "sequelize-typescript";
 import { User } from "./user.model";
 import { Partner } from "./partner.model";
 import { ESign } from "./esign.model";
 import { Vkyc } from "./vkyc.model"
+import { Optional } from "@nestjs/common";
 
 @Table({
   tableName: "orders",
@@ -55,70 +57,78 @@ export class Order extends Model<Order> {
   @Column({ type: DataType.STRING, allowNull: false })
   customer_pan: string;
 
-  // Aadhaar Details
-  @Column({ type: DataType.STRING, allowNull: false })
-  aadhaar_pincode: string;
-
-  @Column({ type: DataType.STRING, allowNull: false })
-  aadhaar_yob: string;
-
-  @Column({ type: DataType.STRING, allowNull: false })
-  aadhaar_gender: string;
 
   // Order Details
   @Column({ type: DataType.STRING, allowNull: true })
+  @Optional()
   order_status: string;
 
   // E-Sign Details
   @Column({ type: DataType.STRING, allowNull: true })
+  @Optional()
   e_sign_status: string; // Values: "Pending", "Completed"
 
   @Column({ type: DataType.STRING, allowNull: true })
+  @Optional()
   e_sign_link_status: string;
 
   @Column({ type: DataType.DATE, allowNull: true })
+  @Optional()
   e_sign_link_expires: Date;
 
   @Column({ type: DataType.BOOLEAN, allowNull: true })
+  @Optional()
   e_sign_completed_by_customer: boolean;
 
   @Column({ type: DataType.DATE, allowNull: true })
+  @Optional()
   e_sign_customer_completion_date: Date;
 
   @Column({ type: DataType.STRING, allowNull: true })
+  @Optional()
   e_sign_doc_comments: string;
 
   // V-KYC Details
   @Column({ type: DataType.STRING, allowNull: true })
+  @Optional()
   v_kyc_status: string; // Values: "Pending", "Completed"
 
   @Column({ type: DataType.STRING, allowNull: true })
+  @Optional()
   v_kyc_link_status: string;
 
   @Column({ type: DataType.DATE, allowNull: true })
+  @Optional()
   v_kyc_link_expires: Date;
 
   @Column({ type: DataType.BOOLEAN, allowNull: true })
+  @Optional()
   v_kyc_completed_by_customer: boolean;
 
   @Column({ type: DataType.DATE, allowNull: true })
+  @Optional()
   v_kyc_customer_completion_date: Date;
 
   @Column({ type: DataType.STRING, allowNull: true })
+  @Optional()
   v_kyc_comments: string;
 
   // E-Sign Regeneration
   @Column({ type: DataType.BOOLEAN, allowNull:true, defaultValue: false })
+  @Optional()
   is_esign_regenerated: boolean;
 
   @Column({ type: DataType.JSONB, allowNull: true })
+  @Optional()
   is_esign_regenerated_details: any;
 
   // Video KYC Link Regeneration
   @Column({ type: DataType.BOOLEAN, allowNull: true, defaultValue: false })
+  @Optional()
   is_video_kyc_link_regenerated: boolean;
 
   @Column({ type: DataType.JSONB, allowNull: true })
+  @Optional()
   is_video_kyc_link_regenerated_details: any;
 
   // User Tracking (created_by and updated_by)
@@ -145,6 +155,7 @@ export class Order extends Model<Order> {
   checker: User;
 
   @Column({ type: DataType.JSONB, allowNull: true }) // Store structured data
+  @Optional()
   merged_document: {
     url: string;
     mimeType: string;
@@ -152,6 +163,10 @@ export class Order extends Model<Order> {
     createdAt: string;
     documentIds: string[];
   };
+
+   // Corrected Relationship (One Order -> Many ESigns)
+   @HasMany(() => ESign, { foreignKey: "order_id" })
+   esigns: ESign[];
 
   // @BelongsTo(() => ESign, { foreignKey: "order_id" })
   // esign: ESign;

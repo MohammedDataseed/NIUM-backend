@@ -11,6 +11,8 @@ import { User } from '../models/user.model';
 import { Order } from '../models/order.model';
 import { DocumentType } from '../models/documentType.model';
 import { TransactionType } from '../models/transactionType.model';
+import { ESign } from "../models/esign.model";
+
 
 export const repositoryProviders = [
   {
@@ -64,5 +66,9 @@ export const repositoryProviders = [
   {
     provide: 'ORDER_REPOSITORY',
     useValue: Order,
+  },
+  {
+    provide: "E_SIGN_REPOSITORY",
+    useValue: ESign,
   },
 ];

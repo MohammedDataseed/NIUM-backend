@@ -1,5 +1,5 @@
+//ekyc-request.dto.ts
 import { ApiProperty ,ApiPropertyOptional} from '@nestjs/swagger';
-
 import { ValidateIf, IsOptional, IsString } from "class-validator";
 
 class EsignFieldsDto {
@@ -48,13 +48,16 @@ class EsignStampDetailsDto {
 }
 
 class AadhaarEsignVerificationDto {
-  @ApiProperty({ example: '560045' })
+  @ApiProperty({ example: '' })
+  @IsOptional()
   aadhaar_pincode: string;
 
-  @ApiProperty({ example: '2002' })
+  @ApiProperty({ example: '' })
+  @IsOptional()
   aadhaar_yob: string;
 
-  @ApiProperty({ example: 'M' })
+  @ApiProperty({ example: '' })
+  @IsOptional()
   aadhaar_gender: string;
 }
 
@@ -79,7 +82,7 @@ class EkycDataDto {
   @ApiProperty({ example: "N0N0M8nTyzD3UghN6qehC9HTfwneEZJv" })
   user_key: string;
 
-  @ApiProperty({ example: true })
+  @ApiProperty({ example: false })
   verify_aadhaar_details: boolean;
 
   @ApiProperty({ type: EsignFileDetailsDto })
@@ -91,10 +94,6 @@ class EkycDataDto {
   @ApiProperty({ type: [EsignInviteeDto] })
   esign_invitees: EsignInviteeDto[];
 
-  @ApiPropertyOptional({ example: "ORDER123" })
-  @IsOptional()
-  @IsString()
-  order_id?: string; // 🔹 Passing order_id to esign_file_details
 }
 
 
