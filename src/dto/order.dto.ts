@@ -13,12 +13,103 @@ import {
   IsPhoneNumber 
 } from 'class-validator';
 
+
+export class CreateMinimalOrderDto {
+  @ApiProperty({ 
+    type: String, 
+    description: 'Partner Order ID', 
+    example: 'BMFORDERID4321' 
+  })
+  @IsString()
+  partner_order_id: string;
+
+  @ApiProperty({ 
+    type: String, 
+    description: 'Transaction Type ID', 
+    example: '218b4fd8-ebeb-4dfa-a6b7-be54c8db1e8e' 
+  })
+  @IsUUID()
+  @IsOptional()
+  transaction_type_id: string;
+
+  
+  @ApiProperty({ 
+    type: String, 
+    description: 'Purpose Type ID', 
+    example: 'df7b0fc0-83e4-42aa-b124-fbc7c50ad9f3' 
+  })
+  @IsUUID()
+  @IsOptional()
+  purpose_type_id: string;
+
+  @ApiProperty({ 
+    type: Boolean, 
+    description: 'Indicates if e-signature is required', 
+    example: true 
+  })
+  @IsBoolean()
+  is_e_sign_required: boolean;
+
+  @ApiProperty({ 
+    type: Boolean, 
+    description: 'Indicates if V-KYC is required', 
+    example: true 
+  })
+  @IsBoolean()
+  is_v_kyc_required: boolean;
+
+
+  @ApiProperty({ 
+    type: String, 
+    description: 'Customer Name', 
+    example: 'John Doe' 
+  })
+  @IsString()
+  customer_name: string;
+
+  @ApiProperty({ 
+    type: String, 
+    description: 'Customer Email', 
+    example: 'john@gmail.com' 
+  })
+  @IsEmail()
+  customer_email: string;
+
+  @ApiProperty({ 
+    type: String, 
+    description: 'Customer Phone', 
+    example: '9912345678' 
+  })
+  @IsPhoneNumber('IN')
+  customer_phone: string;
+
+  @ApiProperty({ 
+    type: String, 
+    description: 'Customer PAN', 
+    example: 'ACTPAN123' 
+  })
+  @Matches(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, {
+    message: 'Invalid PAN format',
+  })
+  customer_pan: string;
+
+
+  @ApiProperty({ 
+    type: String, 
+    description: 'Customer Aadhaar Date of Birth', 
+    example: '1999-11-30' 
+  })
+  @IsDateString()
+  customer_aadhaar_dob: string;
+
+}
+
 export class CreateOrderDto {
   @ApiProperty({ 
     type: String, 
     description: 'Order ID', 
     uniqueItems: true, 
-    example: 'BMFORDERID432' 
+    example: 'BMFORDERID001' 
   })
   @IsString()
   order_id: string;
@@ -75,38 +166,11 @@ export class CreateOrderDto {
 
   @ApiProperty({ 
     type: String, 
-    description: 'Customer Aadhaar Pincode', 
-    example: '560005' 
-  })
-  @Matches(/^\d{6}$/, {
-    message: 'Aadhaar Pincode must be a 6-digit number',
-  })
-  customer_aadhaar_pincode: string;
-
-  @ApiProperty({ 
-    type: String, 
-    description: 'Customer Aadhaar Date of Birth', 
-    example: '2003-01-06' 
-  })
-  @IsDateString()
-  customer_aadhaar_dob: string;
-
-  @ApiProperty({ 
-    type: String, 
-    description: 'Customer Aadhaar Year of Birth', 
-    example: '2003' 
-  })
-  @Matches(/^\d{4}$/, {
-    message: 'Year of Birth must be a 4-digit year',
-  })
-  customer_aadhaar_yob: string;
-
-  @ApiProperty({ 
-    type: String, 
     description: 'Customer Gender', 
     example: 'M' 
   })
   @IsString()
+  @IsOptional()
   customer_gender: string;
 
   @ApiProperty({ 
@@ -123,6 +187,7 @@ export class CreateOrderDto {
     example: 'not generated' 
   })
   @IsString()
+  @IsOptional()
   e_sign_status: string;
 
   @ApiProperty({ 
@@ -131,6 +196,7 @@ export class CreateOrderDto {
     example: 'not generated' 
   })
   @IsString()
+  @IsOptional()
   e_sign_link_status: string;
 
   @ApiProperty({ 
@@ -146,6 +212,7 @@ export class CreateOrderDto {
     description: 'E-Sign Completed by Customer', 
     example: false 
   })
+  @IsOptional()
   @IsBoolean()
   e_sign_completed_by_customer: boolean;
 
@@ -155,6 +222,7 @@ export class CreateOrderDto {
     example: 'not generated' 
   })
   @IsString()
+  @IsOptional()
   v_kyc_status: string;
 
   @ApiProperty({ 
@@ -163,6 +231,7 @@ export class CreateOrderDto {
     example: 'not generated' 
   })
   @IsString()
+  @IsOptional()
   v_kyc_link_status: string;
 
   @ApiProperty({ 
@@ -171,6 +240,7 @@ export class CreateOrderDto {
     example: '2025-03-30T12:00:00.000Z' 
   })
   @IsDateString()
+  @IsOptional()
   v_kyc_link_expires: string;
 
   @ApiProperty({ 
@@ -179,6 +249,7 @@ export class CreateOrderDto {
     example: false 
   })
   @IsBoolean()
+  @IsOptional()
   v_kyc_completed_by_customer: boolean;
 
   @ApiProperty({ 
@@ -187,6 +258,7 @@ export class CreateOrderDto {
     example: false 
   })
   @IsBoolean()
+  @IsOptional()
   is_esign_regenerated: boolean;
 
   @ApiProperty({ 
@@ -195,6 +267,7 @@ export class CreateOrderDto {
     example: false 
   })
   @IsBoolean()
+  @IsOptional()
   is_video_kyc_link_regenerated: boolean;
 
   @ApiProperty({ 
@@ -222,6 +295,7 @@ export class CreateOrderDto {
     required: true 
   })
   @IsUUID()
+  @IsOptional()
   checker_id: string;
 
   @ApiProperty({
@@ -322,39 +396,12 @@ export class UpdateOrderDto{
 
   @ApiProperty({ 
     type: String, 
-    description: 'Customer Aadhaar Pincode', 
-    example: '560005' 
-  })
-  @Matches(/^\d{6}$/, {
-    message: 'Aadhaar Pincode must be a 6-digit number',
-  })
-  customer_aadhaar_pincode: string;
-
-  @ApiProperty({ 
-    type: String, 
     description: 'Customer Aadhaar Date of Birth', 
     example: '2003-01-06' 
   })
   @IsDateString()
   customer_aadhaar_dob: string;
 
-  @ApiProperty({ 
-    type: String, 
-    description: 'Customer Aadhaar Year of Birth', 
-    example: '2003' 
-  })
-  @Matches(/^\d{4}$/, {
-    message: 'Year of Birth must be a 4-digit year',
-  })
-  customer_aadhaar_yob: string;
-
-  @ApiProperty({ 
-    type: String, 
-    description: 'Customer Gender', 
-    example: 'M' 
-  })
-  @IsString()
-  customer_gender: string;
 
   @ApiProperty({ 
     type: String, 
@@ -378,6 +425,7 @@ export class UpdateOrderDto{
     example: 'not generated' 
   })
   @IsString()
+  @IsOptional()
   e_sign_link_status: string;
 
   @ApiProperty({ 
@@ -471,60 +519,3 @@ export class UpdateOrderDto{
   @IsUUID()
   checker_id: string;
 }
-
-// export class UpdateOrderDto {
-//   @ApiProperty({ type: String, description: 'Transaction Type ID', required: false })
-//   @IsOptional()
-//   @IsUUID()
-//   transaction_type_id?: string;
-
-//   @ApiProperty({ type: Boolean, description: 'Indicates if e-signature is required', required: false })
-//   @IsOptional()
-//   @IsBoolean()
-//   is_e_sign_required?: boolean;
-
-//   @ApiProperty({ type: Boolean, description: 'Indicates if V-KYC is required', required: false })
-//   @IsOptional()
-//   @IsBoolean()
-//   is_v_kyc_required?: boolean;
-
-//   @ApiProperty({ type: String, description: 'Purpose Type ID', required: false })
-//   @IsOptional()
-//   @IsUUID()
-//   purpose_type_id?: string;
-
-//   @ApiProperty({ type: String, description: 'Customer Name', required: false })
-//   @IsOptional()
-//   @IsString()
-//   customer_name?: string;
-
-//   @ApiProperty({ type: String, description: 'Customer Email', required: false })
-//   @IsOptional()
-//   @IsEmail()
-//   customer_email?: string;
-
-//   @ApiProperty({ type: String, description: 'Customer Phone', required: false })
-//   @IsOptional()
-//   @IsString()
-//   customer_phone?: string;
-
-//   @ApiProperty({ type: String, description: 'Customer PAN', required: false })
-//   @IsOptional()
-//   @IsString()
-//   customer_pan?: string;
-
-//   @ApiProperty({ type: String, description: 'Customer Aadhaar Pincode', required: false })
-//   @IsOptional()
-//   @IsString()
-//   customer_aadhaar_pincode?: string;
-
-//   @ApiProperty({ type: String, description: 'Customer Aadhaar Year of Birth', required: false })
-//   @IsOptional()
-//   @IsString()
-//   customer_aadhaar_yob?: string;
-
-//   @ApiProperty({ type: String, description: 'Customer Gender', required: false })
-//   @IsOptional()
-//   @IsString()
-//   customer_gender?: string;
-// }

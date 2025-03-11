@@ -1,5 +1,5 @@
 module.exports = {
-  up: async (queryInterface, Sequelize) => {
+  async up(queryInterface, Sequelize) {
     await queryInterface.createTable("orders", {
       id: {
         type: Sequelize.UUID,
@@ -47,18 +47,6 @@ module.exports = {
         allowNull: false,
       },
       customer_pan: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
-      aadhaar_pincode: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
-      aadhaar_yob: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
-      aadhaar_gender: {
         type: Sequelize.STRING,
         allowNull: false,
       },
@@ -144,6 +132,10 @@ module.exports = {
         type: Sequelize.UUID,
         allowNull: true,
       },
+      merged_document: {
+        type: Sequelize.JSONB,
+        allowNull: true,
+      },
       createdAt: {
         type: Sequelize.DATE,
         allowNull: false,
@@ -155,12 +147,9 @@ module.exports = {
         defaultValue: Sequelize.NOW,
       },
     });
-
-   
-
   },
 
-  down: async (queryInterface) => {
+  async down(queryInterface, Sequelize) {
     await queryInterface.dropTable("orders");
   },
 };
