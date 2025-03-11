@@ -16,15 +16,15 @@ import { User } from './user.model';
 import * as crypto from 'crypto';
 
 @Table({
-  tableName: 'purposes', // Matches migration table name
+  tableName: 'document_type', // Matches migration table name
   timestamps: true, // Enables createdAt & updatedAt
   underscored: true, // Uses snake_case for DB columns
 })
-export class Purpose extends Model<Purpose> {
+export class DocumentType extends Model<DocumentType> {
   @PrimaryKey
   @Default(DataType.UUIDV4)
-  @Column({ type: DataType.UUID, field: 'id' })
-  id: string;
+  @Column({ type: DataType.UUID })
+  id!: string;
 
   @AllowNull(false)
   @Unique
@@ -32,9 +32,10 @@ export class Purpose extends Model<Purpose> {
   @Column({ type: DataType.STRING, field: 'public_key' })
   publicKey: string;
 
+  @Unique
   @AllowNull(false)
-  @Column({ type: DataType.STRING, field: 'purpose_name' })
-  purposeName: string;
+  @Column({ type: DataType.STRING, field: 'name' })
+  name!: string;
 
   @AllowNull(false)
   @Default(true)
@@ -69,7 +70,7 @@ export class Purpose extends Model<Purpose> {
 
   /** Generate `publicKey` before creation */
   @BeforeCreate
-  static generatePublicKey(instance: Purpose) {
+  static generatePublicKey(instance: DocumentType) {
     instance.publicKey = crypto.randomBytes(8).toString('hex'); // Generates a random unique key
   }
 }
