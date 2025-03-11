@@ -1,5 +1,5 @@
+//ekyc-request.dto.ts
 import { ApiProperty ,ApiPropertyOptional} from '@nestjs/swagger';
-
 import { ValidateIf, IsOptional, IsString } from "class-validator";
 
 class EsignFieldsDto {
