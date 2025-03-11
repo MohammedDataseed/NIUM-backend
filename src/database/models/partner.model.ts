@@ -29,9 +29,10 @@ export class Partner extends Model<Partner> {
   id: string;
 
   @Unique
-  @AllowNull(true)
-  @Column({ type: DataType.STRING, field: "hashed_key" }) // New hashed_key field
+  @AllowNull(false)
+  @Column({ type: DataType.STRING, field: "hashed_key" })
   hashed_key: string;
+
 
   @ForeignKey(() => Role)
   @AllowNull(false)
@@ -92,17 +93,25 @@ export class Partner extends Model<Partner> {
   @BelongsToMany(() => Products, () => PartnerProducts)
   products: Products[];
 
-  // Hook to generate hashed_key before creating the record
-  @BeforeCreate
-  static generateHashedKey(instance: Partner) {
-    if (!instance.id) {
-      throw new Error("ID must be set before generating hashed_key");
-    }
+  // // Hook to generate hashed_key before creating the record
+  // @BeforeCreate
+  // static generateHashedKey(instance: Partner) {
+  //   if (!instance.id) {
+  //     throw new Error("ID must be set before generating hashed_key");
+  //   }
 
-    const hash = crypto
-      .createHash("sha256") // You can use md5, sha256, etc.
-      .update(instance.id + Date.now().toString()) // Combine id and timestamp for uniqueness
-      .digest("hex"); // Output as hexadecimal string
-    instance.hashed_key = hash;
+  //   const hash = crypto
+  //     .createHash("sha256") // You can use md5, sha256, etc.
+  //     .update(instance.id + Date.now().toString()) // Combine id and timestamp for uniqueness
+  //     .digest("hex"); // Output as hexadecimal string
+  //   instance.hashed_key = hash;
+
+  /** Generate `publicKey` before creation */
+  @BeforeCreate
+  static generatePublicKey(instance: Partner) {
+    const randomPart = crypto.randomBytes(16).toString("hex"); // 16-character random string
+    const timestampPart = Date.now().toString(36); // Convert timestamp to base36 for compactness
+    instance.hashed_key = `${randomPart}${timestampPart}`; // 16-char random + timestamp
+  
   }
 }

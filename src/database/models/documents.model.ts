@@ -8,13 +8,16 @@ import {
   ForeignKey,
   Default,
   BeforeCreate,
+  Unique,
 } from "sequelize-typescript";
+
 import { validate as isUUID, v4 as uuidv4 } from "uuid";
 import { createHash } from "crypto"; // For generating hashed keys
 import { User } from "./user.model";
 import { Purpose } from "./purpose.model";
 import { DocumentRequirements } from "./document_requirements.model";
 
+import * as crypto from "crypto";
 @Table({
   tableName: "documents",
   timestamps: true,
@@ -26,6 +29,11 @@ export class Documents extends Model<Documents> {
     field: "id",
   })
   documentId: string;
+
+  @Unique
+  @AllowNull(false)
+  @Column({ type: DataType.STRING, field: "hashed_key" })
+  hashed_key: string;
 
   
 
@@ -101,6 +109,13 @@ export class Documents extends Model<Documents> {
   @ForeignKey(() => User)
   @Column({ type: DataType.UUID, field: "updated_by" })
   updated_by: string;
-
+ 
+  /** Generate `publicKey` before creation */
+  @BeforeCreate
+  static generatePublicKey(instance: Documents) {
+    const randomPart = crypto.randomBytes(16).toString("hex"); // 16-character random string
+    const timestampPart = Date.now().toString(36); // Convert timestamp to base36 for compactness
+    instance.hashed_key = `${randomPart}${timestampPart}`; // 16-char random + timestamp
+  }
 
 }

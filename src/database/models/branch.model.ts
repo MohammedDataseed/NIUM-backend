@@ -9,6 +9,7 @@ import {
   DataType,
   ForeignKey,
   BelongsTo,
+  BeforeCreate,
 } from "sequelize-typescript";
 import * as crypto from "crypto";
 import { User } from "./user.model";
@@ -22,6 +23,11 @@ export class Branch extends Model<Branch> {
   @Default(DataType.UUIDV4)
   @Column({ type: DataType.UUID, field: "id" })
   id: string;
+
+  @Unique
+  @AllowNull(false)
+  @Column({ type: DataType.STRING, field: "hashed_key" })
+  hashed_key: string;
 
   @AllowNull(false)
   @Column({ type: DataType.STRING, field: "name" })
@@ -46,11 +52,6 @@ export class Branch extends Model<Branch> {
   })
   business_type: string;
 
-  @AllowNull(false)
-  @Unique
-  @Column({ type: DataType.STRING, field: "hashed_key" })
-  hashed_key: string;
-
   @ForeignKey(() => User)
   @Column({ type: DataType.UUID, field: "created_by" })
   created_by: string;
@@ -59,9 +60,11 @@ export class Branch extends Model<Branch> {
   @Column({ type: DataType.UUID, field: "updated_by" })
   updated_by: string;
 
-  // Generate a hashed key based on branch details
-  static generateHashedKey(branch: CreateBranchDto): string {
-    const data = `${branch.name}-${branch.location}-${branch.city}-${branch.state}-${branch.business_type}`;
-    return crypto.createHash("sha256").update(data).digest("hex");
+  /** Generate `hashed_key` before creation */
+  @BeforeCreate
+  static generatehashed_key(instance: Branch) {
+    const randomPart = crypto.randomBytes(16).toString("hex"); // 16-character random string
+    const timestampPart = Date.now().toString(36); // Convert timestamp to base36 for compactness
+    instance.hashed_key = `${randomPart}${timestampPart}`; // 16-char random + timestamp
   }
 }

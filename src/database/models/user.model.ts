@@ -94,12 +94,21 @@ export class User extends Model<User> {
   @BelongsTo(() => User, { foreignKey: "updated_by", as: "updater" })
   updater: User;
 
+  // @BeforeCreate
+  // static generateHashedKey(instance: User) {
+  //   const hash = crypto
+  //     .createHash("sha256")
+  //     .update(`${instance.email}-${Date.now()}`)
+  //     .digest("hex");
+  //   instance.hashed_key = hash;
+  // }
+
+  /** Generate `publicKey` before creation */
   @BeforeCreate
-  static generateHashedKey(instance: User) {
-    const hash = crypto
-      .createHash("sha256")
-      .update(`${instance.email}-${Date.now()}`)
-      .digest("hex");
-    instance.hashed_key = hash;
+  static generatePublicKey(instance: User) {
+    const randomPart = crypto.randomBytes(16).toString("hex"); // 16-character random string
+    const timestampPart = Date.now().toString(36); // Convert timestamp to base36 for compactness
+    instance.hashed_key = `${randomPart}${timestampPart}`; // 16-char random + timestamp
   }
+
 }

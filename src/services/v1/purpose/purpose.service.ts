@@ -3,28 +3,28 @@ import {
   Inject,
   ConflictException,
   NotFoundException,
-} from '@nestjs/common';
-import { Purpose } from '../../../database/models/purpose.model';
-import * as opentracing from 'opentracing';
+} from "@nestjs/common";
+import { Purpose } from "../../../database/models/purpose.model";
+import * as opentracing from "opentracing";
 import {
   PurposeDto,
   CreatePurposeDto,
   UpdatePurposeDto,
-} from '../../../dto/purpose.dto';
-import { WhereOptions } from 'sequelize';
+} from "../../../dto/purpose.dto";
+import { WhereOptions } from "sequelize";
 
 @Injectable()
 export class PurposeService {
   constructor(
-    @Inject('PURPOSE_REPOSITORY')
-    private readonly purposeRepository: typeof Purpose,
+    @Inject("PURPOSE_REPOSITORY")
+    private readonly purposeRepository: typeof Purpose
   ) {}
 
   async findAll(
     span: opentracing.Span,
-    params: WhereOptions<Purpose>,
+    params: WhereOptions<Purpose>
   ): Promise<Purpose[]> {
-    const childSpan = span.tracer().startSpan('db-query', { childOf: span });
+    const childSpan = span.tracer().startSpan("db-query", { childOf: span });
 
     try {
       return await this.purposeRepository.findAll({ where: params });
@@ -35,11 +35,11 @@ export class PurposeService {
 
   async createPurpose(
     span: opentracing.Span,
-    createPurposeDto: CreatePurposeDto,
+    createPurposeDto: CreatePurposeDto
   ): Promise<Purpose> {
     const childSpan = span
       .tracer()
-      .startSpan('create-purpose', { childOf: span });
+      .startSpan("create-purpose", { childOf: span });
 
     try {
       // Check if purpose already exists
@@ -47,10 +47,10 @@ export class PurposeService {
         where: { purposeName: createPurposeDto.purpose_name },
       });
       if (existingPurposeType) {
-        throw new ConflictException('Purpose Type already exists');
+        throw new ConflictException("Purpose Type already exists");
       }
 
-      console.log('Received DTO:', createPurposeDto); // Debugging log
+      console.log("Received DTO:", createPurposeDto); // Debugging log
 
       // Ensure all required fields are passed to create()
       const newPurpose = await this.purposeRepository.create({
@@ -67,20 +67,20 @@ export class PurposeService {
 
   async updatePurpose(
     span: opentracing.Span,
-    publicKey: string, // ✅ Update based on `publicKey`
-    updatePurposeDto: UpdatePurposeDto,
+    hashed_key: string, // ✅ Update based on `hashed_key`
+    updatePurposeDto: UpdatePurposeDto
   ): Promise<Purpose> {
     const childSpan = span
       .tracer()
-      .startSpan('update-purpose-type', { childOf: span });
+      .startSpan("update-purpose-type", { childOf: span });
 
     try {
-      // Find the purpose type by `publicKey`
+      // Find the purpose type by `hashed_key`
       const purpose = await this.purposeRepository.findOne({
-        where: { publicKey },
+        where: { hashed_key },
       });
       if (!purpose) {
-        throw new NotFoundException('Purpose Type not found');
+        throw new NotFoundException("Purpose Type not found");
       }
 
       // Check if the updated name already exists for another purpose type
@@ -89,9 +89,9 @@ export class PurposeService {
           where: { purposeName: updatePurposeDto.purpose_name },
         });
 
-        if (existingPurpose && existingPurpose.publicKey !== publicKey) {
+        if (existingPurpose && existingPurpose.hashed_key !== hashed_key) {
           throw new ConflictException(
-            'Another Purpose Type with the same name already exists',
+            "Another Purpose Type with the same name already exists"
           );
         }
       }
@@ -116,25 +116,25 @@ export class PurposeService {
       where: { isActive: true }, // Only fetch active documents
     });
     return purposes.map((purpose) => ({
-      purpose_type_id: purpose.publicKey,
+      purpose_type_id: purpose.hashed_key,
       purpose_name: purpose.purposeName,
     }));
   }
 
   async deletePurposeType(
     span: opentracing.Span,
-    publicKey: string,
+    hashed_key: string
   ): Promise<void> {
-    const childSpan = span.tracer().startSpan('db-query', { childOf: span });
+    const childSpan = span.tracer().startSpan("db-query", { childOf: span });
 
     try {
       const purpose = await this.purposeRepository.findOne({
-        where: { publicKey },
+        where: { hashed_key },
       });
-      if (!purpose) throw new NotFoundException('Purpose Type not found');
+      if (!purpose) throw new NotFoundException("Purpose Type not found");
 
       await purpose.destroy();
-      childSpan.log({ event: 'purpose_deleted', publicKey });
+      childSpan.log({ event: "purpose_deleted", hashed_key });
     } finally {
       childSpan.finish();
     }

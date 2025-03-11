@@ -5,13 +5,17 @@ import {
   DataType,
   ForeignKey,
   BelongsTo,
-  HasMany
+  HasMany,
+  Unique,
+  AllowNull,
+  BeforeCreate,
 } from "sequelize-typescript";
 import { User } from "./user.model";
 import { Partner } from "./partner.model";
 import { ESign } from "./esign.model";
-import { Vkyc } from "./vkyc.model"
+import { Vkyc } from "./vkyc.model";
 import { Optional } from "@nestjs/common";
+import * as crypto from "crypto";
 
 @Table({
   tableName: "orders",
@@ -25,6 +29,11 @@ export class Order extends Model<Order> {
     allowNull: false,
   })
   id: string;
+
+  @Unique
+  @AllowNull(false)
+  @Column({ type: DataType.STRING, field: "hashed_key" })
+  hashed_key: string;
 
   @Column({ type: DataType.UUID, allowNull: false })
   partner_id: string;
@@ -56,7 +65,6 @@ export class Order extends Model<Order> {
 
   @Column({ type: DataType.STRING, allowNull: false })
   customer_pan: string;
-
 
   // Order Details
   @Column({ type: DataType.STRING, allowNull: true })
@@ -114,7 +122,7 @@ export class Order extends Model<Order> {
   v_kyc_comments: string;
 
   // E-Sign Regeneration
-  @Column({ type: DataType.BOOLEAN, allowNull:true, defaultValue: false })
+  @Column({ type: DataType.BOOLEAN, allowNull: true, defaultValue: false })
   @Optional()
   is_esign_regenerated: boolean;
 
@@ -164,13 +172,17 @@ export class Order extends Model<Order> {
     documentIds: string[];
   };
 
-   // Corrected Relationship (One Order -> Many ESigns)
-   @HasMany(() => ESign, { foreignKey: "order_id" })
-   esigns: ESign[];
+  // Corrected Relationship (One Order -> Many ESigns)
+  @HasMany(() => ESign, { foreignKey: "order_id" })
+  esigns: ESign[];
 
-  // @BelongsTo(() => ESign, { foreignKey: "order_id" })
-  // esign: ESign;
-
+  /** Generate `hashed_key` before creation */
+  @BeforeCreate
+  static generatehashed_key(instance: Order) {
+    const randomPart = crypto.randomBytes(16).toString("hex"); // 16-character random string
+    const timestampPart = Date.now().toString(36); // Convert timestamp to base36 for compactness
+    instance.hashed_key = `${randomPart}${timestampPart}`; // 16-char random + timestamp
+  }
   // @BelongsTo(() => Vkyc, { foreignKey: "order_id" })
   // vkyc: Vkyc;
 }

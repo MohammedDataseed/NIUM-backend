@@ -3,28 +3,28 @@ import {
   Inject,
   ConflictException,
   NotFoundException,
-} from '@nestjs/common';
-import { DocumentType } from '../../../database/models/documentType.model';
-import * as opentracing from 'opentracing';
+} from "@nestjs/common";
+import { DocumentType } from "../../../database/models/documentType.model";
+import * as opentracing from "opentracing";
 import {
   DocumentTypeDto,
   CreateDocumentTypeDto,
   UpdateDocumentTypeDto,
-} from '../../../dto/documentType.dto';
-import { WhereOptions } from 'sequelize';
+} from "../../../dto/documentType.dto";
+import { WhereOptions } from "sequelize";
 
 @Injectable()
 export class DocumentTypeService {
   constructor(
-    @Inject('DOCUMENTTYPE_REPOSITORY')
-    private readonly documentTypeRepository: typeof DocumentType,
+    @Inject("DOCUMENTTYPE_REPOSITORY")
+    private readonly documentTypeRepository: typeof DocumentType
   ) {}
 
   async findAll(
     span: opentracing.Span,
-    params: WhereOptions<DocumentType>,
+    params: WhereOptions<DocumentType>
   ): Promise<DocumentType[]> {
-    const childSpan = span.tracer().startSpan('db-query', { childOf: span });
+    const childSpan = span.tracer().startSpan("db-query", { childOf: span });
 
     try {
       return await this.documentTypeRepository.findAll({ where: params });
@@ -35,11 +35,11 @@ export class DocumentTypeService {
 
   async createDocumentType(
     span: opentracing.Span,
-    createDocumentTypeDto: CreateDocumentTypeDto,
+    createDocumentTypeDto: CreateDocumentTypeDto
   ): Promise<DocumentType> {
     const childSpan = span
       .tracer()
-      .startSpan('create-document-type', { childOf: span });
+      .startSpan("create-document-type", { childOf: span });
 
     try {
       // Check if document type already exists
@@ -47,10 +47,10 @@ export class DocumentTypeService {
         where: { name: createDocumentTypeDto.document_name },
       });
       if (existingDocumentType) {
-        throw new ConflictException('Document Type already exists');
+        throw new ConflictException("Document Type already exists");
       }
 
-      console.log('Received DTO:', createDocumentTypeDto); // Debugging log
+      console.log("Received DTO:", createDocumentTypeDto); // Debugging log
 
       // Ensure all required fields are passed to create()
       return await this.documentTypeRepository.create({
@@ -65,20 +65,20 @@ export class DocumentTypeService {
 
   async updateDocumentType(
     span: opentracing.Span,
-    publicKey: string,
-    updateDocumentTypeDto: UpdateDocumentTypeDto,
+    hashed_key: string,
+    updateDocumentTypeDto: UpdateDocumentTypeDto
   ): Promise<DocumentType> {
     const childSpan = span
       .tracer()
-      .startSpan('update-document-type', { childOf: span });
+      .startSpan("update-document-type", { childOf: span });
 
     try {
-      // Find the document type by publicKey
+      // Find the document type by hashed_key
       const documentType = await this.documentTypeRepository.findOne({
-        where: { publicKey },
+        where: { hashed_key },
       });
       if (!documentType) {
-        throw new NotFoundException('Document Type not found');
+        throw new NotFoundException("Document Type not found");
       }
 
       // Check if the updated name already exists for another document type
@@ -89,10 +89,10 @@ export class DocumentTypeService {
 
         if (
           existingDocumentType &&
-          existingDocumentType.publicKey !== publicKey
+          existingDocumentType.hashed_key !== hashed_key
         ) {
           throw new ConflictException(
-            'Another Document Type with the same name already exists',
+            "Another Document Type with the same name already exists"
           );
         }
       }
@@ -117,27 +117,27 @@ export class DocumentTypeService {
       where: { isActive: true }, // Only fetch active documents
     });
     return document.map((document) => ({
-      document_type_id: document.publicKey,
+      document_type_id: document.hashed_key,
       document_name: document.name,
     }));
   }
 
   async deleteDocumentType(
     span: opentracing.Span,
-    publicKey: string,
+    hashed_key: string
   ): Promise<void> {
-    const childSpan = span.tracer().startSpan('db-query', { childOf: span });
+    const childSpan = span.tracer().startSpan("db-query", { childOf: span });
 
     try {
       const documentType = await this.documentTypeRepository.findOne({
-        where: { publicKey },
+        where: { hashed_key },
       });
-      if (!documentType) throw new NotFoundException('Document Type not found');
+      if (!documentType) throw new NotFoundException("Document Type not found");
 
       await documentType.destroy();
       childSpan.log({
-        event: 'documentType_deleted',
-        document_type_id: publicKey,
+        event: "documentType_deleted",
+        document_type_id: hashed_key,
       });
     } finally {
       childSpan.finish();

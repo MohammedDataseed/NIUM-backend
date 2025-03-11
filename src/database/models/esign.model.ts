@@ -1,4 +1,3 @@
-  
 import {
   Table,
   Column,
@@ -6,15 +5,17 @@ import {
   DataType,
   ForeignKey,
   BelongsTo,
+  Unique,
+  BeforeCreate,
+  AllowNull,
 } from "sequelize-typescript";
 import { Order } from "./order.model";
-
+import * as crypto from "crypto";
 @Table({
   tableName: "esigns",
   timestamps: true,
 })
 export class ESign extends Model<ESign> {
-
   @Column({
     type: DataType.UUID,
     defaultValue: DataType.UUIDV4, // Automatically generate a UUID
@@ -22,7 +23,12 @@ export class ESign extends Model<ESign> {
     allowNull: false,
   })
   id: string;
-  
+
+  @Unique
+  @AllowNull(false)
+  @Column({ type: DataType.STRING, field: "hashed_key" })
+  hashed_key: string;
+
   @ForeignKey(() => Order)
   @Column({ type: DataType.STRING, allowNull: false })
   order_id: string;
@@ -75,7 +81,15 @@ export class ESign extends Model<ESign> {
   @Column({ type: DataType.BOOLEAN, allowNull: false, defaultValue: false })
   rejected: boolean;
 
- // Associations
- @BelongsTo(() => Order, { foreignKey: "order_id", targetKey: "order_id" }) // Specify targetKey
- order: Order;
+  // Associations
+  @BelongsTo(() => Order, { foreignKey: "order_id", targetKey: "order_id" }) // Specify targetKey
+  order: Order;
+
+  /** Generate `hashed_key` before creation */
+  @BeforeCreate
+  static generatehashed_key(instance: ESign) {
+    const randomPart = crypto.randomBytes(16).toString("hex"); // 16-character random string
+    const timestampPart = Date.now().toString(36); // Convert timestamp to base36 for compactness
+    instance.hashed_key = `${randomPart}${timestampPart}`; // 16-char random + timestamp
+  }
 }

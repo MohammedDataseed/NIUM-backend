@@ -5,55 +5,62 @@ import {
   PrimaryKey,
   Default,
   AllowNull,
-  Unique,
-  DataType,
   ForeignKey,
   BelongsTo,
   BeforeCreate,
-  BelongsToMany,
+  Unique,
+  DataType,
 } from "sequelize-typescript";
+
 import { User } from "./user.model";
-import { Partner } from "./partner.model";
-import { PartnerProducts } from "./partner_products.model";
 import * as crypto from "crypto";
 
 @Table({
-  tableName: "products",
-  timestamps: true, // Since we have manual created_at & updated_at fields
+  tableName: "transaction_type", // Matches migration table name
+  timestamps: true, // Enables createdAt & updatedAt
+  underscored: true, // Uses snake_case for DB columns
 })
-export class Products extends Model<Products> {
+export class transaction_type extends Model<transaction_type> {
   @PrimaryKey
   @Default(DataType.UUIDV4)
-  @Column({ type: DataType.UUID, field: "id" })
-  id: string;
+  @Column({ type: DataType.UUID })
+  id!: string;
+
+  @AllowNull(false)
+  @Unique
+  //@Default(() => crypto.randomBytes(8).toString("hex"))
+  @Column({ type: DataType.STRING, field: "hashed_key" })
+  hashed_key: string;
 
   @Unique
   @AllowNull(false)
-  @Column({ type: DataType.STRING, field: "hashed_key" }) // Add hashed_key
-  hashed_key: string;
+  @Column({ type: DataType.STRING, field: "name" })
+  name!: string;
 
   @AllowNull(false)
-  @Column({ type: DataType.STRING, field: "name" })
-  name: string;
-
-  @Column({ type: DataType.TEXT, field: "description" })
-  description: string;
-
   @Default(true)
   @Column({ type: DataType.BOOLEAN, field: "is_active" })
-  is_active: boolean;
+  isActive: boolean;
+
+  @Default(DataType.NOW)
+  @Column({ type: DataType.DATE, field: "created_at" })
+  createdAt: Date;
+
+  @Default(DataType.NOW)
+  @Column({ type: DataType.DATE, field: "updated_at" })
+  updatedAt: Date;
 
   @ForeignKey(() => User)
+  @AllowNull(true) // Make it optional
   @Column({ type: DataType.UUID, field: "created_by" })
-  created_by: string;
+  created_by?: string;
 
   @ForeignKey(() => User)
+  @AllowNull(true) // Make it optional
   @Column({ type: DataType.UUID, field: "updated_by" })
-  updated_by: string;
+  updated_by?: string;
 
-  // Many-to-Many Association
-  @BelongsToMany(() => Partner, () => PartnerProducts)
-  partners: Partner[];
+  // Associations
 
   @BelongsTo(() => User, { foreignKey: "created_by" })
   creator: User;
@@ -61,23 +68,17 @@ export class Products extends Model<Products> {
   @BelongsTo(() => User, { foreignKey: "updated_by" })
   updater: User;
 
-  // // Hook to generate hashed_key before creating the product
+  // /** Generate `hashed_key` before creation */
   // @BeforeCreate
-  // static generateHashedKey(instance: Products) {
-  //   const hash = crypto
-  //     .createHash("sha256")
-  //     .update(`${instance.name}-${Date.now()}`) // Use name + timestamp for uniqueness
-  //     .digest("hex");
-  //   instance.hashed_key = hash;
+  // static generatehashed_key(instance: transaction_type) {
+  //   instance.hashed_key = crypto.randomBytes(8).toString("hex"); // Generates a random unique key
   // }
 
- 
   /** Generate `publicKey` before creation */
   @BeforeCreate
-  static generatePublicKey(instance: Products) {
+  static generatePublicKey(instance: transaction_type) {
     const randomPart = crypto.randomBytes(16).toString("hex"); // 16-character random string
     const timestampPart = Date.now().toString(36); // Convert timestamp to base36 for compactness
     instance.hashed_key = `${randomPart}${timestampPart}`; // 16-char random + timestamp
   }
-
 }
