@@ -46,7 +46,7 @@ export class UserController {
     private readonly mailService: MailerService
   ) {}
 
-  //@UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Get()
   async findAll(@Query() params: Record<string, any>): Promise<User[]> {
     const tracer = opentracing.globalTracer();
@@ -57,7 +57,7 @@ export class UserController {
     return result;
   }
 
-  //@UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Post()
   @ApiOperation({ summary: "Create a new user" })
   @ApiResponse({
@@ -89,7 +89,7 @@ export class UserController {
     }
   }
 
-  //@UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Put(":id")
   @ApiOperation({ summary: "Update a user" })
   @ApiResponse({
@@ -117,7 +117,7 @@ export class UserController {
     }
   }
 
-  //@UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Delete(":id")
   @ApiOperation({ summary: "Delete a user" })
   @ApiResponse({ status: 200, description: "User successfully deleted." })
@@ -142,7 +142,7 @@ export class UserController {
     return this.userService.login(loginDto);
   }
 
-  //@UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Get("email")
   @ApiOperation({ summary: "Find user by email" })
   @ApiResponse({ status: 200, description: "User found", type: User })
@@ -151,7 +151,7 @@ export class UserController {
     return await this.userService.findByEmail(email);
   }
 
-  //@UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Post("refresh")
   @ApiOperation({ summary: "Refresh access token" })
   @ApiBody({
@@ -218,7 +218,7 @@ export class UserController {
     );
   }
 
-  //@UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Post("send-email")
   @ApiOperation({
     summary: "Send an email",
