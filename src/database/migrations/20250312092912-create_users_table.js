@@ -5,9 +5,9 @@ module.exports = {
     await queryInterface.createTable("users", {
       id: {
         type: Sequelize.UUID,
-        defaultValue: Sequelize.UUIDV4,
         allowNull: false,
         primaryKey: true,
+        defaultValue: Sequelize.UUIDV4,
       },
       email: {
         type: Sequelize.STRING,
@@ -24,31 +24,31 @@ module.exports = {
         unique: true,
       },
       role_id: {
-        type: Sequelize.STRING, // Change to string
+        type: Sequelize.UUID,
         allowNull: false,
         references: {
-          model: "roles",
-          key: "hashed_key", // Ensure "roles" table has "hashed_key"
+          model: "roles", // Reference to roles table
+          key: "id",
         },
         onUpdate: "CASCADE",
         onDelete: "CASCADE",
       },
       branch_id: {
-        type: Sequelize.STRING, // Change to string
+        type: Sequelize.UUID,
         allowNull: false,
         references: {
-          model: "branches",
-          key: "hashed_key", // Ensure "branches" table has "hashed_key"
+          model: "branches", // Reference to branches table
+          key: "id",
         },
         onUpdate: "CASCADE",
         onDelete: "CASCADE",
       },
       bank_account_id: {
-        type: Sequelize.STRING, // Change to string
+        type: Sequelize.UUID,
         allowNull: true,
         references: {
-          model: "bank_accounts",
-          key: "hashed_key", // Ensure "bank_accounts" table has "hashed_key"
+          model: "bank_accounts", // Reference to bank_accounts table
+          key: "id",
         },
         onUpdate: "CASCADE",
         onDelete: "SET NULL",
@@ -63,21 +63,21 @@ module.exports = {
         allowNull: false,
       },
       created_by: {
-        type: Sequelize.STRING, // Change to string
+        type: Sequelize.UUID,
         allowNull: true,
         references: {
-          model: "users",
-          key: "hashed_key", // Ensure "users" table has "hashed_key"
+          model: "users", // Self-referencing user
+          key: "id",
         },
         onUpdate: "CASCADE",
         onDelete: "SET NULL",
       },
       updated_by: {
-        type: Sequelize.STRING, // Change to string
+        type: Sequelize.UUID,
         allowNull: true,
         references: {
-          model: "users",
-          key: "hashed_key", // Ensure "users" table has "hashed_key"
+          model: "users", // Self-referencing user
+          key: "id",
         },
         onUpdate: "CASCADE",
         onDelete: "SET NULL",
@@ -85,12 +85,12 @@ module.exports = {
       createdAt: {
         type: Sequelize.DATE,
         allowNull: false,
-        defaultValue: Sequelize.fn("NOW"),
+        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
       },
       updatedAt: {
         type: Sequelize.DATE,
         allowNull: false,
-        defaultValue: Sequelize.fn("NOW"),
+        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
       },
     });
   },

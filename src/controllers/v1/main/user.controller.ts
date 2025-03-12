@@ -71,19 +71,19 @@ export class UserController {
   })
   async createUser(
     @Body() createUserDto: CreateUserDto,
-    // @Headers("Authorization") authHeader: string // Extract Authorization header
+    @Headers("Authorization") authHeader: string // Extract Authorization header
   ): Promise<UserCreationResponse> {
     // Ensure the return type matches the custom response
     const tracer = opentracing.globalTracer();
     const span = tracer.startSpan("create-user-request");
-    // const token = authHeader?.replace("Bearer ", ""); // Remove 'Bearer ' prefix from token
-    // if (!token) {
-    //   throw new UnauthorizedException(
-    //     "Authorization token is missing or invalid"
-    //   );
-    // }
+    const token = authHeader?.replace("Bearer ", ""); // Remove 'Bearer ' prefix from token
+    if (!token) {
+      throw new UnauthorizedException(
+        "Authorization token is missing or invalid"
+      );
+    }
     try {
-      return await this.userService.createUser(span, createUserDto);
+      return await this.userService.createUser(span, createUserDto,token);
     } finally {
       span.finish();
     }

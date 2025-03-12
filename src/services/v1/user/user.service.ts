@@ -8,7 +8,7 @@ import {
   HttpException,
   HttpStatus
 } from "@nestjs/common";
-import { WhereOptions } from "sequelize";
+import { Op , cast, col ,WhereOptions } from "sequelize";
 import { User } from "../../../database/models/user.model";
 import { Role } from "src/database/models/role.model";
 import { Branch } from "src/database/models/branch.model";
@@ -45,90 +45,30 @@ export class UserService {
   ) {}
   
 
-  // async createUser(span: opentracing.Span, createUserDto: CreateUserDto, jwt: string): Promise<any> {
-  //   const childSpan = span.tracer().startSpan("db-query", { childOf: span });
-  
-  //   // // Decode JWT and extract role
-  //   // let decodedToken;
-  //   // try {
-  //   //   decodedToken = this.jwtService.verify(jwt);
-  //   // } catch (error) {
-  //   //   throw new UnauthorizedException('Invalid or expired token');
-  //   // }
-  
-  //   // // Check if the user has the role of "admin" or "co-admin"
-  //   // const userRole = decodedToken.role;
-  //   // if (!(userRole === 'admin' || userRole === 'co-admin')) {
-  //   //   throw new HttpException('Unauthorized to create user', HttpStatus.FORBIDDEN);
-  //   // }
-  
-  //   const existingUser = await this.userRepository.findOne({
-  //     where: { email: createUserDto.email },
-  //   });
-  
-  //   // If the email already exists, throw a conflict error
-  //   if (existingUser) {
-  //     throw new HttpException('Email already exists', HttpStatus.CONFLICT);
-  //   }
-  
-  //   try {
-  //     // Hash the password
-  //     createUserDto.password = await bcrypt.hash(createUserDto.password, 10);
-  
-  //     // Generate a hashed_key for the user
-  //     const hashedKey = crypto.createHash("sha256").update(createUserDto.email).digest("hex");
-    
-  //     // Create the user in the database
-  //     const user = await this.userRepository.create({
-  //       ...createUserDto,
-  //       hashed_key: hashedKey,
-  //       role_id: createUserDto.role_id,
-  //       branch_id: createUserDto.branch_id,
-  //       bank_account_id: createUserDto.bank_account_id,
-  //     });
-  
-  //     // Return the success message along with the user details
-  //     return {
-  //       message: "User added successfully",
-  //       user,
-  //     };
-  //   } catch (error) {
-  //     console.error("Error creating user:", error);
-  //     throw new HttpException('Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
-  //   } finally {
-  //     childSpan.finish();
-  //   }
-  // }
-
-  async createUser(span: opentracing.Span, createUserDto: CreateUserDto): Promise<any> {
+  async createUser(span: opentracing.Span, createUserDto: CreateUserDto, jwt: string): Promise<any> {
     const childSpan = span.tracer().startSpan("db-query", { childOf: span });
   
-    const { email, role_id, branch_id, bank_account_id } = createUserDto;
+    // Decode JWT and extract role
+    let decodedToken;
+    try {
+      decodedToken = this.jwtService.verify(jwt);
+    } catch (error) {
+      throw new UnauthorizedException('Invalid or expired token');
+    }
   
-    // Check if the email already exists
-    const existingUser = await this.userRepository.findOne({ where: { email } });
+    // Check if the user has the role of "admin" or "co-admin"
+    const userRole = decodedToken.role;
+    if (!(userRole === 'admin' || userRole === 'co-admin')) {
+      throw new HttpException('Unauthorized to create user', HttpStatus.FORBIDDEN);
+    }
+  
+    const existingUser = await this.userRepository.findOne({
+      where: { email: createUserDto.email },
+    });
+  
+    // If the email already exists, throw a conflict error
     if (existingUser) {
       throw new HttpException('Email already exists', HttpStatus.CONFLICT);
-    }
-  
-    // ✅ Check if role_id exists
-    const roleExists = await this.roleRepository.findOne({ where: { hashed_key: role_id } });
-    if (!roleExists) {
-      throw new HttpException('Invalid role_id', HttpStatus.BAD_REQUEST);
-    }
-  
-    // ✅ Check if branch_id exists
-    const branchExists = await this.branchRepository.findOne({ where: { hashed_key: branch_id } });
-    if (!branchExists) {
-      throw new HttpException('Invalid branch_id', HttpStatus.BAD_REQUEST);
-    }
-  
-    // ✅ Check if bank_account_id exists (if provided)
-    if (bank_account_id) {
-      const bankAccountExists = await this.bankAccountRepository.findOne({ where: { hashed_key: bank_account_id } });
-      if (!bankAccountExists) {
-        throw new HttpException('Invalid bank_account_id', HttpStatus.BAD_REQUEST);
-      }
     }
   
     try {
@@ -136,14 +76,18 @@ export class UserService {
       createUserDto.password = await bcrypt.hash(createUserDto.password, 10);
   
       // Generate a hashed_key for the user
-      const hashedKey = crypto.createHash("sha256").update(email).digest("hex");
-  
+      const hashedKey = crypto.createHash("sha256").update(createUserDto.email).digest("hex");
+    
       // Create the user in the database
       const user = await this.userRepository.create({
         ...createUserDto,
         hashed_key: hashedKey,
+        role_id: createUserDto.role_id,
+        branch_id: createUserDto.branch_id,
+        bank_account_id: createUserDto.bank_account_id,
       });
   
+      // Return the success message along with the user details
       return {
         message: "User added successfully",
         user,
@@ -154,6 +98,78 @@ export class UserService {
     } finally {
       childSpan.finish();
     }
+  }
+
+  // async createUser(span: opentracing.Span, createUserDto: CreateUserDto): Promise<any> {
+  //   const childSpan = span.tracer().startSpan("db-query", { childOf: span });
+  
+  //   const { email, role_id, branch_id, bank_account_id } = createUserDto;
+  
+  //   // ✅ Validate if the email already exists
+  //   const existingUser = await this.userRepository.findOne({ where: { email } });
+  //   if (existingUser) {
+  //     throw new HttpException("Email already exists", HttpStatus.CONFLICT);
+  //   }
+  
+  //   // ✅ Ensure role_id is a valid UUID
+  //   if (!this.isValidUUID(role_id)) {
+  //     throw new HttpException("Invalid role_id format", HttpStatus.BAD_REQUEST);
+  //   }
+  //   const roleExists = await this.roleRepository.findOne({ where: { id: role_id } });
+  //   if (!roleExists) {
+  //     throw new HttpException("Invalid role_id", HttpStatus.BAD_REQUEST);
+  //   }
+  
+  //   // ✅ Ensure branch_id is a valid UUID
+  //   if (!this.isValidUUID(branch_id)) {
+  //     throw new HttpException("Invalid branch_id format", HttpStatus.BAD_REQUEST);
+  //   }
+  //   const branchExists = await this.branchRepository.findOne({ where: { id: branch_id } });
+  //   if (!branchExists) {
+  //     throw new HttpException("Invalid branch_id", HttpStatus.BAD_REQUEST);
+  //   }
+  
+  //   // ✅ Ensure bank_account_id (if provided) is a valid UUID
+  //   if (bank_account_id) {
+  //     if (!this.isValidUUID(bank_account_id)) {
+  //       throw new HttpException("Invalid bank_account_id format", HttpStatus.BAD_REQUEST);
+  //     }
+  //     const bankAccountExists = await this.bankAccountRepository.findOne({ where: { id: bank_account_id } });
+  //     if (!bankAccountExists) {
+  //       throw new HttpException("Invalid bank_account_id", HttpStatus.BAD_REQUEST);
+  //     }
+  //   }
+  
+  //   try {
+  //     // Hash the password
+  //     createUserDto.password = await bcrypt.hash(createUserDto.password, 10);
+  
+  //     // Generate a hashed_key for the user
+  //     const hashedKey = crypto.createHash("sha256").update(email).digest("hex");
+  
+  //     // ✅ Create the user in the database
+  //     const user = await this.userRepository.create({
+  //       ...createUserDto,
+  //       hashed_key: hashedKey,
+  //     });
+  
+  //     return {
+  //       message: "User added successfully",
+  //       user,
+  //     };
+  //   } catch (error) {
+  //     console.error("Error creating user:", error);
+  //     throw new HttpException("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR);
+  //   } finally {
+  //     childSpan.finish();
+  //   }
+  // }
+  
+  /**
+   * Helper method to check if a string is a valid UUID
+   */
+  private isValidUUID(uuid: string): boolean {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(uuid);
   }
   
 
@@ -225,6 +241,8 @@ export class UserService {
         },
       ],
     });
+
+  
   
     if (!user || !user.password) {
       throw new UnauthorizedException("Invalid credentials");
