@@ -80,6 +80,10 @@ export class Order extends Model<Order> {
 
   @Column({ type: DataType.STRING, allowNull: true })
   @Optional()
+  e_sign_link: string;
+
+  @Column({ type: DataType.STRING, allowNull: true })
+  @Optional()
   e_sign_link_status: string;
 
   @Column({ type: DataType.DATE, allowNull: true })
@@ -102,6 +106,10 @@ export class Order extends Model<Order> {
   @Column({ type: DataType.STRING, allowNull: true })
   @Optional()
   v_kyc_status: string; // Values: "Pending", "Completed"
+
+  @Column({ type: DataType.STRING, allowNull: true })
+  @Optional()
+  v_kyc_link: string;
 
   @Column({ type: DataType.STRING, allowNull: true })
   @Optional()

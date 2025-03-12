@@ -8,7 +8,7 @@ import {
   UnauthorizedException
 } from '@nestjs/common';
 import { Order } from '../../../database/models/order.model';
-import { CreateOrderDto,CreateMinimalOrderDto } from '../../../dto/order.dto';
+import { CreateOrderDto, UpdateOrderDto} from '../../../dto/order.dto';
 import * as opentracing from 'opentracing';
 import { User } from '../../../database/models/user.model';
 import { Partner } from '../../../database/models/partner.model';
@@ -59,15 +59,15 @@ export class OrdersService {
 // New method for creating minimal order
 async createOrder(
   span: opentracing.Span,
-  createMinimalOrderDto: CreateMinimalOrderDto,
+  createOrderDto: CreateOrderDto,
   partnerId: string,
 ): Promise<Order> {
-  const childSpan = span.tracer().startSpan('create-minimal-order', { childOf: span });
+  const childSpan = span.tracer().startSpan('create-order', { childOf: span });
 
   try {
     // Check for existing order with the same partner_order_id
     const existingOrder = await this.orderRepository.findOne({
-      where: { order_id: createMinimalOrderDto.partner_order_id },
+      where: { order_id: createOrderDto.partner_order_id },
     });
     if (existingOrder) {
       throw new ConflictException('Order ID already exists');
@@ -83,16 +83,15 @@ async createOrder(
 
     const orderData = {
       partner_id: partnerId,
-      order_id: createMinimalOrderDto.partner_order_id,
-      transaction_type: createMinimalOrderDto.transaction_type_id,
-      is_esign_required: createMinimalOrderDto.is_e_sign_required,
-      is_v_kyc_required: createMinimalOrderDto.is_v_kyc_required,
-      purpose_type: createMinimalOrderDto.purpose_type_id,
-      customer_name: createMinimalOrderDto.customer_name,
-      customer_email: createMinimalOrderDto.customer_email,
-      customer_phone: createMinimalOrderDto.customer_phone,
-      customer_pan: createMinimalOrderDto.customer_pan,
-      aadhaar_dob: new Date(createMinimalOrderDto.customer_aadhaar_dob),
+      order_id: createOrderDto.partner_order_id,
+      transaction_type: createOrderDto.transaction_type_id,
+      is_esign_required: createOrderDto.is_e_sign_required,
+      is_v_kyc_required: createOrderDto.is_v_kyc_required,
+      purpose_type: createOrderDto.purpose_type_id,
+      customer_name: createOrderDto.customer_name,
+      customer_email: createOrderDto.customer_email,
+      customer_phone: createOrderDto.customer_phone,
+      customer_pan: createOrderDto.customer_pan,
       order_status: 'pending', // Default value
       e_sign_status: 'not generated', // Default value
       v_kyc_status: 'not generated', // Default value
@@ -145,38 +144,45 @@ async createOrder(
     }
   }
 
-  // UPDATE: Update an existing order by order_id
+  //UPDATE: Update an existing order by order_id
   async updateOrder(
     span: opentracing.Span,
     orderId: string,
-    updateOrderDto: Partial<CreateOrderDto>,
+    updateOrderDto: Partial<UpdateOrderDto>, // Allow partial updates
   ): Promise<Order> {
     const childSpan = span.tracer().startSpan('update-order', { childOf: span });
-
     try {
       const order = await this.orderRepository.findOne({
         where: { order_id: orderId },
       });
+  
       if (!order) {
         throw new NotFoundException(`Order with ID ${orderId} not found`);
       }
-
-     
-      // Update only provided fields
+  
+      // Prepare update data
       const updateData = {
-        // ...(updateOrderDto.transaction_type_id && { transaction_type: updateOrderDto.transaction_type_id }),
-        // ...(updateOrderDto.purpose_type_id && { purpose_type: updateOrderDto.purpose_type_id }),
         ...(updateOrderDto.is_e_sign_required !== undefined && { is_esign_required: updateOrderDto.is_e_sign_required }),
         ...(updateOrderDto.is_v_kyc_required !== undefined && { is_v_kyc_required: updateOrderDto.is_v_kyc_required }),
         ...(updateOrderDto.customer_name && { customer_name: updateOrderDto.customer_name }),
         ...(updateOrderDto.customer_email && { customer_email: updateOrderDto.customer_email }),
         ...(updateOrderDto.customer_phone && { customer_phone: updateOrderDto.customer_phone }),
         ...(updateOrderDto.customer_pan && { customer_pan: updateOrderDto.customer_pan }),
-     
+  
+        // Include E-Sign fields
+        ...(updateOrderDto.e_sign_status && { e_sign_status: updateOrderDto.e_sign_status }),
+        ...(updateOrderDto.e_sign_link && { e_sign_link: updateOrderDto.e_sign_link }),
+        ...(updateOrderDto.e_sign_link_status && { e_sign_link_status: updateOrderDto.e_sign_link_status }),
+        ...(updateOrderDto.e_sign_link_expires && { e_sign_link_expires: new Date(updateOrderDto.e_sign_link_expires) }),
       };
-
-      await order.update(updateData);
-      return order;
+  
+      // Update order
+      await this.orderRepository.update(updateData, { where: { order_id: orderId } });
+  
+      // Fetch and return updated order
+      const updatedOrder = await this.orderRepository.findOne({ where: { order_id: orderId } });
+  
+      return updatedOrder!;
     } catch (error) {
       childSpan.log({ event: 'error', message: error.message });
       throw error;
@@ -184,6 +190,8 @@ async createOrder(
       childSpan.finish();
     }
   }
+  
+  
 
   // DELETE: Delete an order by order_id
   async deleteOrder(span: opentracing.Span, orderId: string): Promise<void> {

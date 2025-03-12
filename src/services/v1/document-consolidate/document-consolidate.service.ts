@@ -52,77 +52,85 @@ export class PdfService {
     });
   }
 
-  async uploadDocumentByOrderId(
+  async uploadDocumentByOrderIdWork(
     orderId: string,
     document_type_id: string,
     base64File: string,
     merge_doc: boolean = false
   ) {
     // 1️⃣ Check if the order exists
-    const order = await this.orderRepository.findOne({
-      where: { order_id: orderId },
-    });
+    const order = await this.orderRepository.findOne({ where: { order_id: orderId } });
     if (!order) {
       throw new BadRequestException(`Order ID ${orderId} not found`);
     }
-
+  
     // 2️⃣ Validate document_type_id
-    const documentType = await this.documentTypeRepository.findOne({
-      where: { id: document_type_id },
-    });
+    const documentType = await this.documentTypeRepository.findOne({ where: { hashed_key: document_type_id } });
     if (!documentType) {
-      throw new BadRequestException(
-        `Invalid document_type_id: ${document_type_id}`
-      );
+      throw new BadRequestException(`Invalid document_type_id: ${document_type_id}`);
     }
-
-    // 3️⃣ Validate base64 format and file type
-    const fileMatch = base64File.match(
-      /^data:(image\/jpeg|image\/png|application\/pdf);base64,(.+)$/
-    );
+  
+    // 3️⃣ Check if a document with the same type already exists
+    const existingDocument = await this.documentRepository.findOne({
+      where: { entityId: order.id, document_type_id: documentType.id },
+    });
+  
+    if (existingDocument) {
+      // Extract the S3 key from the document URL
+      const oldFileKey = existingDocument.documentUrl.url.split(`${process.env.AWS_S3_BUCKET_NAME}/`)[1];
+  
+      // Delete the old file from S3
+      try {
+        await this.s3.send(new DeleteObjectCommand({
+          Bucket: process.env.AWS_S3_BUCKET_NAME,
+          Key: oldFileKey,
+        }));
+      } catch (error) {
+        console.warn(`Failed to delete old file from S3: ${error.message}`);
+      }
+  
+      // Remove old document entry from DB
+      await this.documentRepository.destroy({ where: { documentId: existingDocument.documentId } });
+    }
+  
+    // 4️⃣ Validate base64 format and file type
+    const fileMatch = base64File.match(/^data:(image\/jpeg|image\/png|application\/pdf);base64,(.+)$/);
     if (!fileMatch || fileMatch.length !== 3) {
-      throw new BadRequestException(
-        "Invalid base64 format. Only JPEG, PNG, and PDF files are allowed."
-      );
+      throw new BadRequestException("Invalid base64 format. Only JPEG, PNG, and PDF files are allowed.");
     }
-
+  
     const mimeType = fileMatch[1];
     const base64Data = fileMatch[2];
     const buffer = Buffer.from(base64Data, "base64");
-
-    // 4️⃣ Validate file size
+  
+    // 5️⃣ Validate file size
     if (buffer.length > this.MAX_SIZE_BYTES) {
-      throw new BadRequestException(
-        `File size must be less than ${this.MAX_SIZE_BYTES / (1024 * 1024)}MB`
-      );
+      throw new BadRequestException(`File size must be less than ${this.MAX_SIZE_BYTES / (1024 * 1024)}MB`);
     }
-
-    // 5️⃣ Upload file to S3
+  
+    // 6️⃣ Upload new file to S3 (Use a fixed file name format)
     const folderName = orderId;
-    const fileName = `${Date.now()}_${orderId}.${mimeType.split("/")[1]}`;
+    const fileName = `${orderId}_${document_type_id}.${mimeType.split("/")[1]}`; // Fixed filename format
     const key = `${folderName}/${fileName}`;
-
+  
     const uploadParams = {
       Bucket: process.env.AWS_S3_BUCKET_NAME,
       Key: key,
       Body: buffer,
       ContentType: mimeType,
     };
-
+  
     try {
       await this.s3.send(new PutObjectCommand(uploadParams));
-
+  
       // Generate Signed URL
       const signedUrl = await getSignedUrl(
         this.s3,
-        new GetObjectCommand({
-          Bucket: process.env.AWS_S3_BUCKET_NAME,
-          Key: key,
-        }),
+        new GetObjectCommand({ Bucket: process.env.AWS_S3_BUCKET_NAME, Key: key }),
         { expiresIn: 3600 }
       );
-
-      // 6️⃣ Save document details in the database
+  
+      // 7️⃣ Save new document details in the database
       const document = await this.documentRepository.create({
         entityId: order.id,
         entityType: "customer",
@@ -137,43 +145,290 @@ export class PdfService {
         },
         isUploaded: true,
       });
-
-      const response: any = {
+  
+      return {
         message: "File uploaded successfully",
         document_id: document.documentId,
       };
-
-      // 7️⃣ Merge documents if merge_doc is true
-      if (merge_doc) {
-        const mergeResult = await this.mergeFilesByFolder(folderName);
-        const mergedFileUrl = mergeResult.files[0]?.file_url;
-
-        // Save merged document details in Order
-        const merged_document = {
-          url: mergedFileUrl,
-          mimeType: "application/pdf",
-          size: parseFloat(mergeResult.files[0]?.size_mb || "0") * 1024 * 1024,
-          createdAt: new Date().toISOString(),
-          documentIds: (
-            await this.documentRepository.findAll({
-              where: { entityId: order.id },
-            })
-          ).map((doc) => doc.documentId),
-        };
-
-        await order.update({ merged_document });
-
-        response.message = "File uploaded and merged successfully";
-        response.merged_document_id =
-          merged_document.documentIds[merged_document.documentIds.length - 1];
-      }
-
-      return response;
     } catch (error) {
       throw new InternalServerErrorException(`Upload error: ${error.message}`);
     }
   }
+  // import { PDFDocument } from "pdf-lib"; // Install with: npm install pdf-lib
 
+async uploadDocumentByOrderId(
+  orderId: string,
+  document_type_id: string,
+  base64File: string,
+  merge_doc: boolean = false
+) {
+  // 1️⃣ Check if the order exists
+  const order = await this.orderRepository.findOne({ where: { order_id: orderId } });
+  if (!order) {
+    throw new BadRequestException(`Order ID ${orderId} not found`);
+  }
+
+  // 2️⃣ Validate document_type_id
+  const documentType = await this.documentTypeRepository.findOne({ where: { hashed_key: document_type_id } });
+  if (!documentType) {
+    throw new BadRequestException(`Invalid document_type_id: ${document_type_id}`);
+  }
+
+  // 3️⃣ Fetch existing documents for merging
+  let mergedBuffer: Buffer | null = null;
+  let mergedMimeType: string | null = null;
+  let existingDocuments: any[] = [];
+
+  if (merge_doc) {
+    existingDocuments = await this.documentRepository.findAll({ where: { entityId: order.id } });
+
+    if (existingDocuments.length > 0) {
+      const fileBuffers = [];
+      let mimeTypeSet = new Set();
+
+      for (const doc of existingDocuments) {
+        const fileKey = doc.documentUrl.url.split(`${process.env.AWS_S3_BUCKET_NAME}/`)[1];
+
+        try {
+          const fileResponse = await this.s3.send(new GetObjectCommand({ Bucket: process.env.AWS_S3_BUCKET_NAME, Key: fileKey }));
+          const fileBuffer = await fileResponse.Body.transformToByteArray();
+          fileBuffers.push(Buffer.from(fileBuffer));
+          mimeTypeSet.add(doc.documentUrl.mimeType);
+        } catch (error) {
+          console.warn(`Failed to fetch file from S3: ${error.message}`);
+        }
+      }
+
+      // Ensure all files have the same MIME type
+      if (mimeTypeSet.size === 1) {
+        mergedBuffer = Buffer.concat(fileBuffers);
+        // mergedMimeType = [...mimeTypeSet][0];
+        mergedMimeType = [...mimeTypeSet][0] as string;
+
+      } else {
+        throw new BadRequestException("Cannot merge different file types (PDF, JPEG, PNG).");
+      }
+    }
+  }
+
+  // 4️⃣ Validate base64 format and file type
+  const fileMatch = base64File.match(/^data:(image\/jpeg|image\/png|application\/pdf);base64,(.+)$/);
+  if (!fileMatch || fileMatch.length !== 3) {
+    throw new BadRequestException("Invalid base64 format. Only JPEG, PNG, and PDF files are allowed.");
+  }
+
+  const mimeType = fileMatch[1];
+  const base64Data = fileMatch[2];
+  const buffer = Buffer.from(base64Data, "base64");
+
+  // Merge with new file if required
+  if (merge_doc && mergedBuffer) {
+    if (mergedMimeType !== mimeType) {
+      throw new BadRequestException("New file must be of the same type as existing merged files.");
+    }
+
+    if (mimeType === "application/pdf") {
+      // Merge PDFs using pdf-lib
+      const existingPdf = await PDFDocument.load(mergedBuffer);
+      const newPdf = await PDFDocument.load(buffer);
+      const mergedPdf = await PDFDocument.create();
+
+      const copiedPages = await mergedPdf.copyPages(existingPdf, existingPdf.getPageIndices());
+      copiedPages.forEach((page) => mergedPdf.addPage(page));
+
+      const newCopiedPages = await mergedPdf.copyPages(newPdf, newPdf.getPageIndices());
+      newCopiedPages.forEach((page) => mergedPdf.addPage(page));
+
+      mergedBuffer = Buffer.from(await mergedPdf.save());
+    } else {
+      // Merge images (JPEG/PNG) as before
+      mergedBuffer = Buffer.concat([mergedBuffer, buffer]);
+    }
+  } else {
+    mergedBuffer = buffer;
+    mergedMimeType = mimeType;
+  }
+
+  // 5️⃣ Validate file size
+  if (mergedBuffer.length > this.MAX_SIZE_BYTES) {
+    throw new BadRequestException(`File size must be less than ${this.MAX_SIZE_BYTES / (1024 * 1024)}MB`);
+  }
+
+  // 6️⃣ Upload new (merged) file to S3
+  const folderName = orderId;
+  const fileName = `${orderId}_merged.${mergedMimeType.split("/")[1]}`; // Fixed filename format
+  const key = `${folderName}/${fileName}`;
+
+  const uploadParams = {
+    Bucket: process.env.AWS_S3_BUCKET_NAME,
+    Key: key,
+    Body: mergedBuffer,
+    ContentType: mergedMimeType,
+  };
+
+  try {
+    await this.s3.send(new PutObjectCommand(uploadParams));
+
+    // Generate Signed URL
+    const signedUrl = await getSignedUrl(
+      this.s3,
+      new GetObjectCommand({ Bucket: process.env.AWS_S3_BUCKET_NAME, Key: key }),
+      { expiresIn: 3600 }
+    );
+
+    // 7️⃣ Save new (merged) document details in the database
+    const document = await this.documentRepository.create({
+      entityId: order.id,
+      entityType: "customer",
+      purposeId: null,
+      document_type_id: documentType.id,
+      documentName: fileName,
+      documentUrl: {
+        url: signedUrl,
+        mimeType: mergedMimeType,
+        size: mergedBuffer.length,
+        uploadedAt: new Date().toISOString(),
+      },
+      isUploaded: true,
+    });
+
+    return {
+      message: "File uploaded successfully",
+      document_id: document.documentId,
+    };
+  } catch (error) {
+    throw new InternalServerErrorException(`Upload error: ${error.message}`);
+  }
+}
+
+  
+  // async uploadDocumentByOrderId(
+  //   orderId: string,
+  //   document_type_id: string,
+  //   base64File: string,
+  //   merge_doc: boolean = false
+  // ) {
+  //   // 1️⃣ Check if the order exists
+  //   const order = await this.orderRepository.findOne({ where: { order_id: orderId } });
+  //   if (!order) {
+  //     throw new BadRequestException(`Order ID ${orderId} not found`);
+  //   }
+  
+  //   // 2️⃣ Validate document_type_id
+  //   const documentType = await this.documentTypeRepository.findOne({ where: { hashed_key: document_type_id } });
+  //   if (!documentType) {
+  //     throw new BadRequestException(`Invalid document_type_id: ${document_type_id}`);
+  //   }
+  
+  //   // 3️⃣ Fetch existing documents for merging
+  //   let mergedBuffer: Buffer | null = null;
+  //   let mergedMimeType: string | null = null;
+    
+    
+  
+  //   if (merge_doc) {
+  //     const existingDocuments = await this.documentRepository.findAll({ where: { entityId: order.id } });
+  
+  //     if (existingDocuments.length > 0) {
+  //       const fileBuffers = [];
+  //       let mimeTypeSet = new Set();
+  
+  //       for (const doc of existingDocuments) {
+  //         const fileKey = doc.documentUrl.url.split(`${process.env.AWS_S3_BUCKET_NAME}/`)[1];
+  
+  //         try {
+  //           const fileResponse = await this.s3.send(new GetObjectCommand({ Bucket: process.env.AWS_S3_BUCKET_NAME, Key: fileKey }));
+  //           const fileBuffer = await fileResponse.Body.transformToByteArray();
+  //           fileBuffers.push(Buffer.from(fileBuffer));
+  //           mimeTypeSet.add(doc.documentUrl.mimeType);
+  //         } catch (error) {
+  //           console.warn(`Failed to fetch file from S3: ${error.message}`);
+  //         }
+  //       }
+  
+  //       // Ensure all files have the same MIME type
+  //       if (mimeTypeSet.size === 1) {
+  //         mergedBuffer = Buffer.concat(fileBuffers);
+  //         mergedMimeType = [...mimeTypeSet][0];
+  //       } else {
+  //         throw new BadRequestException("Cannot merge different file types (PDF, JPEG, PNG).");
+  //       }
+  //     }
+  //   }
+  
+  //   // 4️⃣ Validate base64 format and file type
+  //   const fileMatch = base64File.match(/^data:(image\/jpeg|image\/png|application\/pdf);base64,(.+)$/);
+  //   if (!fileMatch || fileMatch.length !== 3) {
+  //     throw new BadRequestException("Invalid base64 format. Only JPEG, PNG, and PDF files are allowed.");
+  //   }
+  
+  //   const mimeType = fileMatch[1];
+  //   const base64Data = fileMatch[2];
+  //   const buffer = Buffer.from(base64Data, "base64");
+  
+  //   // Merge with new file if required
+  //   if (merge_doc && mergedBuffer) {
+  //     if (mergedMimeType !== mimeType) {
+  //       throw new BadRequestException("New file must be of the same type as existing merged files.");
+  //     }
+  //     mergedBuffer = Buffer.concat([mergedBuffer, buffer]);
+  //   } else {
+  //     mergedBuffer = buffer;
+  //     mergedMimeType = mimeType;
+  //   }
+  
+  //   // 5️⃣ Validate file size
+  //   if (mergedBuffer.length > this.MAX_SIZE_BYTES) {
+  //     throw new BadRequestException(`File size must be less than ${this.MAX_SIZE_BYTES / (1024 * 1024)}MB`);
+  //   }
+  
+  //   // 6️⃣ Upload new (merged) file to S3
+  //   const folderName = orderId;
+  //   const fileName = `${orderId}_merged.${mergedMimeType.split("/")[1]}`; // Fixed filename format
+  //   const key = `${folderName}/${fileName}`;
+  
+  //   const uploadParams = {
+  //     Bucket: process.env.AWS_S3_BUCKET_NAME,
+  //     Key: key,
+  //     Body: mergedBuffer,
+  //     ContentType: mergedMimeType,
+  //   };
+  
+  //   try {
+  //     await this.s3.send(new PutObjectCommand(uploadParams));
+  
+  //     // Generate Signed URL
+  //     const signedUrl = await getSignedUrl(
+  //       this.s3,
+  //       new GetObjectCommand({ Bucket: process.env.AWS_S3_BUCKET_NAME, Key: key }),
+  //       { expiresIn: 3600 }
+  //     );
+  
+  //     // 7️⃣ Save new (merged) document details in the database
+  //     const document = await this.documentRepository.create({
+  //       entityId: order.id,
+  //       entityType: "customer",
+  //       purposeId: null,
+  //       document_type_id: documentType.id,
+  //       documentName: fileName,
+  //       documentUrl: {
+  //         url: signedUrl,
+  //         mimeType: mergedMimeType,
+  //         size: mergedBuffer.length,
+  //         uploadedAt: new Date().toISOString(),
+  //       },
+  //       isUploaded: true,
+  //     });
+  
+  //     return {
+  //       message: "File uploaded successfully",
+  //       document_id: document.documentId,
+  //     };
+  //   } catch (error) {
+  //     throw new InternalServerErrorException(`Upload error: ${error.message}`);
+  //   }
+  // }
+  
 
   async uploadFile(buffer: Buffer, originalName: string, folderName: string) {
     const folder = folderName ? `${folderName}/` : "";

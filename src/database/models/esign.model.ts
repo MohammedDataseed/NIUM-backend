@@ -8,6 +8,7 @@ import {
   Unique,
   BeforeCreate,
   AllowNull,
+  BeforeValidate,
 } from "sequelize-typescript";
 import { Order } from "./order.model";
 import * as crypto from "crypto";
@@ -25,7 +26,7 @@ export class ESign extends Model<ESign> {
   id: string;
 
   @Unique
-  @AllowNull(false)
+  @AllowNull(true)
   @Column({ type: DataType.STRING, field: "hashed_key" })
   hashed_key: string;
 
@@ -86,7 +87,7 @@ export class ESign extends Model<ESign> {
   order: Order;
 
   /** Generate `hashed_key` before creation */
-  @BeforeCreate
+  @BeforeValidate
   static generatehashed_key(instance: ESign) {
     const randomPart = crypto.randomBytes(16).toString("hex"); // 16-character random string
     const timestampPart = Date.now().toString(36); // Convert timestamp to base36 for compactness

@@ -1,7 +1,7 @@
 // orders.controller.ts
 import { Controller, Post, Get, Put, Delete, Body, Param, Headers, BadRequestException, ValidationPipe } from '@nestjs/common';
 import { OrdersService } from '../../../services/v1/order/order.service';
-import { CreateOrderDto,CreateMinimalOrderDto, UpdateOrderDto } from '../../../dto/order.dto';
+import { CreateOrderDto,UpdateOrderDto } from '../../../dto/order.dto';
 import { ApiTags, ApiResponse, ApiHeader } from '@nestjs/swagger';
 import * as opentracing from 'opentracing';
 
@@ -10,17 +10,17 @@ import * as opentracing from 'opentracing';
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
   @Post()
-  async createMinimalOrder(
+  async createOrder(
     @Headers('x-partner-id') partnerId: string,
     @Headers('x-api-key') apiKey: string,
-    @Body() createMinimalOrderDto: CreateMinimalOrderDto,
+    @Body() createOrderDto: CreateOrderDto,
   ) {
     const tracer = opentracing.globalTracer();
-    const span = tracer.startSpan('create-minimal-order-controller');
+    const span = tracer.startSpan('create-order-controller');
     
     try {
       await this.ordersService.validatePartnerHeaders(partnerId, apiKey);
-      const order = await this.ordersService.createOrder(span, createMinimalOrderDto, partnerId);
+      const order = await this.ordersService.createOrder(span, createOrderDto, partnerId);
       return {
         success: true,
         data: order,
@@ -32,32 +32,6 @@ export class OrdersController {
     }
   }
 
-
-//  @Post()
-//   @ApiHeader({ name: 'partner_id', description: 'Partner ID', required: true })
-//   @ApiHeader({ name: 'api-key', description: 'API Key', required: true })
-//   @ApiResponse({ status: 201, description: 'Order created successfully' })
-//   async createOrder(
-//     @Headers('partner_id') partnerId: string,
-//     @Headers('api-key') apiKey: string,
-//     @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true })) createOrderDto: CreateOrderDto,
-//   ) {
-//     if (!partnerId || !apiKey) throw new BadRequestException('Partner ID and API Key are required');
-
-//     const span = opentracing.globalTracer().startSpan('create-order-controller');
-//     try {
-//       // Validate partner_id, role, and api-key
-//       await this.ordersService.validatePartnerHeaders(partnerId, apiKey);
-//       const order = await this.ordersService.createOrder(span, createOrderDto, partnerId);
-//       return {
-//         message: 'order created successful', // Match your exact response
-//         bmf_order_id: order.order_id, // Use the order_id from the created order
-//         nium_order_id: 'NIUMF789012', // Hardcoded as per your example
-//       };
-//     } finally {
-//       span.finish();
-//     }
-//   }
 
   @Get()
   @ApiResponse({ status: 200, description: 'List of orders' })
