@@ -28,7 +28,7 @@ export class transaction_typeController {
     private readonly transaction_typeService: transaction_typeService
   ) {}
 
-  // @UseGuards(JwtGuard)
+  // //@UseGuards(JwtGuard)
   @Get()
   async findAll(
     @Query() params: Record<string, any>
@@ -53,7 +53,7 @@ export class transaction_typeController {
     }
   }
 
-  // @UseGuards(JwtGuard)
+  // //@UseGuards(JwtGuard)
   @Post()
   @ApiOperation({ summary: "Create a new transaction type" })
   @ApiResponse({
@@ -86,7 +86,7 @@ export class transaction_typeController {
     }
   }
 
-  // @UseGuards(JwtGuard)
+  // //@UseGuards(JwtGuard)
   @Put(":transaction_type_id")
   @ApiOperation({ summary: "Update a transaction type" })
   @ApiResponse({
@@ -119,7 +119,7 @@ export class transaction_typeController {
     }
   }
 
-  // @UseGuards(JwtGuard)
+  // //@UseGuards(JwtGuard)
   @Delete(":transaction_type_id")
   @ApiOperation({ summary: "Delete a Transaction type" })
   @ApiResponse({

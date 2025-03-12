@@ -5,6 +5,7 @@ import {
   NotFoundException,
 } from "@nestjs/common";
 import { Role } from "../../../database/models/role.model";
+import { User } from "src/database/models/user.model";
 import * as opentracing from "opentracing";
 import * as crypto from "crypto";
 
@@ -15,7 +16,10 @@ import { WhereOptions } from "sequelize";
 export class RoleService {
   constructor(
     @Inject("ROLE_REPOSITORY")
-    private readonly roleRepository: typeof Role
+    private readonly roleRepository: typeof Role,
+
+    @Inject("USER_REPOSITORY")
+    private readonly userRepository: typeof User
   ) {}
 
   // Fetch all roles with optional filters
@@ -37,7 +41,9 @@ export class RoleService {
     const childSpan = span.tracer().startSpan("find-role", { childOf: span });
 
     try {
-      const role = await this.roleRepository.findByPk(id);
+      const role = await this.roleRepository.findOne({
+        where: { hashed_key:id },
+    });
       if (!role) {
         throw new NotFoundException("Role not found");
       }
@@ -49,53 +55,104 @@ export class RoleService {
 
   // Create a new role
 
-  async createRole(span: opentracing.Span, createRoleDto: CreateRoleDto): Promise<Role> {
-    const childSpan = span.tracer().startSpan("create-role", { childOf: span });
+//   async createRole(span: opentracing.Span, createRoleDto: CreateRoleDto): Promise<Role> {
+//     const childSpan = span.tracer().startSpan("create-role", { childOf: span });
 
-    try {
-        const existingRole = await this.roleRepository.findOne({
-            where: { name: createRoleDto.name },
-        });
-        if (existingRole) {
-            throw new ConflictException("Role already exists");
-        }
+//     try {
+//         const existingRole = await this.roleRepository.findOne({
+//             where: { name: createRoleDto.name },
+//         });
+//         if (existingRole) {
+//             throw new ConflictException("Role already exists");
+//         }
 
-        // Fetch creator's role ID using hashed_key
-        let createdById: string | null = null;
+//         // Fetch creator's role ID using hashed_key
+//         let createdById: string | null = null;
        
-        if (createRoleDto.created_by) {
-            const creatorRole = await this.roleRepository.findOne({
-                where: { hashed_key: createRoleDto.created_by },
-            });
-            if (!creatorRole) {
-                throw new NotFoundException("Creator role not found");
-            }
-            createdById = creatorRole.id;
-        }
+//         if (createRoleDto.created_by) {
+//             const creatorRole = await this.roleRepository.findOne({
+//                 where: { hashed_key: createRoleDto.created_by },
+//             });
+//             if (!creatorRole) {
+//                 throw new NotFoundException("Creator role not found");
+//             }
+//             createdById = creatorRole.id;
+//         }
 
-        // Create new role instance
-        const role = this.roleRepository.build({
-            name: createRoleDto.name,
-            status: createRoleDto.status ?? true,
-            created_by: createdById
-        });
+//         // Create new role instance
+      
+//         const role = this.roleRepository.build({
+//           name: createRoleDto.name,
+//           status: createRoleDto.status ?? true,
+//           created_by: createdById
+//       });
+      
+//       // Fallback in case @BeforeCreate doesn't trigger
+//       if (!role.hashed_key) {
+//           role.hashed_key = crypto.randomBytes(16).toString("hex") + Date.now().toString(36);
+//       }
+      
+//       await role.save();
+      
 
-        // Generate hashed_key
-        role.hashed_key = crypto.createHash("sha256")
-            .update(`${role.name}-${Date.now()}`)
-            .digest("hex");
+//         // // Generate hashed_key
+//         // role.hashed_key = crypto.createHash("sha256")
+//         //     .update(`${role.name}-${Date.now()}`)
+//         //     .digest("hex");
 
-        await role.save(); // Save the role
+//         await role.save(); // Save the role
 
-        return role;
-    } finally {
-        childSpan.finish();
-    }
+//         return role;
+//     } finally {
+//         childSpan.finish();
+//     }
+// }
+
+
+async createRole(span: opentracing.Span, createRoleDto: CreateRoleDto): Promise<Role> {
+  const childSpan = span.tracer().startSpan("create-role", { childOf: span });
+
+  try {
+      // Check if role already exists
+      const existingRole = await this.roleRepository.findOne({
+          where: { name: createRoleDto.name },
+      });
+      if (existingRole) {
+          throw new ConflictException("Role already exists");
+      }
+
+      // Fetch User ID using `created_by`
+      let createdById: string | null = null;
+      if (createRoleDto.created_by) {
+          const creatorUser = await this.userRepository.findOne({
+              where: { id: createRoleDto.created_by }, // ✅ Querying `users` instead of `roles`
+          });
+          if (!creatorUser) {
+              throw new NotFoundException("Creator user not found");
+          }
+          createdById = creatorUser.id;
+      }
+
+      // Create new role instance
+      const role = this.roleRepository.build({
+          name: createRoleDto.name,
+          status: createRoleDto.status ?? true,
+          created_by: createdById
+      });
+
+      // Fallback in case `@BeforeCreate` doesn't trigger
+      if (!role.hashed_key) {
+          role.hashed_key = crypto.randomBytes(16).toString("hex") + Date.now().toString(36);
+      }
+
+      await role.save();
+      return role;
+  } finally {
+      childSpan.finish();
+  }
 }
-
   
    // update a new role
-
    async updateRole(
     span: opentracing.Span,
     hashedKey: string,

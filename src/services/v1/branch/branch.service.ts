@@ -6,6 +6,7 @@ import {
   CreateBranchDto,
   UpdateBranchDto,
 } from "../../../dto/branch.dto";
+import * as crypto from "crypto";
 import { WhereOptions } from "sequelize";
 
 @Injectable()
@@ -46,17 +47,28 @@ export class BranchService {
       }
 
       console.log("Received DTO:", createBranchDto); // Debugging log
-
-      // Ensure all required fields are passed to create()
-      return await this.branchRepository.create({
+      
+      // Create new branch instance
+      const branch = this.branchRepository.build({
         name: createBranchDto.name,
         location: createBranchDto.location,
         city: createBranchDto.city,
         state: createBranchDto.state,
         business_type: createBranchDto.business_type,
-        // created_by: createBranchDto.created_by, // Ensure UUIDs are provided
-        // updated_by: createBranchDto.updated_by,
-      });
+      //   // created_by: createBranchDto.created_by, // Ensure UUIDs are provided
+      //   // updated_by: createBranchDto.updated_by,
+    });
+
+
+
+      
+     // 🔹 Fallback in case `@BeforeCreate` hook doesn't trigger
+     if (!branch.hashed_key) {
+      branch.hashed_key =
+        crypto.randomBytes(16).toString("hex") + Date.now().toString(36);
+    }
+    await branch.save();
+    return branch;
     } finally {
       childSpan.finish();
     }

@@ -77,27 +77,6 @@ import {
         }
       }
       
-    // async createBankAccount(span: opentracing.Span, createBankAccountDto: CreateBankAccountDto): Promise<bank_account> {
-    //   const childSpan = span.tracer().startSpan("create-bank-account", { childOf: span });
-  
-    //   try {
-    //     // Check if account already exists (assuming `account_number` must be unique)
-    //     const existingAccount = await this.bankAccountRepository.findOne({
-    //       where: { account_number: createBankAccountDto.account_number },
-    //     });
-  
-    //     if (existingAccount) {
-    //       throw new ConflictException("Bank account already exists");
-    //     }
-  
-    //     const account = this.bankAccountRepository.build(createBankAccountDto);
-    //     await account.save();
-    //     return account;
-    //   } finally {
-    //     childSpan.finish();
-    //   }
-    // }
-  
     /**
      * Update a bank account.
      */

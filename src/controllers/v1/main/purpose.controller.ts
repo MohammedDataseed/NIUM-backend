@@ -22,7 +22,7 @@ import { JwtGuard } from "../../../auth/jwt.guard";
 export class PurposeController {
   constructor(private readonly purposeService: PurposeService) {}
 
-  // @UseGuards(JwtGuard)
+  // //@UseGuards(JwtGuard)
   @Get()
   async findAll(
     @Query() params: Record<string, any>
@@ -44,7 +44,7 @@ export class PurposeController {
     }
   }
 
-  // @UseGuards(JwtGuard)
+  // //@UseGuards(JwtGuard)
   @Post()
   @ApiOperation({ summary: "Create a new purpose type" })
   @ApiResponse({
@@ -76,7 +76,7 @@ export class PurposeController {
     }
   }
 
-  // @UseGuards(JwtGuard)
+  // //@UseGuards(JwtGuard)
   @Put(":purpose_type_id")
   @ApiOperation({ summary: "Update a purpose type" })
   @ApiResponse({
@@ -109,7 +109,7 @@ export class PurposeController {
     }
   }
 
-  // @UseGuards(JwtGuard)
+  // //@UseGuards(JwtGuard)
   @Delete(":purpose_type_id")
   @ApiOperation({ summary: "Delete a purpose type" })
   @ApiResponse({

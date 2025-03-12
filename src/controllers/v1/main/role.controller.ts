@@ -11,24 +11,32 @@ import {
 import { RoleService } from "../../../services/v1/role/role.service";
 import { Role } from "../../../database/models/role.model";
 import * as opentracing from "opentracing";
-import { CreateRoleDto,UpdateRoleDto,DeleteRoleDto } from "src/dto/role.dto";
-import { ApiTags, ApiOperation, ApiResponse,ApiBearerAuth, } from "@nestjs/swagger";
+import { CreateRoleDto, UpdateRoleDto, DeleteRoleDto } from "src/dto/role.dto";
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from "@nestjs/swagger";
 import { JwtGuard } from "../../../auth/jwt.guard";
 
 @ApiTags("Roles")
 @Controller("roles")
 @ApiBearerAuth("access_token") // 🔹 Must match the name used in Swagger setup
-
 export class RoleController {
   constructor(private readonly roleService: RoleService) {}
 
   /** ================================
    * 🔹 Get All Roles
    * ================================ */
-  @UseGuards(JwtGuard)
+  //@UseGuards(JwtGuard)
   @Get()
   @ApiOperation({ summary: "Get all roles with optional filters" })
-  @ApiResponse({ status: 200, description: "Roles retrieved successfully", type: [Role] })
+  @ApiResponse({
+    status: 200,
+    description: "Roles retrieved successfully",
+    type: [Role],
+  })
   async findAll(@Query() params: Record<string, any>): Promise<Role[]> {
     const tracer = opentracing.globalTracer();
     const span = tracer.startSpan("find-all-roles-request");
@@ -44,10 +52,14 @@ export class RoleController {
   /** ================================
    * 🔹 Create a New Role
    * ================================ */
-  @UseGuards(JwtGuard)
+  //@UseGuards(JwtGuard)
   @Post()
   @ApiOperation({ summary: "Create a new role" })
-  @ApiResponse({ status: 201, description: "Role created successfully", type: Role })
+  @ApiResponse({
+    status: 201,
+    description: "Role created successfully",
+    type: Role,
+  })
   @ApiResponse({ status: 400, description: "Bad Request - Invalid data" })
   async createRole(@Body() createRoleDto: CreateRoleDto): Promise<Role> {
     const tracer = opentracing.globalTracer();
@@ -60,11 +72,10 @@ export class RoleController {
     }
   }
 
-  
   /** ================================
    * 🔹 Update Role by hashed_key
    * ================================ */
-  @UseGuards(JwtGuard)
+  //@UseGuards(JwtGuard)
   @Put("status")
   @ApiOperation({ summary: "Update role status using hashed_key" })
   @ApiResponse({ status: 200, description: "Role status updated successfully" })
@@ -76,12 +87,11 @@ export class RoleController {
     try {
       return await this.roleService.updateRole(
         span,
-        body.hashed_key,  // ✅ Use directly from body
+        body.hashed_key, // ✅ Use directly from body
         body // ✅ Pass the entire `UpdateRoleDto`
       );
     } finally {
       span.finish();
     }
   }
-
 }

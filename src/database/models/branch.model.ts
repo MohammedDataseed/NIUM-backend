@@ -10,6 +10,7 @@ import {
   ForeignKey,
   BelongsTo,
   BeforeCreate,
+  BeforeValidate,
 } from "sequelize-typescript";
 import * as crypto from "crypto";
 import { User } from "./user.model";
@@ -61,7 +62,7 @@ export class Branch extends Model<Branch> {
   updated_by: string;
 
   /** Generate `hashed_key` before creation */
-  @BeforeCreate
+  @BeforeValidate
   static generatehashed_key(instance: Branch) {
     const randomPart = crypto.randomBytes(16).toString("hex"); // 16-character random string
     const timestampPart = Date.now().toString(36); // Convert timestamp to base36 for compactness

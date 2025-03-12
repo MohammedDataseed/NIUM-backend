@@ -10,6 +10,7 @@ import {
   ForeignKey,
   BelongsTo,
   BeforeCreate,
+  BeforeValidate,
 } from "sequelize-typescript";
 import { User } from "./user.model";
 import * as crypto from "crypto";
@@ -54,17 +55,8 @@ export class Role extends Model<Role> {
   @BelongsTo(() => User, "updated_by")
   updater: User;
 
-  // @BeforeCreate
-  // static generateHashedKey(instance: Role) {
-  //   const hash = crypto
-  //     .createHash("sha256")
-  //     .update(`${instance.name}-${Date.now()}`) // Use name + timestamp for uniqueness
-  //     .digest("hex");
-  //   instance.hashed_key = hash;
-  // }
-
   /** Generate `publicKey` before creation */
-  @BeforeCreate
+  @BeforeValidate
   static generatePublicKey(instance: Role) {
     const randomPart = crypto.randomBytes(16).toString("hex"); // 16-character random string
     const timestampPart = Date.now().toString(36); // Convert timestamp to base36 for compactness

@@ -9,9 +9,15 @@ import {
   Body,
   Param,
   Query,
-  createParamDecorator, ExecutionContext,UnauthorizedException } from '@nestjs/common';
+  createParamDecorator,
+  ExecutionContext,
+  UnauthorizedException,
+} from "@nestjs/common";
 
-import { UserService,UserCreationResponse } from "../../../services/v1/user/user.service";
+import {
+  UserService,
+  UserCreationResponse,
+} from "../../../services/v1/user/user.service";
 import { User } from "../../../database/models/user.model";
 import * as opentracing from "opentracing";
 import { WhereOptions } from "sequelize";
@@ -31,7 +37,6 @@ import { JwtGuard } from "../../../auth/jwt.guard";
 import { LoginDto } from "src/dto/login.dto";
 import { MailerService } from "src/shared/services/mailer/mailer.service";
 
-
 @ApiTags("Users")
 @Controller("users")
 @ApiBearerAuth("access_token") // 🔹 Must match the name used in Swagger setup
@@ -41,7 +46,7 @@ export class UserController {
     private readonly mailService: MailerService
   ) {}
 
-  @UseGuards(JwtGuard)
+  //@UseGuards(JwtGuard)
   @Get()
   async findAll(@Query() params: Record<string, any>): Promise<User[]> {
     const tracer = opentracing.globalTracer();
@@ -52,8 +57,7 @@ export class UserController {
     return result;
   }
 
-
-  @UseGuards(JwtGuard)
+  //@UseGuards(JwtGuard)
   @Post()
   @ApiOperation({ summary: "Create a new user" })
   @ApiResponse({
@@ -67,22 +71,25 @@ export class UserController {
   })
   async createUser(
     @Body() createUserDto: CreateUserDto,
-    @Headers('Authorization') authHeader: string, // Extract Authorization header
-  ): Promise<UserCreationResponse> {  // Ensure the return type matches the custom response
-      const tracer = opentracing.globalTracer();
+    // @Headers("Authorization") authHeader: string // Extract Authorization header
+  ): Promise<UserCreationResponse> {
+    // Ensure the return type matches the custom response
+    const tracer = opentracing.globalTracer();
     const span = tracer.startSpan("create-user-request");
-    const token = authHeader?.replace('Bearer ', ''); // Remove 'Bearer ' prefix from token
-    if (!token) {
-      throw new UnauthorizedException('Authorization token is missing or invalid');
-    }
+    // const token = authHeader?.replace("Bearer ", ""); // Remove 'Bearer ' prefix from token
+    // if (!token) {
+    //   throw new UnauthorizedException(
+    //     "Authorization token is missing or invalid"
+    //   );
+    // }
     try {
-    return await this.userService.createUser(span, createUserDto,token);
+      return await this.userService.createUser(span, createUserDto);
     } finally {
       span.finish();
     }
   }
 
-  @UseGuards(JwtGuard)
+  //@UseGuards(JwtGuard)
   @Put(":id")
   @ApiOperation({ summary: "Update a user" })
   @ApiResponse({
@@ -110,7 +117,7 @@ export class UserController {
     }
   }
 
-  @UseGuards(JwtGuard)
+  //@UseGuards(JwtGuard)
   @Delete(":id")
   @ApiOperation({ summary: "Delete a user" })
   @ApiResponse({ status: 200, description: "User successfully deleted." })
@@ -135,7 +142,7 @@ export class UserController {
     return this.userService.login(loginDto);
   }
 
-  @UseGuards(JwtGuard)
+  //@UseGuards(JwtGuard)
   @Get("email")
   @ApiOperation({ summary: "Find user by email" })
   @ApiResponse({ status: 200, description: "User found", type: User })
@@ -144,7 +151,7 @@ export class UserController {
     return await this.userService.findByEmail(email);
   }
 
-  @UseGuards(JwtGuard)
+  //@UseGuards(JwtGuard)
   @Post("refresh")
   @ApiOperation({ summary: "Refresh access token" })
   @ApiBody({
@@ -211,7 +218,7 @@ export class UserController {
     );
   }
 
-  @UseGuards(JwtGuard)
+  //@UseGuards(JwtGuard)
   @Post("send-email")
   @ApiOperation({
     summary: "Send an email",
