@@ -41,18 +41,30 @@ export class User extends Model<User> {
   @Column({ type: DataType.STRING, field: "hashed_key" })
   hashed_key: string;
 
+  // @ForeignKey(() => Role)
+  // @Column({ type: DataType.UUID, field: "role_id" })
+  // role_id: string;
+
+  // @ForeignKey(() => Branch)
+  // @Column({ type: DataType.UUID, field: "branch_id" })
+  // branch_id: string;
+
+  // @ForeignKey(() => bank_account)
+  // @Column({ type: DataType.UUID, field: "bank_account_id" })
+  // bank_account_id: string;
+
   @ForeignKey(() => Role)
-  @Column({ type: DataType.UUID, field: "role_id" })
+  @Column({ type: DataType.STRING, field: "role_id" })
   role_id: string;
-
+  
   @ForeignKey(() => Branch)
-  @Column({ type: DataType.UUID, field: "branch_id" })
+  @Column({ type: DataType.STRING, field: "branch_id" })
   branch_id: string;
-
+  
   @ForeignKey(() => bank_account)
-  @Column({ type: DataType.UUID, field: "bank_account_id" })
+  @Column({ type: DataType.STRING, field: "bank_account_id" })
   bank_account_id: string;
-
+  
   // @ForeignKey(() => Products)
   // @Column({ type: DataType.UUID, field: "product_id" })
   // product_id: string;
