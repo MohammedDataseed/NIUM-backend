@@ -11,8 +11,8 @@ export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
   @Post()
   async createOrder(
-    @Headers('x-partner-id') partnerId: string,
-    @Headers('x-api-key') apiKey: string,
+    @Headers('partner-id-00eb04d0-646c-41d5-a69e-197b2b504f01') partnerId: string,
+    @Headers('api-key-c1c9773f-49be-4f31-b37a-a853dc2b2981') apiKey: string,
     @Body() createOrderDto: CreateOrderDto,
   ) {
     const tracer = opentracing.globalTracer();

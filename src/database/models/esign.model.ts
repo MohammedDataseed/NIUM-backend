@@ -1,98 +1,137 @@
-//esign.model.ts
+  // //esign.model.ts
 
-import {
-  Table,
-  Column,
-  Model,
-  DataType,
-  ForeignKey,
-  BelongsTo,
-  Unique,
-  BeforeCreate,
-  AllowNull,
-  BeforeValidate,
-} from "sequelize-typescript";
-import { Order } from "./order.model";
-import * as crypto from "crypto";
-@Table({
-  tableName: "esigns",
-  timestamps: true,
-})
-export class ESign extends Model<ESign> {
-  @Column({
-    type: DataType.UUID,
-    defaultValue: DataType.UUIDV4, // Automatically generate a UUID
-    primaryKey: true, // Set as primary key
-    allowNull: false,
+  import {
+    Table,
+    Column,
+    Model,
+    DataType,
+    ForeignKey,
+    BelongsTo,
+    Unique,
+    BeforeValidate,
+    AllowNull,
+  } from "sequelize-typescript";
+  import { Order } from "./order.model";
+  import * as crypto from "crypto";
+
+  @Table({
+    tableName: "esigns",
+    timestamps: true,
   })
-  id: string;
+  export class ESign extends Model<ESign> {
+    @Column({
+      type: DataType.UUID,
+      defaultValue: DataType.UUIDV4,
+      primaryKey: true,
+      allowNull: false,
+    })
+    id: string;
 
-  @Unique
-  @AllowNull(true)
-  @Column({ type: DataType.STRING, field: "hashed_key" })
-  hashed_key: string;
+    @Unique
+    @AllowNull(true)
+    @Column({ type: DataType.STRING, field: "hashed_key" })
+    hashed_key: string;
 
-  @ForeignKey(() => Order)
-  @Column({ type: DataType.STRING, allowNull: false })
-  order_id: string;
+    @Column({ type: DataType.STRING, allowNull: false })
+    partner_order_id: string; // 🔥 This is just for storing user input
 
-  // 🔥 New column to track attempt numbers
-  @Column({ type: DataType.INTEGER, allowNull: false })
-  attempt_number: number;
+    @ForeignKey(() => Order)
+    @Column({ type: DataType.UUID, allowNull: false })
+    order_id: string; // 🔥 This will store the actual primary key of Order
 
-  // E-Sign Details from the Request
-  @Column({ type: DataType.STRING, allowNull: false })
-  task_id: string;
+    @BelongsTo(() => Order, { foreignKey: "order_id", targetKey: "id" })
+    order: Order;
 
-  @Column({ type: DataType.STRING, allowNull: false })
-  group_id: string;
+    @Column({ type: DataType.INTEGER, allowNull: false })
+    attempt_number: number;
 
-  @Column({ type: DataType.JSONB, allowNull: false })
-  esign_file_details: object;
+    @Column({ type: DataType.STRING, allowNull: false })
+    task_id: string;
 
-  @Column({ type: DataType.JSONB, allowNull: false })
-  esign_stamp_details: object;
+    @Column({ type: DataType.STRING, allowNull: false })
+    group_id: string;
 
-  @Column({ type: DataType.JSONB, allowNull: false })
-  esign_invitees: object;
+    @Column({ type: DataType.JSONB, allowNull: false })
+    esign_file_details: object;
 
-  // E-Sign Details from the Response
-  @Column({ type: DataType.JSONB, allowNull: true })
-  esign_details: object;
+    @Column({ type: DataType.JSONB, allowNull: false })
+    esign_stamp_details: object;
 
-  @Column({ type: DataType.STRING, allowNull: true })
-  esign_doc_id: string;
+    @Column({ type: DataType.JSONB, allowNull: false })
+    esign_invitees: object;
 
-  @Column({ type: DataType.STRING, allowNull: true })
-  status: string;
+    @Column({ type: DataType.JSONB, allowNull: true })
+    esign_details: object;
 
-  @Column({ type: DataType.STRING, allowNull: true })
-  request_id: string;
+    @Column({ type: DataType.STRING, allowNull: true })
+    esign_doc_id: string;
 
-  @Column({ type: DataType.DATE, allowNull: true })
-  completed_at: Date;
+    @Column({ type: DataType.STRING, allowNull: true })
+    status: string;
 
-  @Column({ type: DataType.DATE, allowNull: true })
-  esign_expiry: Date;
+    @Column({ type: DataType.STRING, allowNull: true })
+    request_id: string;
 
-  @Column({ type: DataType.BOOLEAN, allowNull: false, defaultValue: false })
-  active: boolean;
+    @Column({ type: DataType.DATE, allowNull: true })
+    completed_at: Date;
 
-  @Column({ type: DataType.BOOLEAN, allowNull: false, defaultValue: false })
-  expired: boolean;
+    @Column({ type: DataType.DATE, allowNull: true })
+    esign_expiry: Date;
 
-  @Column({ type: DataType.BOOLEAN, allowNull: false, defaultValue: false })
-  rejected: boolean;
+    @Column({ type: DataType.BOOLEAN, allowNull: false, defaultValue: false })
+    active: boolean;
 
-  // Associations
-  @BelongsTo(() => Order, { foreignKey: "order_id", targetKey: "order_id" }) // Specify targetKey
-  order: Order;
+    @Column({ type: DataType.BOOLEAN, allowNull: false, defaultValue: false })
+    expired: boolean;
 
-  /** Generate `hashed_key` before creation */
-  @BeforeValidate
-  static generatehashed_key(instance: ESign) {
-    const randomPart = crypto.randomBytes(16).toString("hex"); // 16-character random string
-    const timestampPart = Date.now().toString(36); // Convert timestamp to base36 for compactness
-    instance.hashed_key = `${randomPart}${timestampPart}`; // 16-char random + timestamp
+    @Column({ type: DataType.BOOLEAN, allowNull: false, defaultValue: false })
+    rejected: boolean;
+
+    // 🔥 New Fields
+    @Column({ type: DataType.JSONB, allowNull: true })
+    result: object;
+
+    @Column({ type: DataType.JSONB, allowNull: true })
+    esigners: object;
+
+    @Column({ type: DataType.JSONB, allowNull: true })
+    file_details: object;
+
+    @Column({ type: DataType.JSONB, allowNull: true })
+    request_details: object;
+
+    @Column({ type: DataType.STRING, allowNull: true })
+    esign_irn: string;
+
+    @Column({ type: DataType.STRING, allowNull: true })
+    esign_folder: string;
+
+    @Column({ type: DataType.STRING, allowNull: true })
+    esign_type: string;
+
+    @Column({ type: DataType.STRING, allowNull: true })
+    esign_url: string;
+
+    @Column({ type: DataType.STRING, allowNull: true })
+    esigner_email: string;
+
+    @Column({ type: DataType.STRING, allowNull: true })
+    esigner_phone: string;
+
+    @Column({ type: DataType.BOOLEAN, allowNull: false, defaultValue: false })
+    is_signed: boolean;
+
+    @Column({ type: DataType.STRING, allowNull: true })
+    type: string;
+
+    
+
+    /** Generate `hashed_key` before creation */
+    @BeforeValidate
+    static generatehashed_key(instance: ESign) {
+      const randomPart = crypto.randomBytes(16).toString("hex");
+      const timestampPart = Date.now().toString(36);
+      instance.hashed_key = `${randomPart}${timestampPart}`;
+    }
   }
-}
+

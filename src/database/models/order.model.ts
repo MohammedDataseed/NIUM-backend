@@ -42,8 +42,9 @@ export class Order extends Model<Order> {
   @Column({ type: DataType.UUID, allowNull: false })
   partner_id: string;
 
-  @Column({ type: DataType.STRING, allowNull: false, unique: true })
-  order_id: string;
+  @Unique // 🔥 Ensure uniqueness
+  @Column({ type: DataType.STRING, allowNull: false })
+  partner_order_id: string;
 
   @Column({ type: DataType.STRING, allowNull: true })
   transaction_type: string;
@@ -185,7 +186,7 @@ export class Order extends Model<Order> {
   };
 
   // Corrected Relationship (One Order -> Many ESigns)
-  @HasMany(() => ESign, { foreignKey: "order_id" })
+  @HasMany(() => ESign, { foreignKey: "order_id", sourceKey: "id" })
   esigns: ESign[];
 
   /** Generate `hashed_key` before creation */

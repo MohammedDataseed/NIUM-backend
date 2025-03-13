@@ -11,6 +11,7 @@ import { Order } from '../../../database/models/order.model';
 import { CreateOrderDto, UpdateOrderDto} from '../../../dto/order.dto';
 import * as opentracing from 'opentracing';
 import { User } from '../../../database/models/user.model';
+import { ESign } from 'src/database/models/esign.model';
 import { Partner } from '../../../database/models/partner.model';
 import { WhereOptions } from 'sequelize';
 
@@ -23,40 +24,27 @@ export class OrdersService {
     private readonly partnerRepository: typeof Partner,
     @Inject('USER_REPOSITORY')
     private readonly userRepository: typeof User,
+    @Inject('E_SIGN_REPOSITORY')
+    private readonly esignRepository: typeof ESign,
   ) {}
-
-  // CREATE: Create a new order
   
- // New method to validate headers
- async validatePartnerHeaders(partnerId: string, apiKey: string): Promise<void> {
-  console.log(`Validating partnerId: ${partnerId}, apiKey: ${apiKey}`); // Debug log
-  const partner = await this.partnerRepository.findOne({
-    where: { id: partnerId },
-  });
-
-  console.log('Partner found:', partner ? JSON.stringify(partner.toJSON()) : 'null'); // Debug log
-
-  if (!partner) {
-    throw new BadRequestException('Invalid partner ID');
-  }
-
-  // // Check if the partner has the "maker" role
-  // if (!partner.role 
-  //   // || 
-  //   // partner.role_id == "a141eecb-19bc-4807-ba90-1b8edd407608" 
-  //   // || partner.role.name !== 'maker'
-  // ) {
-  //   console.log("partner",partner);
-  //   throw new UnauthorizedException('Partner does not have the maker role');
-  // }
-
-  // Check if the api-key matches the partner's api_key
-  if (!partner.api_key || partner.api_key !== apiKey) {
-    throw new UnauthorizedException('Invalid API key for this partner');
+async findAll(span: opentracing.Span, filters: WhereOptions<Order> = {}): Promise<Order[]> {
+  const childSpan = span.tracer().startSpan('find-all-orders', { childOf: span });
+  try {
+    return await this.orderRepository.findAll({ 
+      where: filters,
+      include: [{ model: ESign, as: 'esigns' }] // Ensure the alias matches your association
+    });
+  } catch (error) {
+    childSpan.log({ event: 'error', message: error.message });
+    throw error;
+  } finally {
+    childSpan.finish();
   }
 }
 
-// New method for creating minimal order
+  // CREATE: Create a new order
+  // New method for creating minimal order
 async createOrder(
   span: opentracing.Span,
   createOrderDto: CreateOrderDto,
@@ -67,7 +55,7 @@ async createOrder(
   try {
     // Check for existing order with the same partner_order_id
     const existingOrder = await this.orderRepository.findOne({
-      where: { order_id: createOrderDto.partner_order_id },
+      where: { partner_order_id: createOrderDto.partner_order_id },
     });
     if (existingOrder) {
       throw new ConflictException('Order ID already exists');
@@ -109,20 +97,51 @@ async createOrder(
     childSpan.finish();
   }
 }
+ // New method to validate headers
+ async validatePartnerHeaders(partnerId: string, apiKey: string): Promise<void> {
+  console.log(`Validating partnerId: ${partnerId}, apiKey: ${apiKey}`); // Debug log
+  const partner = await this.partnerRepository.findOne({
+    where: { id: partnerId },
+  });
 
+  console.log('Partner found:', partner ? JSON.stringify(partner.toJSON()) : 'null'); // Debug log
 
-  async findAll(span: opentracing.Span, filters: WhereOptions<Order> = {}): Promise<Order[]> {
-    const childSpan = span.tracer().startSpan('find-all-orders', { childOf: span });
-
-    try {
-      return await this.orderRepository.findAll({ where: filters });
-    } catch (error) {
-      childSpan.log({ event: 'error', message: error.message });
-      throw error;
-    } finally {
-      childSpan.finish();
-    }
+  if (!partner) {
+    throw new BadRequestException('Invalid partner ID');
   }
+
+  // // Check if the partner has the "maker" role
+  // if (!partner.role 
+  //   // || 
+  //   // partner.role_id == "a141eecb-19bc-4807-ba90-1b8edd407608" 
+  //   // || partner.role.name !== 'maker'
+  // ) {
+  //   console.log("partner",partner);
+  //   throw new UnauthorizedException('Partner does not have the maker role');
+  // }
+
+  // Check if the api-key matches the partner's api_key
+  if (!partner.api_key || partner.api_key !== apiKey) {
+    throw new UnauthorizedException('Invalid API key for this partner');
+  }
+}
+
+
+
+
+
+  // async findAll(span: opentracing.Span, filters: WhereOptions<Order> = {}): Promise<Order[]> {
+  //   const childSpan = span.tracer().startSpan('find-all-orders', { childOf: span });
+
+  //   try {
+  //     return await this.orderRepository.findAll({ where: filters });
+  //   } catch (error) {
+  //     childSpan.log({ event: 'error', message: error.message });
+  //     throw error;
+  //   } finally {
+  //     childSpan.finish();
+  //   }
+  // }
 
   // READ: Fetch a single order by order_id
   async findOne(span: opentracing.Span, orderId: string): Promise<Order> {
@@ -130,7 +149,7 @@ async createOrder(
 
     try {
       const order = await this.orderRepository.findOne({
-        where: { order_id: orderId },
+        where: { partner_order_id: orderId },
       });
       if (!order) {
         throw new NotFoundException(`Order with ID ${orderId} not found`);
@@ -145,44 +164,23 @@ async createOrder(
   }
 
   //UPDATE: Update an existing order by order_id
-  async updateOrder(
-    span: opentracing.Span,
-    orderId: string,
-    updateOrderDto: Partial<UpdateOrderDto>, // Allow partial updates
-  ): Promise<Order> {
+  async updateOrder(span: opentracing.Span, orderId: string, updateOrderDto: Partial<UpdateOrderDto>): Promise<Order> {
     const childSpan = span.tracer().startSpan('update-order', { childOf: span });
     try {
-      const order = await this.orderRepository.findOne({
-        where: { order_id: orderId },
+      const order = await this.orderRepository.findOne({ where: { partner_order_id: orderId } });
+      if (!order) throw new NotFoundException(`Order with ID ${orderId} not found`);
+  
+      // Update all provided fields
+      Object.assign(order, {
+        ...updateOrderDto,
+        e_sign_link_expires: updateOrderDto.e_sign_link_expires ? new Date(updateOrderDto.e_sign_link_expires) : order.e_sign_link_expires,
+        e_sign_customer_completion_date: updateOrderDto.e_sign_customer_completion_date ? new Date(updateOrderDto.e_sign_customer_completion_date) : order.e_sign_customer_completion_date,
+        v_kyc_link_expires: updateOrderDto.v_kyc_link_expires ? new Date(updateOrderDto.v_kyc_link_expires) : order.v_kyc_link_expires,
+        v_kyc_customer_completion_date: updateOrderDto.v_kyc_customer_completion_date ? new Date(updateOrderDto.v_kyc_customer_completion_date) : order.v_kyc_customer_completion_date,
       });
   
-      if (!order) {
-        throw new NotFoundException(`Order with ID ${orderId} not found`);
-      }
-  
-      // Prepare update data
-      const updateData = {
-        ...(updateOrderDto.is_e_sign_required !== undefined && { is_esign_required: updateOrderDto.is_e_sign_required }),
-        ...(updateOrderDto.is_v_kyc_required !== undefined && { is_v_kyc_required: updateOrderDto.is_v_kyc_required }),
-        ...(updateOrderDto.customer_name && { customer_name: updateOrderDto.customer_name }),
-        ...(updateOrderDto.customer_email && { customer_email: updateOrderDto.customer_email }),
-        ...(updateOrderDto.customer_phone && { customer_phone: updateOrderDto.customer_phone }),
-        ...(updateOrderDto.customer_pan && { customer_pan: updateOrderDto.customer_pan }),
-  
-        // Include E-Sign fields
-        ...(updateOrderDto.e_sign_status && { e_sign_status: updateOrderDto.e_sign_status }),
-        ...(updateOrderDto.e_sign_link && { e_sign_link: updateOrderDto.e_sign_link }),
-        ...(updateOrderDto.e_sign_link_status && { e_sign_link_status: updateOrderDto.e_sign_link_status }),
-        ...(updateOrderDto.e_sign_link_expires && { e_sign_link_expires: new Date(updateOrderDto.e_sign_link_expires) }),
-      };
-  
-      // Update order
-      await this.orderRepository.update(updateData, { where: { order_id: orderId } });
-  
-      // Fetch and return updated order
-      const updatedOrder = await this.orderRepository.findOne({ where: { order_id: orderId } });
-  
-      return updatedOrder!;
+      await order.save();
+      return order;
     } catch (error) {
       childSpan.log({ event: 'error', message: error.message });
       throw error;
@@ -190,6 +188,51 @@ async createOrder(
       childSpan.finish();
     }
   }
+  // async updateOrder(
+  //   span: opentracing.Span,
+  //   orderId: string,
+  //   updateOrderDto: Partial<UpdateOrderDto>, // Allow partial updates
+  // ): Promise<Order> {
+  //   const childSpan = span.tracer().startSpan('update-order', { childOf: span });
+  //   try {
+  //     const order = await this.orderRepository.findOne({
+  //       where: { order_id: orderId },
+  //     });
+  
+  //     if (!order) {
+  //       throw new NotFoundException(`Order with ID ${orderId} not found`);
+  //     }
+  
+  //     // Prepare update data
+  //     const updateData = {
+  //       ...(updateOrderDto.is_e_sign_required !== undefined && { is_esign_required: updateOrderDto.is_e_sign_required }),
+  //       ...(updateOrderDto.is_v_kyc_required !== undefined && { is_v_kyc_required: updateOrderDto.is_v_kyc_required }),
+  //       ...(updateOrderDto.customer_name && { customer_name: updateOrderDto.customer_name }),
+  //       ...(updateOrderDto.customer_email && { customer_email: updateOrderDto.customer_email }),
+  //       ...(updateOrderDto.customer_phone && { customer_phone: updateOrderDto.customer_phone }),
+  //       ...(updateOrderDto.customer_pan && { customer_pan: updateOrderDto.customer_pan }),
+  
+  //       // Include E-Sign fields
+  //       ...(updateOrderDto.e_sign_status && { e_sign_status: updateOrderDto.e_sign_status }),
+  //       ...(updateOrderDto.e_sign_link && { e_sign_link: updateOrderDto.e_sign_link }),
+  //       ...(updateOrderDto.e_sign_link_status && { e_sign_link_status: updateOrderDto.e_sign_link_status }),
+  //       ...(updateOrderDto.e_sign_link_expires && { e_sign_link_expires: new Date(updateOrderDto.e_sign_link_expires) }),
+  //     };
+  
+  //     // Update order
+  //     await this.orderRepository.update(updateData, { where: { order_id: orderId } });
+  
+  //     // Fetch and return updated order
+  //     const updatedOrder = await this.orderRepository.findOne({ where: { order_id: orderId } });
+  
+  //     return updatedOrder!;
+  //   } catch (error) {
+  //     childSpan.log({ event: 'error', message: error.message });
+  //     throw error;
+  //   } finally {
+  //     childSpan.finish();
+  //   }
+  // }
   
   
 
@@ -199,7 +242,7 @@ async createOrder(
 
     try {
       const order = await this.orderRepository.findOne({
-        where: { order_id: orderId },
+        where: { partner_order_id: orderId },
       });
       if (!order) {
         throw new NotFoundException(`Order with ID ${orderId} not found`);

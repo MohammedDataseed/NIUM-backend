@@ -46,12 +46,12 @@ export class PdfController {
       properties: {
         orderId: {
           type: "string",
-          example: "123e4567-e89b-12d3-a456-426614174000",
+          example: "BMFORDERID786",
         },
-        document_type_id:
-         { type: 'string',
-          example: "123e4567-e89b-12d3-a456-426614174000",
-         },
+        document_type_id: {
+          type: "string",
+          example: "9aae975b52a0803109e4538a0bafd3e9m84deewb",
+        },
         base64_file: {
           type: "string",
           example: "data:application/pdf;base64,JVBERi0xLjQKJ...",
@@ -97,7 +97,8 @@ export class PdfController {
   @Post("upload-file")
   @UseInterceptors(FileInterceptor("file"))
   @ApiOperation({
-    summary: "Upload a file to AWS S3 under a specified order_id folder",
+    summary:
+      "Upload a file to AWS S3 under a specified partner_order_id folder",
   })
   @ApiConsumes("multipart/form-data")
   @ApiBody({
@@ -109,9 +110,9 @@ export class PdfController {
           format: "binary",
           description: "File to upload",
         },
-        order_id: {
+        partner_order_id: {
           type: "string",
-          description: "Order ID to use as folder name",
+          description: "partner Order ID to use as folder name",
         },
       },
     },
@@ -120,7 +121,7 @@ export class PdfController {
   @ApiResponse({ status: 400, description: "Bad Request" })
   async uploadFile(
     @UploadedFile() file: Express.Multer.File,
-    @Body("order_id") orderId: string
+    @Body("partner_order_id") orderId: string
   ) {
     if (!file) throw new BadRequestException("File is required");
     if (!orderId || typeof orderId !== "string" || !orderId.trim()) {
@@ -139,10 +140,10 @@ export class PdfController {
   @Get("list-by-order")
   @ApiOperation({
     summary:
-      "List all files in an order_id folder from AWS S3 with signed URLs",
+      "List all files in an partner_order_id folder from AWS S3 with signed URLs",
   })
   @ApiQuery({
-    name: "order_id",
+    name: "partner_order_id",
     required: true,
     description: "Order ID to list files from its folder",
   })
@@ -152,7 +153,7 @@ export class PdfController {
     schema: {
       type: "object",
       properties: {
-        order_id: { type: "string", description: "Order ID folder" },
+        partner_order_id: { type: "string", description: "Order ID folder" },
         files: {
           type: "array",
           items: {
@@ -170,7 +171,7 @@ export class PdfController {
     },
   })
   @ApiResponse({ status: 400, description: "Bad Request" })
-  async listFilesByOrderId(@Query("order_id") orderId: string) {
+  async listFilesByOrderId(@Query("partner_order_id") orderId: string) {
     if (!orderId || typeof orderId !== "string" || !orderId.trim()) {
       throw new BadRequestException(
         "Order ID is required and must be a non-empty string"
@@ -182,16 +183,17 @@ export class PdfController {
 
   @Post("merge-by-order")
   @ApiOperation({
-    summary: "Merge all PDFs in an order_id folder and upload to AWS S3",
+    summary:
+      "Merge all PDFs in an partner_order_id folder and upload to AWS S3",
   })
   @ApiQuery({
-    name: "order_id",
+    name: "partner_order_id",
     required: true,
     description: "Order ID folder containing PDFs to merge",
   })
   @ApiResponse({ status: 201, description: "Merged PDF uploaded successfully" })
   @ApiResponse({ status: 400, description: "Bad Request" })
-  async mergeFilesByOrderId(@Query("order_id") orderId: string) {
+  async mergeFilesByOrderId(@Query("partner_order_id") orderId: string) {
     if (!orderId || typeof orderId !== "string" || !orderId.trim()) {
       throw new BadRequestException(
         "Order ID is required and must be a non-empty string"
@@ -205,7 +207,7 @@ export class PdfController {
   @UseInterceptors(FileInterceptor("file"))
   @ApiOperation({
     summary:
-      "Update an existing file in an order_id folder in AWS S3 with a new file",
+      "Update an existing file in an partner_order_id folder in AWS S3 with a new file",
   })
   @ApiConsumes("multipart/form-data")
   @ApiBody({
@@ -217,7 +219,7 @@ export class PdfController {
           format: "binary",
           description: "New file to replace the existing one",
         },
-        order_id: {
+        partner_order_id: {
           type: "string",
           description: "Order ID folder containing the file",
         },
@@ -234,7 +236,7 @@ export class PdfController {
   @ApiResponse({ status: 404, description: "File not found" })
   async updateFile(
     @UploadedFile() file: Express.Multer.File,
-    @Body("order_id") orderId: string,
+    @Body("partner_order_id") orderId: string,
     @Body("file_name") fileName: string
   ) {
     if (!file) throw new BadRequestException("File is required");
@@ -260,9 +262,11 @@ export class PdfController {
   }
 
   @Delete("delete")
-  @ApiOperation({ summary: "Delete a file from an order_id folder in AWS S3" })
+  @ApiOperation({
+    summary: "Delete a file from an partner_order_id folder in AWS S3",
+  })
   @ApiQuery({
-    name: "order_id",
+    name: "partner_order_id",
     required: true,
     description: "Order ID folder containing the file",
   })
@@ -275,7 +279,7 @@ export class PdfController {
   @ApiResponse({ status: 400, description: "Bad Request" })
   @ApiResponse({ status: 404, description: "File not found" })
   async deleteFile(
-    @Query("order_id") orderId: string,
+    @Query("partner_order_id") orderId: string,
     @Query("file_name") fileName: string
   ) {
     if (!orderId || typeof orderId !== "string" || !orderId.trim()) {
