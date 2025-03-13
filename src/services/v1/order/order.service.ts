@@ -28,23 +28,7 @@ export class OrdersService {
     private readonly esignRepository: typeof ESign,
   ) {}
   
-async findAll(span: opentracing.Span, filters: WhereOptions<Order> = {}): Promise<Order[]> {
-  const childSpan = span.tracer().startSpan('find-all-orders', { childOf: span });
-  try {
-    return await this.orderRepository.findAll({ 
-      where: filters,
-      include: [{ model: ESign, as: 'esigns' }] // Ensure the alias matches your association
-    });
-  } catch (error) {
-    childSpan.log({ event: 'error', message: error.message });
-    throw error;
-  } finally {
-    childSpan.finish();
-  }
-}
-
-  // CREATE: Create a new order
-  // New method for creating minimal order
+   // CREATE: Create a new order
 async createOrder(
   span: opentracing.Span,
   createOrderDto: CreateOrderDto,
@@ -71,7 +55,7 @@ async createOrder(
 
     const orderData = {
       partner_id: partnerId,
-      order_id: createOrderDto.partner_order_id,
+      partner_order_id: createOrderDto.partner_order_id,
       transaction_type: createOrderDto.transaction_type_id,
       is_esign_required: createOrderDto.is_e_sign_required,
       is_v_kyc_required: createOrderDto.is_v_kyc_required,
@@ -97,6 +81,23 @@ async createOrder(
     childSpan.finish();
   }
 }
+
+async findAll(span: opentracing.Span, filters: WhereOptions<Order> = {}): Promise<Order[]> {
+  const childSpan = span.tracer().startSpan('find-all-orders', { childOf: span });
+  try {
+    return await this.orderRepository.findAll({ 
+      where: filters,
+      include: [{ model: ESign, as: 'esigns' }] // Ensure the alias matches your association
+    });
+  } catch (error) {
+    childSpan.log({ event: 'error', message: error.message });
+    throw error;
+  } finally {
+    childSpan.finish();
+  }
+}
+
+ 
  // New method to validate headers
  async validatePartnerHeaders(partnerId: string, apiKey: string): Promise<void> {
   console.log(`Validating partnerId: ${partnerId}, apiKey: ${apiKey}`); // Debug log
@@ -237,6 +238,8 @@ async createOrder(
   
 
   // DELETE: Delete an order by order_id
+  
+  
   async deleteOrder(span: opentracing.Span, orderId: string): Promise<void> {
     const childSpan = span.tracer().startSpan('delete-order', { childOf: span });
 

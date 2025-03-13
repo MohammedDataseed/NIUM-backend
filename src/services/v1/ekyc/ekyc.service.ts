@@ -322,7 +322,9 @@
       try {
         console.log("Event: Storing e-KYC data in ESign", { orderId });
         esignRecord = await ESign.create({
-          partner_order_id: orderId,
+          // partner_order_id: orderId,
+          order_id: orderDetails.dataValues.id, // Use Order table's primary key (UUID)
+          partner_order_id: orderId, // This is BMFORDERID001
           attempt_number: attemptNumber,
           task_id: requestData.task_id,
           group_id: requestData.group_id,
