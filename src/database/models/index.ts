@@ -15,19 +15,19 @@ import { transaction_type } from "./transaction_type.model";
 import { ESign } from "./esign.model";
 
 export const models = [
-  bank_account,
+  Role,
+  User,
+  Partner,
   Branch,
+  bank_account,
   Documents,
   DocumentMaster,
   DocumentRequirements,
-  Partner,
   Products,
   Purpose,
-  Role,
-  User,
   PartnerProducts,
-  Order,
   DocumentType,
   transaction_type,
+  Order,
   ESign,
 ];
