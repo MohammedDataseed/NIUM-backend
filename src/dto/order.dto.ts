@@ -235,6 +235,8 @@ export class UpdateOrderDto {
   @ApiProperty({ example: 'Pending' }) @IsString() @IsOptional() e_sign_status?: string;
   @ApiProperty({ example: 'https://esign-link.com' }) @IsString() @IsOptional() e_sign_link?: string;
   @ApiProperty({ example: 'active' }) @IsString() @IsOptional() e_sign_link_status?: string;
+  @ApiProperty({ example: '6ae8a7a6-55fa-457b-932f-a4ba271f8eee' }) @IsString() @IsOptional() e_sign_link_request_id?: string;
+  @ApiProperty({ example: '01JP0H1M86CDW8HA4WF7V3X7HA' }) @IsString() @IsOptional() e_sign_link_doc_id?: string; 
   @ApiProperty({ example: '2025-03-30T12:00:00.000Z' }) @IsDateString() @IsOptional() e_sign_link_expires?: string;
   @ApiProperty({ example: false }) @IsBoolean() @IsOptional() e_sign_completed_by_customer?: boolean;
   @ApiProperty({ example: '2025-03-13T08:40:53.328Z' }) @IsDateString() @IsOptional() e_sign_customer_completion_date?: string;

@@ -189,56 +189,6 @@ async findAll(span: opentracing.Span, filters: WhereOptions<Order> = {}): Promis
       childSpan.finish();
     }
   }
-  // async updateOrder(
-  //   span: opentracing.Span,
-  //   orderId: string,
-  //   updateOrderDto: Partial<UpdateOrderDto>, // Allow partial updates
-  // ): Promise<Order> {
-  //   const childSpan = span.tracer().startSpan('update-order', { childOf: span });
-  //   try {
-  //     const order = await this.orderRepository.findOne({
-  //       where: { order_id: orderId },
-  //     });
-  
-  //     if (!order) {
-  //       throw new NotFoundException(`Order with ID ${orderId} not found`);
-  //     }
-  
-  //     // Prepare update data
-  //     const updateData = {
-  //       ...(updateOrderDto.is_e_sign_required !== undefined && { is_esign_required: updateOrderDto.is_e_sign_required }),
-  //       ...(updateOrderDto.is_v_kyc_required !== undefined && { is_v_kyc_required: updateOrderDto.is_v_kyc_required }),
-  //       ...(updateOrderDto.customer_name && { customer_name: updateOrderDto.customer_name }),
-  //       ...(updateOrderDto.customer_email && { customer_email: updateOrderDto.customer_email }),
-  //       ...(updateOrderDto.customer_phone && { customer_phone: updateOrderDto.customer_phone }),
-  //       ...(updateOrderDto.customer_pan && { customer_pan: updateOrderDto.customer_pan }),
-  
-  //       // Include E-Sign fields
-  //       ...(updateOrderDto.e_sign_status && { e_sign_status: updateOrderDto.e_sign_status }),
-  //       ...(updateOrderDto.e_sign_link && { e_sign_link: updateOrderDto.e_sign_link }),
-  //       ...(updateOrderDto.e_sign_link_status && { e_sign_link_status: updateOrderDto.e_sign_link_status }),
-  //       ...(updateOrderDto.e_sign_link_expires && { e_sign_link_expires: new Date(updateOrderDto.e_sign_link_expires) }),
-  //     };
-  
-  //     // Update order
-  //     await this.orderRepository.update(updateData, { where: { order_id: orderId } });
-  
-  //     // Fetch and return updated order
-  //     const updatedOrder = await this.orderRepository.findOne({ where: { order_id: orderId } });
-  
-  //     return updatedOrder!;
-  //   } catch (error) {
-  //     childSpan.log({ event: 'error', message: error.message });
-  //     throw error;
-  //   } finally {
-  //     childSpan.finish();
-  //   }
-  // }
-  
-  
-
-  // DELETE: Delete an order by order_id
-  
   
   async deleteOrder(span: opentracing.Span, orderId: string): Promise<void> {
     const childSpan = span.tracer().startSpan('delete-order', { childOf: span });

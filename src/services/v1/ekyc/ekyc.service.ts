@@ -375,6 +375,8 @@
             e_sign_link_expires: validEsign.esign_expiry
               ? new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString()
               : null,
+              e_sign_link_doc_id:responseData.result?.source_output?.esign_doc_id,
+              e_sign_link_request_id:responseData?.request_id,
           });
     
           this.logger.log(`Updated order ${orderId} with e-sign details`);

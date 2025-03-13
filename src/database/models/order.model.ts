@@ -89,6 +89,14 @@ export class Order extends Model<Order> {
   @Optional()
   e_sign_link_status: string;
 
+  @Column({ type: DataType.STRING, allowNull: true })
+  @Optional()
+  e_sign_link_doc_id: string;
+
+  @Column({ type: DataType.STRING, allowNull: true })
+  @Optional()
+  e_sign_link_request_id: string;
+
   @Column({ type: DataType.DATE, allowNull: true })
   @Optional()
   e_sign_link_expires: Date;
