@@ -75,7 +75,23 @@ export class EkycController {
     return this.ekycService.sendEkycRequest(token, partner_order_id);
   }
 
-  @Post("retrieve")
+  @Post('retrieve')
+  async retrieveEkycWebhook(
+    @Headers('X-API-Key') token: string,
+    @Body() payload: any,
+  ) {
+    try {
+      return await this.ekycService.handleEkycRetrieveWebhook(token, payload);
+    } catch (error) {
+      throw new HttpException(
+        { success: false, message: error.message },
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+
+  @Post("retrieve-working-idfy")
   @ApiOperation({ summary: "Retrieve e-KYC data from IDfy" })
   @ApiHeader({
     name: "X-API-Key",
