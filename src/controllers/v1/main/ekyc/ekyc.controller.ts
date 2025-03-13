@@ -31,17 +31,6 @@ export class EkycController {
   
   ) {}
 
-  @Post('request-base64')
-  @ApiOperation({ summary: 'Send an e-KYC request to IDfy' })
-  @ApiHeader({ name: 'X-API-Key', description: 'Authentication token', required: true })
-  @ApiBody({ type: EkycRequestDto })
-  async sendEkyc(
-    @Headers('X-API-Key') token: string,
-    @Body() requestData: EkycRequestDto,
-  ) {
-    return this.ekycService.sendEkycRequestBase64(token, requestData);
-  }
-
   @Post('generate-esign-with-orderid')
   @ApiOperation({ summary: 'Send an e-KYC request to IDfy' })
   @ApiHeader({ name: 'X-API-Key', description: 'Authentication token', required: true })
@@ -60,82 +49,20 @@ export class EkycController {
   }
   
 
-//   @Post('generate-esign-with-orderid')
-// @ApiOperation({ summary: 'Send an e-KYC request to IDfy' })
-// @ApiHeader({ name: 'X-API-Key', description: 'Authentication token', required: true })
-// @ApiBody({ schema: { properties: { order_id: { type: 'string', example: 'ORDER123' } } } })
-// async sendEkycLink(
-//   @Headers('X-API-Key') token: string,
-//   @Body('order_id') order_id: string,
-// ) {
-//   if (!order_id) {
-//     throw new HttpException("Missing required order_id in request data", HttpStatus.BAD_REQUEST);
-//   }
-
-//   this.logger.log(`Processing e-KYC request for order: ${order_id}`);
-
-//   try {
-//     // Fetch order details
-//     const span = opentracing.globalTracer().startSpan("fetch-order-details");
-//     const orderDetails = await this.orderService.findOne(span, order_id);
-//     span.finish();
-
-//     if (!orderDetails) {
-//       throw new HttpException(`Order not found: ${order_id}`, HttpStatus.NOT_FOUND);
-//     }
-
-//     this.logger.log(`Fetched order details successfully for ${order_id}`);
-
-//     // **Construct EkycRequestDto using fetched order details**
-//     const requestData: EkycRequestDto = {
-//       task_id: orderDetails.order_id || "default_task",
-//       group_id: "44",
-//       order_id,
-//       "data": {
-//         flow_type:"PDF",
-//         user_key: "N0N0M8nTyzD3UghN6qehC9HTfwneEZJv",
-//         verify_aadhaar_details:false,
-//         esign_file_details: {
-//             esign_profile_id:"SWRN1iH",
-//             file_name:`${orderDetails.order_id}-file`,
-//           esign_file: orderDetails.pdf_base64 || "", // Convert order's PDF to base64 if available
-//           esign_fields: { esign_fields: orderDetails.esign_fields || {} },
-//           esign_additional_files: orderDetails.esign_additional_files || [],
-//           esign_allow_fill: orderDetails.esign_allow_fill || false,
-//           order_id,
-//         },
-//         esign_stamp_details:{
-//           esign_stamp_series:"",
-//           esign_series_group:"",
-//           esign_stamp_value:""
-//        },
-//         esign_invitees: [
-//           {
-//             esigner_name: orderDetails.customer_name,
-//             esigner_email: orderDetails.customer_email,
-//             esigner_phone: orderDetails.customer_phone,
-//             aadhaar_esign_verification: {
-//               aadhaar_pincode: "",
-//               aadhaar_yob: "",
-//               aadhaar_gender: ""
-//             }
-//           }
-//         ],
-//       },
-//     };
-
-//     return this.ekycService.sendEkycRequest(token, requestData);
-//   } catch (error) {
-//     this.logger.error(`Error processing e-KYC request: ${error.message}`, error.stack);
-//     throw new HttpException(
-//       { success: false, message: "Failed to process e-KYC request", details: error.message },
-//       HttpStatus.INTERNAL_SERVER_ERROR
-//     );
-//   }
-// }
+  
+  @Post('retrieve')
+  @ApiOperation({ summary: 'Retrieve e-KYC data from IDfy' })
+  @ApiHeader({ name: 'X-API-Key', description: 'Authentication token', required: true })
+  @ApiBody({ type: EkycRetrieveRequestDto })
+  async retrieveEkyc(
+    @Headers('X-API-Key') token: string,
+    @Body() requestData: EkycRetrieveRequestDto,
+  ) {
+    return this.ekycService.retrieveEkycData(token, requestData);
+  }
 
 
-
+  
   @Get('tasks')
   @ApiOperation({ summary: 'Retrieve task details from IDfy' })
   @ApiHeader({ name: 'X-API-Key', description: 'Authentication token', required: true })
@@ -152,16 +79,15 @@ export class EkycController {
     return this.ekycService.getTaskDetails(token, requestId);
   }
 
-
-  @Post('retrieve')
-  @ApiOperation({ summary: 'Retrieve e-KYC data from IDfy' })
+  @Post('request-base64')
+  @ApiOperation({ summary: 'Send an e-KYC request to IDfy' })
   @ApiHeader({ name: 'X-API-Key', description: 'Authentication token', required: true })
-  @ApiBody({ type: EkycRetrieveRequestDto })
-  async retrieveEkyc(
+  @ApiBody({ type: EkycRequestDto })
+  async sendEkyc(
     @Headers('X-API-Key') token: string,
-    @Body() requestData: EkycRetrieveRequestDto,
+    @Body() requestData: EkycRequestDto,
   ) {
-    return this.ekycService.retrieveEkycData(token, requestData);
+    return this.ekycService.sendEkycRequestBase64(token, requestData);
   }
 
 

@@ -1,3 +1,5 @@
+//order.model.ts
+
 import {
   Table,
   Column,
@@ -187,20 +189,14 @@ export class Order extends Model<Order> {
   esigns: ESign[];
 
   /** Generate `hashed_key` before creation */
-  // @BeforeCreate
-  // static generatehashed_key(instance: Order) {
-  //   const randomPart = crypto.randomBytes(16).toString("hex"); // 16-character random string
-  //   const timestampPart = Date.now().toString(36); // Convert timestamp to base36 for compactness
-  //   instance.hashed_key = `${randomPart}${timestampPart}`; // 16-char random + timestamp
-  // }
   @BeforeCreate
-static generateHashedKey(instance: Order) {
-  console.log("Generating hashed_key..."); // Debugging
-  const randomPart = crypto.randomBytes(16).toString("hex");
-  const timestampPart = Date.now().toString(36);
-  instance.hashed_key = `${randomPart}${timestampPart}`;
-  console.log("Generated hashed_key:", instance.hashed_key); // Debugging
-}
+  static generateHashedKey(instance: Order) {
+    console.log("Generating hashed_key..."); // Debugging
+    const randomPart = crypto.randomBytes(16).toString("hex");
+    const timestampPart = Date.now().toString(36);
+    instance.hashed_key = `${randomPart}${timestampPart}`;
+    console.log("Generated hashed_key:", instance.hashed_key); // Debugging
+  }
   // @BelongsTo(() => Vkyc, { foreignKey: "order_id" })
   // vkyc: Vkyc;
 }
