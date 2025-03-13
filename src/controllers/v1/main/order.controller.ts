@@ -32,6 +32,19 @@ export class OrdersController {
     }
   }
 
+  @Put(':orderId')
+  @ApiResponse({ status: 200, description: 'Order updated successfully' })
+  async updateOrder(
+    @Param('orderId') orderId: string,
+    @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true })) updateOrderDto: UpdateOrderDto,
+  ) {
+    const span = opentracing.globalTracer().startSpan('update-order-controller');
+    try {
+      return await this.ordersService.updateOrder(span, orderId, updateOrderDto);
+    } finally {
+      span.finish();
+    }
+  }
 
   @Get()
   @ApiResponse({ status: 200, description: 'List of orders' })
@@ -55,19 +68,7 @@ export class OrdersController {
     }
   }
 
-  @Put(':orderId')
-  @ApiResponse({ status: 200, description: 'Order updated successfully' })
-  async updateOrder(
-    @Param('orderId') orderId: string,
-    @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true })) updateOrderDto: UpdateOrderDto,
-  ) {
-    const span = opentracing.globalTracer().startSpan('update-order-controller');
-    try {
-      return await this.ordersService.updateOrder(span, orderId, updateOrderDto);
-    } finally {
-      span.finish();
-    }
-  }
+ 
 
   @Delete(':orderId')
   @ApiResponse({ status: 204, description: 'Order deleted successfully' })

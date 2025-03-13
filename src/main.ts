@@ -30,14 +30,25 @@ async function bootstrap() {
       "http://localhost:8000",
       "http://127.0.0.1:8000",
       "http://nium.thestorywallcafe.com",
-      "https://nium-forex-agent-portal.vercel.app",
-      "*",
+      "https://nium-forex-agent-portal.vercel.app"
     ], // Allow frontend on localhost
     credentials: true,
-    methods: ["GET", "POST", "PUT"], // Explicitly allow methods
+    methods: ["GET", "POST", "PUT", "OPTIONS"], // Explicitly allow methods
     allowedHeaders: ["Content-Type", "Authorization"], // Allow required headers
   });
 
+  // ✅ Handle OPTIONS requests explicitly
+  app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+    if (req.method === "OPTIONS") {
+      return res.sendStatus(200); // ✅ Send immediate response for OPTIONS
+    }
+
+    next();
+  });
   app.use(helmet());
   // Increase the JSON body size limit to 1MB (or adjust as needed)
   app.use(json({ limit: '5mb' })); // 5mb = 5120 * 1024 bytes
@@ -57,6 +68,8 @@ async function bootstrap() {
     .setTitle(`InstaReM ${process.env.SERVICE_NAME}`)
     .setDescription(process.env.SERVICE_NAME)
     .setVersion("1.0")
+    .addServer("http://localhost:3002", "Local") // ✅ Local server
+    .addServer("http://13.201.102.229:3002", "Production") // ✅ Production server
     .addBearerAuth(
       {
         type: "http",
@@ -67,8 +80,13 @@ async function bootstrap() {
     )
     .build();
   const document = SwaggerModule.createDocument(app, options);
-  SwaggerModule.setup("v1/api-docs", app, document);
-
+  // SwaggerModule.setup("v1/api-docs", app, document);
+  SwaggerModule.setup("v1/api-docs", app, document, {
+    swaggerOptions: {
+      deepLinking: true, // ✅ Enables deep linking
+      filter: true, // ✅ Enables search for controllers & endpoints
+    },
+  });
   
   const port = config.get<number>("PORT") || 3002; // Default to 3002 if undefined
 
