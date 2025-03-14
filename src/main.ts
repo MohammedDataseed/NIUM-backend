@@ -29,7 +29,10 @@ async function bootstrap() {
       "http://127.0.0.1:3000",
       "http://localhost:8000",
       "http://127.0.0.1:8000",
+      "http://13.201.102.229",
+      "https://13.201.102.229",
       "http://nium.thestorywallcafe.com",
+      "https://nium.thestorywallcafe.com",
       "https://nium-forex-agent-portal.vercel.app"
     ], // Allow frontend on localhost
     credentials: true,
@@ -68,8 +71,8 @@ async function bootstrap() {
     .setTitle(`InstaReM ${process.env.SERVICE_NAME}`)
     .setDescription(process.env.SERVICE_NAME)
     .setVersion("1.0")
-    .addServer("http://localhost:3002", "Local") // ✅ Local server
-    .addServer("http://13.201.102.229:3002", "Production") // ✅ Production server
+    // .addServer("http://localhost:3002", "Local") // ✅ Local server
+    // .addServer("https://nium.thestorywallcafe.com", "Production") // ✅ Production server
     .addBearerAuth(
       {
         type: "http",
