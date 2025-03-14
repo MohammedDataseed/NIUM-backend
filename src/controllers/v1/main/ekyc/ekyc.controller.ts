@@ -75,10 +75,22 @@ export class EkycController {
     return this.ekycService.sendEkycRequest(token, partner_order_id);
   }
 
-  @Post('retrieve')
+
+  @Post('retrieve-webhook')
+  // @UsePipes(new ValidationPipe({ transform: true }))
+  @ApiOperation({ summary: 'Retrieve e-KYC data via webhook' })
+  @ApiHeader({
+    name: 'X-API-Key',
+    description: 'API key for authentication',
+    required: true,
+    example: '67163d36-d269-11ef-b1ca-feecce57f827',
+  })
+  @ApiResponse({ status: 200, description: 'Webhook processed successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid request data' })
+  @ApiResponse({ status: 500, description: 'Internal server error' })
   async retrieveEkycWebhook(
     @Headers('X-API-Key') token: string,
-    @Body() payload: any,
+    @Body() payload: EkycRetrieveRequestDto,
   ) {
     try {
       return await this.ekycService.handleEkycRetrieveWebhook(token, payload);
@@ -89,6 +101,7 @@ export class EkycController {
       );
     }
   }
+
 
 
   @Post("retrieve-working-idfy")

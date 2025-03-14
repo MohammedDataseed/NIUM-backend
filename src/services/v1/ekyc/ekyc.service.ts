@@ -7,6 +7,7 @@
   import { PDFDocument } from "pdf-lib";
   import { Order } from "src/database/models/order.model";
   import { ESign } from "src/database/models/esign.model";
+  import {EkycRetrieveRequestDto} from "src/dto/ekyc-request.dto"
   // Define interfaces for the API response structure
   interface EkycApiResponse {
     action: string;
@@ -287,24 +288,48 @@
         const attemptNumber = previousAttempts + 1;
         console.log("Event: Storing failed e-KYC attempt", { orderId, attemptNumber });
     
-        await ESign.create({
-          partner_order_id: orderId,
+        // await ESign.create({
+        //   partner_order_id: orderId,
+        //   attempt_number: attemptNumber,
+        //   task_id: requestData.task_id,
+        //   group_id: requestData.group_id,
+        //   // esign_file_details: requestData.data.esign_file_details,
+        //   esign_file_details: {
+        //     ...requestData.data.esign_file_details,
+        //     esign_file: "https://fibregridstorage.blr1.digitaloceanspaces.com/Fibregrid_projects/FY_25-26/NIUM/NIUM-NODE_NIU_25-26_01_[Ekfrazo]/stage 4/PDF Files/merged_1741857821406_part1.pdf", // Store S3 URL instead of Base64
+        //   },
+        //   esign_stamp_details: requestData.data.esign_stamp_details,
+        //   esign_invitees: requestData.data.esign_invitees,
+        //   status: "failed",
+        //   esign_details: errorDetails || { error: errorMessage },
+        //   active: false,
+        //   expired: false,
+        //   rejected: false,
+        // });
+        
+        
+        // In sendEkycRequest method, inside the ESign.create call
+await ESign.create({
+  partner_order_id: orderId,
           attempt_number: attemptNumber,
           task_id: requestData.task_id,
           group_id: requestData.group_id,
-          // esign_file_details: requestData.data.esign_file_details,
           esign_file_details: {
-            ...requestData.data.esign_file_details,
-            esign_file: "https://fibregridstorage.blr1.digitaloceanspaces.com/Fibregrid_projects/FY_25-26/NIUM/NIUM-NODE_NIU_25-26_01_[Ekfrazo]/stage 4/PDF Files/merged_1741857821406_part1.pdf", // Store S3 URL instead of Base64
-          },
-          esign_stamp_details: requestData.data.esign_stamp_details,
-          esign_invitees: requestData.data.esign_invitees,
-          status: "failed",
-          esign_details: errorDetails || { error: errorMessage },
-          active: false,
-          expired: false,
-          rejected: false,
-        });
+                ...requestData.data.esign_file_details,
+                esign_file: "https://fibregridstorage.blr1.digitaloceanspaces.com/Fibregrid_projects/FY_25-26/NIUM/NIUM-NODE_NIU_25-26_01_[Ekfrazo]/stage 4/PDF Files/merged_1741857821406_part1.pdf", // Store S3 URL instead of Base64
+              },
+  esign_stamp_details: requestData.data.esign_stamp_details,
+  esign_invitees: requestData.data.esign_invitees,
+  status: responseData.status === "completed" && responseData.result?.source_output?.status === "Success" ? "completed" : "failed",
+  esign_details: responseData.result?.source_output || responseData,
+  esign_doc_id: responseData.result?.source_output?.esign_doc_id || null, // Fix: Set this correctly
+  request_id: responseData.request_id || null,
+  completed_at: responseData.status === "completed" ? new Date() : null,
+  esign_expiry: responseData.result?.source_output?.expiry || null,
+  active: responseData.status === "completed" && responseData.result?.source_output?.status === "Success",
+  expired: false,
+  rejected: false,
+});
     
         throw new HttpException(
           { success: false, message: errorMessage, details: errorDetails },
@@ -607,6 +632,7 @@
     }
   }
 
+
   // ekyc.service.ts
 
 async handleEkycRetrieveWebhook(token: string, payload: any): Promise<any> {
@@ -614,14 +640,55 @@ async handleEkycRetrieveWebhook(token: string, payload: any): Promise<any> {
     throw new HttpException("Invalid or missing X-API-Key token", HttpStatus.BAD_REQUEST);
   }
 
-  const { task_id, group_id, data } = payload;
-  const { esign_doc_id } = data;
+  const { task_id, group_id } = payload;
 
-  if (!task_id || !group_id || !esign_doc_id) {
-    throw new HttpException("Missing required fields: task_id, group_id, or esign_doc_id", HttpStatus.BAD_REQUEST);
+  if (!task_id || !group_id) {
+    throw new HttpException("Missing required fields: task_id or group_id", HttpStatus.BAD_REQUEST);
   }
 
   this.logger.log(`Processing e-KYC retrieve webhook for task_id: ${task_id}`);
+
+  // Fetch order details to get esign_doc_id
+  const order = await this.orderRepository.findOne({
+    where: { partner_order_id: task_id },
+    include: [{ model: ESign, as: 'esigns' }], // Include related ESign records
+  });
+  
+  if (!order) {
+    this.logger.warn(`No order found for partner_order_id: ${task_id}`);
+    throw new HttpException("Order not found", HttpStatus.NOT_FOUND);
+  }
+  
+  console.log("Request Data:", JSON.stringify(order, null, 2));
+
+
+  // Get the latest ESign record's esign_doc_id (assuming latest by createdAt)
+  const esignRecords = order.esigns || [];
+  if (!esignRecords.length) {
+    this.logger.warn(`No ESign records found for partner_order_id: ${task_id}`);
+    throw new HttpException("No ESign records found", HttpStatus.NOT_FOUND);
+  }
+
+  const latestEsign = esignRecords.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
+  const esign_doc_id = latestEsign.esign_doc_id;
+
+  if (!esign_doc_id) {
+    this.logger.warn(`No esign_doc_id found for partner_order_id: ${task_id}`);
+    throw new HttpException("esign_doc_id not available", HttpStatus.BAD_REQUEST);
+  }
+
+  // Prepare request payload for retrieveEkycData
+  const requestData = {
+    task_id,
+    group_id,
+    data: {
+      user_key: "N0N0M8nTyzD3UghN6qehC9HTfwneEZJv",
+      esign_doc_id,
+    },
+  };
+
+  // Call retrieveEkycData
+  const responseData = await this.retrieveEkycData(token, requestData);
 
   // Find matching ESign record
   const esignRecord = await this.esignRepository.findOne({
@@ -635,47 +702,6 @@ async handleEkycRetrieveWebhook(token: string, payload: any): Promise<any> {
     this.logger.warn(`No ESign record found for task_id: ${task_id} and esign_doc_id: ${esign_doc_id}`);
     throw new HttpException("ESign record not found", HttpStatus.NOT_FOUND);
   }
-
-  // Mock API call to retrieve data (replace with actual axios call if needed)
-  const responseData = {
-    action: "generate",
-    completed_at: "2025-03-13T17:19:23+05:30",
-    created_at: "2025-03-13T17:19:22+05:30",
-    group_id: "00eb04d0-646c-41d5-a69e-197b2b504f01",
-    request_id: "77a48ea1-eb62-440c-9adc-8e2d3d9322fe",
-    result: {
-      source_output: {
-        esign_doc_id: "01JP7MCS88CG1VS26C03ZT9H54",
-        esign_folder: null,
-        esign_irn: null,
-        esigners: [],
-        file_details: {
-          audit_file: "https://storage.idfy.com/77a48ea1-eb62-440c-9adc-8e2d3d9322fe-auditfile.txt?...",
-          esign_file: [
-            "https://storage.idfy.com/77a48ea1-eb62-440c-9adc-8e2d3d9322fe-esign_file0.txt?..."
-          ],
-        },
-        request_details: [
-          {
-            esign_type: null,
-            esign_url: "https://app1.leegality.com/sign/9567b00a-962d-49a2-bc45-f2abcafdf818",
-            esigner_email: "contact2tayib@gmail.com",
-            esigner_name: "Mohammed Tayibulla",
-            esigner_phone: "8550895486",
-            expiry_date: "23-03-2025 23:59:59",
-            is_active: true,
-            is_expired: false,
-            is_rejected: false,
-            is_signed: false,
-          },
-        ],
-        status: "id_found",
-      },
-    },
-    status: "completed",
-    task_id: "NIUMORDERID001",
-    type: "esign_retrieve",
-  };
 
   // Update ESign record with new/changed fields
   const { source_output } = responseData.result;
@@ -712,23 +738,148 @@ async handleEkycRetrieveWebhook(token: string, payload: any): Promise<any> {
   };
 }
 
-  async retrieveEkycData(token: string, requestData: any) {
-    try {
-      const response = await axios.post(this.RETRIEVE_API_URL, requestData, {
-        headers: {
-          "api-key": this.API_KEY,
-          "account-id": this.ACCOUNT_ID,
-          "Content-Type": "application/json",
-          "X-API-Key": token,
-        },
-      });
+async retrieveEkycData(token: string, requestData: any) {
+  try {
+    const response = await axios.post(this.RETRIEVE_API_URL, requestData, {
+      headers: {
+        "api-key": this.API_KEY,
+        "account-id": this.ACCOUNT_ID,
+        "Content-Type": "application/json",
+        "X-API-Key": token,
+      },
+    });
 
-      return response.data;
-    } catch (error) {
-      throw new HttpException(
-        error.response?.data || "Failed to retrieve e-KYC data",
-        error.response?.status || HttpStatus.INTERNAL_SERVER_ERROR
-      );
-    }
+    return response.data;
+  } catch (error) {
+    this.logger.error(`Failed to retrieve e-KYC data: ${error.message}`, error.stack);
+    throw new HttpException(
+      error.response?.data || "Failed to retrieve e-KYC data",
+      error.response?.status || HttpStatus.INTERNAL_SERVER_ERROR
+    );
   }
+}
+  // ekyc.service.ts
+
+// async handleEkycRetrieveWebhook(token: string, payload: any): Promise<any> {
+//   if (!token || typeof token !== "string") {
+//     throw new HttpException("Invalid or missing X-API-Key token", HttpStatus.BAD_REQUEST);
+//   }
+
+//   const { task_id, group_id, data } = payload;
+//   const { esign_doc_id } = data;
+
+//   if (!task_id || !group_id || !esign_doc_id) {
+//     throw new HttpException("Missing required fields: task_id, group_id, or esign_doc_id", HttpStatus.BAD_REQUEST);
+//   }
+
+//   this.logger.log(`Processing e-KYC retrieve webhook for task_id: ${task_id}`);
+
+//   // Find matching ESign record
+//   const esignRecord = await this.esignRepository.findOne({
+//     where: {
+//       partner_order_id: task_id,
+//       esign_doc_id: esign_doc_id,
+//     },
+//   });
+
+//   if (!esignRecord) {
+//     this.logger.warn(`No ESign record found for task_id: ${task_id} and esign_doc_id: ${esign_doc_id}`);
+//     throw new HttpException("ESign record not found", HttpStatus.NOT_FOUND);
+//   }
+
+//   // Mock API call to retrieve data (replace with actual axios call if needed)
+//   const responseData = {
+//     action: "generate",
+//     completed_at: "2025-03-13T17:19:23+05:30",
+//     created_at: "2025-03-13T17:19:22+05:30",
+//     group_id: "00eb04d0-646c-41d5-a69e-197b2b504f01",
+//     request_id: "77a48ea1-eb62-440c-9adc-8e2d3d9322fe",
+//     result: {
+//       source_output: {
+//         esign_doc_id: "01JP7MCS88CG1VS26C03ZT9H54",
+//         esign_folder: null,
+//         esign_irn: null,
+//         esigners: [],
+//         file_details: {
+//           audit_file: "https://storage.idfy.com/77a48ea1-eb62-440c-9adc-8e2d3d9322fe-auditfile.txt?...",
+//           esign_file: [
+//             "https://storage.idfy.com/77a48ea1-eb62-440c-9adc-8e2d3d9322fe-esign_file0.txt?..."
+//           ],
+//         },
+//         request_details: [
+//           {
+//             esign_type: null,
+//             esign_url: "https://app1.leegality.com/sign/9567b00a-962d-49a2-bc45-f2abcafdf818",
+//             esigner_email: "contact2tayib@gmail.com",
+//             esigner_name: "Mohammed Tayibulla",
+//             esigner_phone: "8550895486",
+//             expiry_date: "23-03-2025 23:59:59",
+//             is_active: true,
+//             is_expired: false,
+//             is_rejected: false,
+//             is_signed: false,
+//           },
+//         ],
+//         status: "id_found",
+//       },
+//     },
+//     status: "completed",
+//     task_id: "NIUMORDERID001",
+//     type: "esign_retrieve",
+//   };
+
+//   // Update ESign record with new/changed fields
+//   const { source_output } = responseData.result;
+//   const requestDetail = source_output.request_details[0];
+
+//   await esignRecord.update({
+//     status: responseData.status,
+//     request_id: responseData.request_id,
+//     completed_at: new Date(responseData.completed_at),
+//     esign_expiry: requestDetail.expiry_date ? new Date(requestDetail.expiry_date) : esignRecord.esign_expiry,
+//     active: requestDetail.is_active,
+//     expired: requestDetail.is_expired,
+//     rejected: requestDetail.is_rejected,
+//     is_signed: requestDetail.is_signed,
+//     esign_url: requestDetail.esign_url,
+//     esigner_email: requestDetail.esigner_email,
+//     esigner_phone: requestDetail.esigner_phone,
+//     esign_type: requestDetail.esign_type,
+//     // New fields from response
+//     esign_folder: source_output.esign_folder,
+//     esign_irn: source_output.esign_irn,
+//     esigners: source_output.esigners,
+//     file_details: source_output.file_details,
+//     request_details: source_output.request_details,
+//     esign_details: { ...esignRecord.esign_details, status: source_output.status },
+//   });
+
+//   this.logger.log(`Updated ESign record for task_id: ${task_id}, esign_doc_id: ${esign_doc_id}`);
+
+//   return {
+//     success: true,
+//     message: "Webhook processed successfully",
+//     data: responseData,
+//   };
+// }
+
+//   async retrieveEkycData(token: string, requestData: any) {
+//     try {
+//       const response = await axios.post(this.RETRIEVE_API_URL, requestData, {
+//         headers: {
+//           "api-key": this.API_KEY,
+//           "account-id": this.ACCOUNT_ID,
+//           "Content-Type": "application/json",
+//           "X-API-Key": token,
+//         },
+//       });
+
+//       return response.data;
+//     } catch (error) {
+//       throw new HttpException(
+//         error.response?.data || "Failed to retrieve e-KYC data",
+//         error.response?.status || HttpStatus.INTERNAL_SERVER_ERROR
+//       );
+//     }
+//   }
 }
