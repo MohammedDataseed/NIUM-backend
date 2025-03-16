@@ -125,6 +125,15 @@ export class Vkyc extends Model<Vkyc> {
   })
   status_detail!: string | null; // Allowing null
 
+  // Adding created_by and updated_by columns
+  @AllowNull(true)
+  @Column({ type: DataType.UUID, allowNull: true })
+  created_by: string | null; // Optional UUID
+
+  @AllowNull(true)
+  @Column({ type: DataType.UUID, allowNull: true })
+  updated_by: string | null; // Optional UUID
+  
   /** Generate `hashed_key` before creation */
       @BeforeValidate
       static generatehashed_key(instance: Vkyc) {

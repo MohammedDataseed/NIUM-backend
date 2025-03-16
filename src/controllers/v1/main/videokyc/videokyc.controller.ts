@@ -1,6 +1,6 @@
 // videokyc.controller.ts
 import { Controller, Post, Get, Body, Query, Headers, HttpException, HttpStatus } from '@nestjs/common';
-import { VideokycService } from '../../../../services/v1/videokyc/videokyc.service';
+import { VideokycService} from '../../../../services/v1/videokyc/videokyc.service';
 import { ApiTags, ApiOperation, ApiProperty, ApiHeader, ApiBody, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import { AddressDto, SyncProfileDto } from 'src/dto/video-kyc.dto';
 
@@ -8,6 +8,66 @@ import { AddressDto, SyncProfileDto } from 'src/dto/video-kyc.dto';
 @Controller('videokyc')
 export class VideokycController {
   constructor(private readonly videokycService: VideokycService) {}
+
+
+
+  @Post('generate-v-kyc')
+  @ApiOperation({ summary: "Send an v-kyc request to IDfy" })
+  @ApiHeader({
+    name: "X-API-Key",
+    description: "Authentication token - 67163d36-d269-11ef-b1ca-feecce57f827",
+    required: true,
+    example: "67163d36-d269-11ef-b1ca-feecce57f827",
+  })
+  @ApiBody({
+    schema: {
+      properties: { partner_order_id: { type: "string", example: "BMFORDERID001" } },
+    },
+  })
+@ApiResponse({ 
+  status: 201, 
+  description: 'Profile successfully synced',
+  type: Object,
+  schema: {
+    properties: {
+      success: { type: 'boolean', example: true },
+      data: { type: 'object' }
+    }
+  }
+})
+@ApiResponse({ 
+  status: 401, 
+  description: 'Unauthorized - Missing or invalid X-API-Key'
+})
+@ApiResponse({ 
+  status: 500, 
+  description: 'Internal server error'
+})
+async generateVkyc(
+  @Headers('X-API-Key') token: string,
+  
+  @Body("partner_order_id") partner_order_id: string
+) {
+  try {
+    if (!token) {
+      throw new HttpException('X-API-Key header is required', HttpStatus.UNAUTHORIZED);
+    }
+    
+    // Extract just the reference_id from the DTO
+    const result = await this.videokycService.sendVideokycRequest(token, partner_order_id);
+    return {
+      success: true,
+      data: result,
+    };
+  } catch (error) {
+    throw error instanceof HttpException 
+      ? error 
+      : new HttpException(
+          'Failed to process sync profiles request',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+  }
+}
 
 @Post('sync-profiles')
 @ApiOperation({ 

@@ -80,7 +80,7 @@ export class EkycController {
   })
   @ApiBody({
     schema: {
-      properties: { partner_order_id: { type: "string", example: "ORDER123" } },
+      properties: { partner_order_id: { type: "string", example: "BMFORDERID001" } },
     },
   })
   async sendEkycLink(
