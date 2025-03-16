@@ -83,12 +83,19 @@ export class OrdersController {
   }
 
   @Get(":partnerOrderId")
+  
   @ApiResponse({ status: 200, description: "Order details" })
-  async findOneByOrderId(@Param("partnerOrderId") orderId: string) {
+  async findOneByOrderId(
+    @Headers("partner-id-00eb04d0-646c-41d5-a69e-197b2b504f01")
+    partnerId: string,
+    @Headers("api-key-c1c9773f-49be-4f31-b37a-a853dc2b2981") apiKey: string,
+    @Param("partnerOrderId")
+  orderId: string) {
     const span = opentracing
       .globalTracer()
       .startSpan("find-one-order-controller");
     try {
+      await this.ordersService.validatePartnerHeaders(partnerId, apiKey);
       return await this.ordersService.findOneByOrderId(span, orderId);
     } finally {
       span.finish();

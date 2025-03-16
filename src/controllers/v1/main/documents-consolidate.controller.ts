@@ -119,7 +119,7 @@ export class PdfController {
         },
         merge_doc: { type: "boolean", example: false },
       },
-      required: ["orderId", "document_type_id", "base64_file"],
+      required: ["orderId", "document_type_id", "base64_file","merge_doc"],
     },
   })
   @ApiResponse({
@@ -132,7 +132,7 @@ export class PdfController {
   })
   @ApiResponse({ status: 500, description: "Internal server error" })
   async uploadDocument(@Body() uploadPdfDto: UploadPdfDto) {
-    const { partner_order_id , document_type_id, base64_file } = uploadPdfDto;
+    const { partner_order_id , document_type_id, base64_file,merge_doc } = uploadPdfDto;
   
     if (!partner_order_id  || !document_type_id || !base64_file) {
       throw new BadRequestException("Missing required fields.");
@@ -145,11 +145,13 @@ export class PdfController {
     const uploadedDocument = await this.pdfService.uploadDocumentByOrderId(
       partner_order_id ,
       document_type_id,
-      pureBase64
+      pureBase64,
+      merge_doc,
     );
   
     return {
       message: "File uploaded successfully",
+      document_id:`${partner_order_id}_${document_type_id}`,
       documentUrl: uploadedDocument.document_url, // Ensure this matches the service response
     };
   }

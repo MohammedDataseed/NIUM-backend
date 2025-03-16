@@ -118,7 +118,7 @@ export class Order extends Model<Order> {
   @Column({ type: DataType.STRING, allowNull: true })
   v_kyc_reference_id: string;
 
-  @Column({ type: DataType.STRING, allowNull: false })
+  @Column({ type: DataType.STRING, allowNull: true })
   v_kyc_profile_id: string;
 
   @Column({ type: DataType.STRING, allowNull: true })
