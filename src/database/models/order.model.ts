@@ -114,6 +114,13 @@ export class Order extends Model<Order> {
   e_sign_doc_comments: string;
 
   // V-KYC Details
+
+  @Column({ type: DataType.STRING, allowNull: true })
+  v_kyc_reference_id: string;
+
+  @Column({ type: DataType.STRING, allowNull: false })
+  v_kyc_profile_id: string;
+
   @Column({ type: DataType.STRING, allowNull: true })
   @Optional()
   v_kyc_status: string; // Values: "Pending", "Completed"

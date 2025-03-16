@@ -41,34 +41,44 @@ export class ConvertUrlsToBase64Dto {
 @Controller("ekyc")
 export class EkycController {
   private readonly logger = new Logger(EkycService.name);
-  constructor(
-    private readonly ekycService: EkycService
-  ) {}
+  constructor(private readonly ekycService: EkycService) {}
 
-  @Get('merged-pdf')
-  @ApiOperation({ summary: 'Get Base64 of merged PDF for an order' })
-  @ApiQuery({ name: 'orderId', required: true, description: 'The ID of the order to fetch or merge PDFs for' })
-  @ApiResponse({ status: 200, description: 'Base64 string of the merged PDF' })
-  @ApiResponse({ status: 400, description: 'Invalid request data or no PDFs found' })
-  @ApiResponse({ status: 500, description: 'Internal server error' })
+  @Get("merged-pdf")
+  @ApiOperation({ summary: "Get Base64 of merged PDF for an order" })
+  @ApiQuery({
+    name: "orderId",
+    required: true,
+    description: "The ID of the order to fetch or merge PDFs for",
+  })
+  @ApiResponse({ status: 200, description: "Base64 string of the merged PDF" })
+  @ApiResponse({
+    status: 400,
+    description: "Invalid request data or no PDFs found",
+  })
+  @ApiResponse({ status: 500, description: "Internal server error" })
   async getMergedPdf(
-    @Query('orderId') orderId: string,
+    @Query("orderId") orderId: string
   ): Promise<{ success: boolean; data: string; message: string }> {
     try {
-      const mergedPdfBase64 = await this.ekycService.getMergedPdfBase64(orderId);
+      const mergedPdfBase64 = await this.ekycService.getMergedPdfBase64(
+        orderId
+      );
       return {
         success: true,
         data: mergedPdfBase64,
-        message: 'Merged PDF Base64 retrieved successfully',
+        message: "Merged PDF Base64 retrieved successfully",
       };
     } catch (error) {
       throw new HttpException(
-        { success: false, message: error.message, details: error.details || error.message },
-        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+        {
+          success: false,
+          message: error.message,
+          details: error.details || error.message,
+        },
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
   }
-
 
   @Post("generate-esign-with-orderid")
   @ApiOperation({ summary: "Send an e-KYC request to IDfy" })
@@ -80,7 +90,9 @@ export class EkycController {
   })
   @ApiBody({
     schema: {
-      properties: { partner_order_id: { type: "string", example: "BMFORDERID001" } },
+      properties: {
+        partner_order_id: { type: "string", example: "BMFORDERID001" },
+      },
     },
   })
   async sendEkycLink(
@@ -99,21 +111,20 @@ export class EkycController {
     return this.ekycService.sendEkycRequest(token, partner_order_id);
   }
 
-
-  @Post('retrieve-webhook')
-  @ApiOperation({ summary: 'Retrieve e-KYC data via webhook' })
-  @ApiResponse({ status: 200, description: 'Webhook processed successfully' })
-  @ApiResponse({ status: 400, description: 'Invalid request data' })
-  @ApiResponse({ status: 500, description: 'Internal server error' })
+  @Post("retrieve-webhook")
+  @ApiOperation({ summary: "Retrieve e-KYC data via webhook" })
+  @ApiResponse({ status: 200, description: "Webhook processed successfully" })
+  @ApiResponse({ status: 400, description: "Invalid request data" })
+  @ApiResponse({ status: 500, description: "Internal server error" })
   async retrieveEkycWebhook(
-    @Query('partner_order_id') partner_order_id: string,
+    @Query("partner_order_id") partner_order_id: string
   ) {
     try {
       return await this.ekycService.handleEkycRetrieveWebhook(partner_order_id);
     } catch (error) {
       throw new HttpException(
         { success: false, message: error.message },
-        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
   }
