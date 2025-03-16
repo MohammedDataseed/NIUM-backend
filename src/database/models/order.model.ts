@@ -197,6 +197,10 @@ export class Order extends Model<Order> {
   @HasMany(() => ESign, { foreignKey: "order_id", sourceKey: "id" })
   esigns: ESign[];
 
+    // Corrected Relationship (One Order -> Many ESigns)
+    @HasMany(() => Vkyc, { foreignKey: "order_id", sourceKey: "id" })
+    vkycs: Vkyc[];
+
   /** Generate `hashed_key` before creation */
   @BeforeCreate
   static generateHashedKey(instance: Order) {
@@ -206,6 +210,5 @@ export class Order extends Model<Order> {
     instance.hashed_key = `${randomPart}${timestampPart}`;
     console.log("Generated hashed_key:", instance.hashed_key); // Debugging
   }
-  // @BelongsTo(() => Vkyc, { foreignKey: "order_id" })
-  // vkyc: Vkyc;
+ 
 }
