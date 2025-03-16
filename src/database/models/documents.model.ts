@@ -56,7 +56,7 @@ export class Documents extends Model<Documents> {
 
   @AllowNull(false)
   @Column({ type: DataType.STRING, field: "document_name" })
-  documentName: string;
+  document_name: string;
 
   // Store file details as JSON (e.g., URL, MIME type, size)
   @AllowNull(false)
