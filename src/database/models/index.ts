@@ -13,6 +13,7 @@ import { Order } from "./order.model";
 import { DocumentType } from "./documentType.model";
 import { transaction_type } from "./transaction_type.model";
 import { ESign } from "./esign.model";
+import { Vkyc } from "./vkyc.model";
 
 export const models = [
   Role,
@@ -30,4 +31,5 @@ export const models = [
   transaction_type,
   Order,
   ESign,
+  Vkyc
 ];

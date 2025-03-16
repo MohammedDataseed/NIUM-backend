@@ -12,6 +12,7 @@ import { Order } from "../models/order.model";
 import { DocumentType } from "../models/documentType.model";
 import { transaction_type } from "../models/transaction_type.model";
 import { ESign } from "../models/esign.model";
+import { Vkyc } from "../models/vkyc.model";
 
 export const repositoryProviders = [
   {
@@ -69,5 +70,9 @@ export const repositoryProviders = [
   {
     provide: "E_SIGN_REPOSITORY",
     useValue: ESign,
+  },
+  {
+    provide: "V_KYC_REPOSITORY",
+    useValue: Vkyc,
   },
 ];

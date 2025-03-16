@@ -12,6 +12,7 @@ import { CreateOrderDto, UpdateOrderDto} from '../../../dto/order.dto';
 import * as opentracing from 'opentracing';
 import { User } from '../../../database/models/user.model';
 import { ESign } from 'src/database/models/esign.model';
+import { Vkyc } from 'src/database/models/vkyc.model';
 import { Partner } from '../../../database/models/partner.model';
 import { WhereOptions } from 'sequelize';
 
@@ -26,6 +27,8 @@ export class OrdersService {
     private readonly userRepository: typeof User,
     @Inject('E_SIGN_REPOSITORY')
     private readonly esignRepository: typeof ESign,
+    @Inject('V_KYC_REPOSITORY')
+    private readonly vkycRepository: typeof Vkyc,
   ) {}
   
    // CREATE: Create a new order
@@ -87,7 +90,10 @@ async findAll(span: opentracing.Span, filters: WhereOptions<Order> = {}): Promis
   try {
     return await this.orderRepository.findAll({ 
       where: filters,
-      include: [{ model: ESign, as: 'esigns' }] // Ensure the alias matches your association
+      include: [{ model: ESign, as: 'esigns' },
+                 { model: Vkyc, as: 'vkycs' }    // Include associated Vkycs
+               ] // Ensure the alias matches your association
+      
     });
   } catch (error) {
     childSpan.log({ event: 'error', message: error.message });
@@ -97,7 +103,6 @@ async findAll(span: opentracing.Span, filters: WhereOptions<Order> = {}): Promis
   }
 }
 
- 
  // New method to validate headers
  async validatePartnerHeaders(partnerId: string, apiKey: string): Promise<void> {
   console.log(`Validating partnerId: ${partnerId}, apiKey: ${apiKey}`); // Debug log
