@@ -12,6 +12,7 @@ import {
   CreateOrderDto,
   UpdateOrderDto,
   UpdateCheckerDto,
+  UnassignCheckerDto,
 } from '../../../dto/order.dto';
 import * as opentracing from 'opentracing';
 import { User } from '../../../database/models/user.model';
@@ -281,6 +282,44 @@ export class OrdersService {
     return {
       message: 'Checker ID updated successfully',
       updatedOrders: orderIds,
+    };
+  }
+
+  async unassignChecker(dto: UnassignCheckerDto) {
+    const { orderId, checkerId } = dto;
+
+    const checker = await this.userRepository.findOne({
+      where: { hashed_key: checkerId },
+      attributes: ['id'], // ✅ Get actual UUID
+    });
+
+    if (!checker) {
+      throw new NotFoundException(`Checker with ID ${checkerId} not found.`);
+    }
+
+    const order = await this.orderRepository.findOne({
+      where: { partner_order_id: orderId },
+      attributes: ['id', 'partner_order_id', 'checker_id'],
+    });
+
+    if (!order) {
+      throw new NotFoundException(`Order with ID ${orderId} not found.`);
+    }
+
+    if (order.checker_id !== checker.id) {
+      throw new BadRequestException(
+        `Checker is not assigned to the given order.`,
+      );
+    }
+
+    await this.orderRepository.update(
+      { checker_id: null },
+      { where: { partner_order_id: orderId } },
+    );
+
+    return {
+      message: 'Checker unassigned successfully',
+      unassignedOrder: orderId,
     };
   }
 }

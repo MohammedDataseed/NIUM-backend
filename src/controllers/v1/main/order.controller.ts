@@ -16,6 +16,7 @@ import {
   CreateOrderDto,
   UpdateOrderDto,
   UpdateCheckerDto,
+  UnassignCheckerDto,
 } from '../../../dto/order.dto';
 import { ApiTags, ApiResponse, ApiHeader } from '@nestjs/swagger';
 import * as opentracing from 'opentracing';
@@ -124,5 +125,19 @@ export class OrdersController {
     updateCheckerDto: UpdateCheckerDto,
   ) {
     return this.ordersService.updateChecker(updateCheckerDto);
+  }
+
+  @Post('unassign-checker')
+  @ApiResponse({ status: 200, description: 'Checker unassigned successfully' })
+  @ApiResponse({ status: 404, description: 'Checker ID or Order ID not found' })
+  @ApiResponse({
+    status: 400,
+    description: 'Checker is not assigned to this order',
+  })
+  async unassignChecker(
+    @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: false }))
+    unassignCheckerDto: UnassignCheckerDto,
+  ) {
+    return this.ordersService.unassignChecker(unassignCheckerDto);
   }
 }

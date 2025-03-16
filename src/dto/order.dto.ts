@@ -483,3 +483,21 @@ export class UpdateCheckerDto {
   @IsString()
   checkerId: string;
 }
+
+export class UnassignCheckerDto {
+  @ApiProperty({
+    type: String,
+    description: 'Order ID',
+    example: 'BMFORDERID432',
+  })
+  @IsString()
+  orderId: string;
+
+  @ApiProperty({
+    type: String,
+    description: 'Checker ID (Hashed Key)',
+    example: 'aab26dd990e49d40cf5bc80774ef7e0bm87gffio',
+  })
+  @IsString()
+  checkerId: string;
+}
