@@ -42,9 +42,33 @@ export class ConvertUrlsToBase64Dto {
 export class EkycController {
   private readonly logger = new Logger(EkycService.name);
   constructor(
-    private readonly ekycService: EkycService,
-    private readonly orderService: OrdersService
+    private readonly ekycService: EkycService
   ) {}
+
+  @Get('merged-pdf')
+  @ApiOperation({ summary: 'Get Base64 of merged PDF for an order' })
+  @ApiQuery({ name: 'orderId', required: true, description: 'The ID of the order to fetch or merge PDFs for' })
+  @ApiResponse({ status: 200, description: 'Base64 string of the merged PDF' })
+  @ApiResponse({ status: 400, description: 'Invalid request data or no PDFs found' })
+  @ApiResponse({ status: 500, description: 'Internal server error' })
+  async getMergedPdf(
+    @Query('orderId') orderId: string,
+  ): Promise<{ success: boolean; data: string; message: string }> {
+    try {
+      const mergedPdfBase64 = await this.ekycService.getMergedPdfBase64(orderId);
+      return {
+        success: true,
+        data: mergedPdfBase64,
+        message: 'Merged PDF Base64 retrieved successfully',
+      };
+    } catch (error) {
+      throw new HttpException(
+        { success: false, message: error.message, details: error.details || error.message },
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
 
   @Post("generate-esign-with-orderid")
   @ApiOperation({ summary: "Send an e-KYC request to IDfy" })
@@ -77,23 +101,15 @@ export class EkycController {
 
 
   @Post('retrieve-webhook')
-  // @UsePipes(new ValidationPipe({ transform: true }))
   @ApiOperation({ summary: 'Retrieve e-KYC data via webhook' })
-  @ApiHeader({
-    name: 'X-API-Key',
-    description: 'API key for authentication',
-    required: true,
-    example: '67163d36-d269-11ef-b1ca-feecce57f827',
-  })
   @ApiResponse({ status: 200, description: 'Webhook processed successfully' })
   @ApiResponse({ status: 400, description: 'Invalid request data' })
   @ApiResponse({ status: 500, description: 'Internal server error' })
   async retrieveEkycWebhook(
-    @Headers('X-API-Key') token: string,
-    @Body() payload: EkycRetrieveRequestDto,
+    @Query('partner_order_id') partner_order_id: string,
   ) {
     try {
-      return await this.ekycService.handleEkycRetrieveWebhook(token, payload);
+      return await this.ekycService.handleEkycRetrieveWebhook(partner_order_id);
     } catch (error) {
       throw new HttpException(
         { success: false, message: error.message },
@@ -101,8 +117,6 @@ export class EkycController {
       );
     }
   }
-
-
 
   @Post("retrieve-working-idfy")
   @ApiOperation({ summary: "Retrieve e-KYC data from IDfy" })
