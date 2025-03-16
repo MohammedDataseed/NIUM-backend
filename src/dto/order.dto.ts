@@ -469,10 +469,10 @@ export class UpdateCheckerDto {
   @ApiProperty({
     type: [String],
     description: 'Array of Order IDs',
-    example: ['912707e7-9b03-4f42-a30d-d1e583f6cd2f'],
+    example: ['BMFORDERID432'],
   })
   @IsArray()
-  @IsUUID('4', { each: true })
+  @IsString({ each: true }) // ✅ Ensure each item is a string
   orderIds: string[];
 
   @ApiProperty({
@@ -481,5 +481,5 @@ export class UpdateCheckerDto {
     example: 'aab26dd990e49d40cf5bc80774ef7e0bm87gffio',
   })
   @IsString()
-  checkerId: string; // 🔹 Changed from IsUUID("4") to IsString()
+  checkerId: string;
 }

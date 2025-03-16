@@ -113,14 +113,14 @@ export class OrdersController {
     }
   }
 
-  @Put('update-checker')
+  @Post('update-checker')
   @ApiResponse({ status: 200, description: 'Checker ID updated successfully' })
   @ApiResponse({
     status: 404,
     description: 'Checker ID or Order IDs not found',
   })
   async updateChecker(
-    @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: false }))
+    @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true })) // 🔹 Enforce strict validation
     updateCheckerDto: UpdateCheckerDto,
   ) {
     return this.ordersService.updateChecker(updateCheckerDto);

@@ -17,7 +17,7 @@ import * as opentracing from 'opentracing';
 import { User } from '../../../database/models/user.model';
 import { ESign } from 'src/database/models/esign.model';
 import { Partner } from '../../../database/models/partner.model';
-import { WhereOptions } from 'sequelize';
+import { WhereOptions, Op } from 'sequelize';
 
 @Injectable()
 export class OrdersService {
@@ -248,21 +248,25 @@ export class OrdersService {
   async updateChecker(dto: UpdateCheckerDto) {
     const { orderIds, checkerId } = dto;
 
-    const checkerExists = await this.userRepository.findOne({
+    const checker = await this.userRepository.findOne({
       where: { hashed_key: checkerId },
+      attributes: ['id'],
     });
-    if (!checkerExists) {
-      throw new NotFoundException(`Checker ID not found: ${checkerId}`);
+
+    if (!checker) {
+      throw new NotFoundException(`Checker with ID ${checkerId} not found.`);
     }
 
     const orders = await this.orderRepository.findAll({
-      where: { id: orderIds },
+      where: { partner_order_id: orderIds },
+      attributes: ['id', 'partner_order_id'],
     });
 
-    const foundOrderIds = orders.map((order) => order.id);
+    const foundOrderIds = orders.map((order) => order.partner_order_id);
     const missingOrderIds = orderIds.filter(
       (id) => !foundOrderIds.includes(id),
     );
+
     if (missingOrderIds.length) {
       throw new NotFoundException(
         `Orders not found: ${missingOrderIds.join(', ')}`,
@@ -270,8 +274,8 @@ export class OrdersService {
     }
 
     await this.orderRepository.update(
-      { checker_id: checkerId },
-      { where: { id: orderIds } },
+      { checker_id: checker.id },
+      { where: { partner_order_id: orderIds } },
     );
 
     return {
