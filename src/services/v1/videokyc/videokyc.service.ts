@@ -188,6 +188,7 @@ export class VideokycService {
         partner_order_id: orderId, // The partner's order ID
         reference_id: currentOrderId, // Updated order ID
         profile_id: response.data.profile_id, // Profile ID from response
+        v_kyc_status: "pending", // Set the status as active
         v_kyc_link: response.data.capture_link, // v-KYC link from response
         v_kyc_link_expires: new Date(response.data.capture_expires_at), // Convert expiration time to Date
         v_kyc_link_status: "active", // Set the status as active
@@ -355,6 +356,7 @@ export class VideokycService {
         partner_order_id: orderId, // The partner's order ID
         reference_id: currentOrderId, // Updated order ID
         profile_id: response.data.profile_id, // Profile ID from response
+        v_kyc_status: "pending", // Set the status as pending
         v_kyc_link: response.data.capture_link, // v-KYC link from response
         v_kyc_link_expires: new Date(response.data.capture_expires_at), // Convert expiration time to Date
         v_kyc_link_status: "active", // Set the status as active
@@ -410,6 +412,7 @@ export class VideokycService {
           v_kyc_link_expires: new Date(
             response.data.capture_expires_at
           ).toISOString(), // Convert expiration time to Date
+          v_kyc_status: "pending", // Set the status as active
           v_kyc_link_status: "active",
           v_kyc_reference_id: currentOrderId, // Updated reference ID
           v_kyc_profile_id: response.data.profile_id, // Profile ID from response
@@ -546,6 +549,7 @@ export class VideokycService {
     const vkycData = {
       reference_id: responseData.reference_id || null,
       profile_id: v_kyc_profile_id,
+      v_kyc_status:v_kyc_completed_by_customer,
       v_kyc_link_status,
       v_kyc_comments: responseData.status_description?.comments || null,
       v_kyc_doc_completion_date: responseData.profile_data?.completed_at
