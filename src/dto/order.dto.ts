@@ -1,5 +1,6 @@
 // create-order.dto.ts
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty } from '@nestjs/swagger';
+
 import {
   IsString,
   IsBoolean,
@@ -16,14 +17,16 @@ import {
 export class CreateOrderDto {
   @ApiProperty({
     type: String,
-    description: "Partner Order ID",
-    example: "BMFORDERID4321",
+    description: 'Partner Order ID',
+    example: 'BMFORDERID4321',
+
   })
   @IsString()
   partner_order_id: string;
 
   @ApiProperty({
     type: String,
+
     description: "Transaction Type ID",
     example: "a8712d83154b960b9d3803d30b1112cam84dhj1k",
   })
@@ -33,6 +36,7 @@ export class CreateOrderDto {
 
   @ApiProperty({
     type: String,
+
     description: "Purpose Type ID",
     example: "378dcac6a3a4c406cc11e112b91a99e8m84dbjsa",
   })
@@ -42,6 +46,7 @@ export class CreateOrderDto {
 
   @ApiProperty({
     type: Boolean,
+
     description: "Indicates if e-signature is required",
     example: true,
   })
@@ -50,6 +55,7 @@ export class CreateOrderDto {
 
   @ApiProperty({
     type: Boolean,
+
     description: "Indicates if V-KYC is required",
     example: true,
   })
@@ -58,6 +64,7 @@ export class CreateOrderDto {
 
   @ApiProperty({
     type: String,
+
     description: "Customer Name",
     example: "John Doe",
   })
@@ -66,6 +73,7 @@ export class CreateOrderDto {
 
   @ApiProperty({
     type: String,
+
     description: "Customer Email",
     example: "john@gmail.com",
   })
@@ -94,6 +102,7 @@ export class CreateOrderDto {
 export class CreateOrderDto2 {
   @ApiProperty({
     type: String,
+
     description: "Order ID",
     uniqueItems: true,
     example: "BMFORDERID001",
@@ -127,6 +136,7 @@ export class CreateOrderDto2 {
 
   @ApiProperty({
     type: String,
+
     description: "Customer Email",
     example: "mohammed@dataseedtech.com",
   })
@@ -181,7 +191,7 @@ export class CreateOrderDto2 {
 
   @ApiProperty({
     type: Object,
-    description: "Merged document details",
+    description: 'Merged document details',
     required: false,
     example: {
       url: "http://example.com/merged.pdf",
@@ -201,7 +211,7 @@ export class CreateOrderDto2 {
 
   @ApiProperty({
     type: [Object],
-    description: "Array of documents associated with the order",
+    description: 'Array of documents associated with the order',
     required: false,
   })
   @IsOptional()
@@ -245,6 +255,7 @@ export class UpdateOrderDto {
   @IsBoolean()
   @IsOptional()
   is_v_kyc_required?: boolean;
+
   @ApiProperty({ example: "john" })
   @IsString()
   @IsOptional()
@@ -267,6 +278,7 @@ export class UpdateOrderDto {
   order_status?: string;
 
   // E-Sign
+
   @ApiProperty({ example: "Pending" })
   @IsString()
   @IsOptional()
@@ -288,6 +300,7 @@ export class UpdateOrderDto {
   @IsOptional()
   e_sign_link_doc_id?: string;
   @ApiProperty({ example: "2025-03-30T12:00:00.000Z" })
+
   @IsDateString()
   @IsOptional()
   e_sign_link_expires?: string;
@@ -295,6 +308,7 @@ export class UpdateOrderDto {
   @IsBoolean()
   @IsOptional()
   e_sign_completed_by_customer?: boolean;
+
   @ApiProperty({ example: "2025-03-13T08:40:53.328Z" })
   @IsDateString()
   @IsOptional()
@@ -305,6 +319,7 @@ export class UpdateOrderDto {
   e_sign_doc_comments?: string;
 
   // V-KYC
+
   @ApiProperty({ example: "93849" })
   @IsString()
   @IsOptional()
@@ -327,13 +342,14 @@ export class UpdateOrderDto {
   @IsOptional()
   v_kyc_link_status?: string;
   @ApiProperty({ example: "2025-03-30T12:00:00.000Z" })
-  @IsDateString()
+ @IsDateString()
   @IsOptional()
   v_kyc_link_expires?: string;
   @ApiProperty({ example: false })
   @IsBoolean()
   @IsOptional()
   v_kyc_completed_by_customer?: boolean;
+
   @ApiProperty({ example: "2025-03-13T08:40:53.328Z" })
   @IsDateString()
   @IsOptional()
@@ -355,11 +371,13 @@ export class UpdateOrderDto {
   @IsBoolean()
   @IsOptional()
   is_video_kyc_link_regenerated?: boolean;
+
   @ApiProperty({ example: { reason: "expired" } })
   @IsOptional()
   is_video_kyc_link_regenerated_details?: any;
 
   // Tracking
+
   @ApiProperty({ example: "00eb04d0-646c-41d5-a69e-197b2b504f01" })
   @IsUUID()
   @IsOptional()
@@ -473,3 +491,41 @@ export class UpdateOrderDto {
 //   @IsUUID()
 //   checker_id: string;
 // }
+
+export class UpdateCheckerDto {
+  @ApiProperty({
+    type: [String],
+    description: 'Array of Order IDs',
+    example: ['BMFORDERID432'],
+  })
+  @IsArray()
+  @IsString({ each: true }) // ✅ Ensure each item is a string
+  orderIds: string[];
+
+  @ApiProperty({
+    type: String,
+    description: 'Checker ID (Hashed Key)',
+    example: 'aab26dd990e49d40cf5bc80774ef7e0bm87gffio',
+  })
+  @IsString()
+  checkerId: string;
+}
+
+export class UnassignCheckerDto {
+  @ApiProperty({
+    type: String,
+    description: 'Order ID',
+    example: 'BMFORDERID432',
+  })
+  @IsString()
+  orderId: string;
+
+  @ApiProperty({
+    type: String,
+    description: 'Checker ID (Hashed Key)',
+    example: 'aab26dd990e49d40cf5bc80774ef7e0bm87gffio',
+  })
+  @IsString()
+  checkerId: string;
+}
+

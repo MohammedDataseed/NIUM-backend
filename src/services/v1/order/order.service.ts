@@ -6,6 +6,7 @@ import {
   BadRequestException,
   NotFoundException,
   UnauthorizedException,
+
 } from "@nestjs/common";
 import { Order } from "../../../database/models/order.model";
 import { CreateOrderDto, UpdateOrderDto } from "../../../dto/order.dto";
@@ -53,6 +54,7 @@ export class OrdersService {
     @Inject("V_KYC_REPOSITORY")
     private readonly vkycRepository: typeof Vkyc
   ) {}
+
 
   // CREATE: Create a new order
   async createOrder(
@@ -255,6 +257,12 @@ async findOneByOrderId(span: opentracing.Span, orderId: string): Promise<Filtere
     // Return the filtered order object with counts
     return result;
 
+
+  // READ: Fetch a single order by order_id
+  async findOne(span: opentracing.Span, orderId: string): Promise<Order> {
+    const childSpan = span
+      .tracer()
+      .startSpan('find-one-order', { childOf: span });
   } catch (error) {
     childSpan.log({ event: "error", message: error.message });
     throw error;
@@ -279,10 +287,26 @@ async findOneByOrderId(span: opentracing.Span, orderId: string): Promise<Filtere
       if (!order)
         throw new NotFoundException(`Order with ID ${orderId} not found`);
 
-      // Update all provided fields, including profile_id and reference_id if they exist
+  //UPDATE: Update an existing order by order_id
+  async updateOrder(
+    span: opentracing.Span,
+    orderId: string,
+    updateOrderDto: Partial<UpdateOrderDto>,
+  ): Promise<Order> {
+    const childSpan = span
+      .tracer()
+      .startSpan('update-order', { childOf: span });
+    try {
+      const order = await this.orderRepository.findOne({
+        where: { partner_order_id: orderId },
+      });
+      if (!order)
+        throw new NotFoundException(`Order with ID ${orderId} not found`);
+
+      // Update all provided fields
       Object.assign(order, {
         ...updateOrderDto,
-        // Ensure proper conversion of dates
+
         e_sign_link_expires: updateOrderDto.e_sign_link_expires
           ? new Date(updateOrderDto.e_sign_link_expires)
           : order.e_sign_link_expires,
@@ -297,6 +321,7 @@ async findOneByOrderId(span: opentracing.Span, orderId: string): Promise<Filtere
           updateOrderDto.v_kyc_customer_completion_date
             ? new Date(updateOrderDto.v_kyc_customer_completion_date)
             : order.v_kyc_customer_completion_date,
+
         // Update v-KYC related fields if they exist in updateOrderDto
         profile_id: updateOrderDto.v_kyc_profile_id || order.v_kyc_profile_id, // Ensure we only update if profile_id is provided
         reference_id:
@@ -313,6 +338,7 @@ order.order_status = (
 
 
       // Save the updated order
+
       await order.save();
       return order;
     } catch (error) {
@@ -328,6 +354,7 @@ order.order_status = (
     const childSpan = span
       .tracer()
       .startSpan("delete-order", { childOf: span });
+
 
     try {
       const order = await this.orderRepository.findOne({
@@ -345,4 +372,82 @@ order.order_status = (
       childSpan.finish();
     }
   }
+
+  async updateChecker(dto: UpdateCheckerDto) {
+    const { orderIds, checkerId } = dto;
+
+    const checker = await this.userRepository.findOne({
+      where: { hashed_key: checkerId },
+      attributes: ['id'],
+    });
+
+    if (!checker) {
+      throw new NotFoundException(`Checker with ID ${checkerId} not found.`);
+    }
+
+    const orders = await this.orderRepository.findAll({
+      where: { partner_order_id: orderIds },
+      attributes: ['id', 'partner_order_id'],
+    });
+
+    const foundOrderIds = orders.map((order) => order.partner_order_id);
+    const missingOrderIds = orderIds.filter(
+      (id) => !foundOrderIds.includes(id),
+    );
+
+    if (missingOrderIds.length) {
+      throw new NotFoundException(
+        `Orders not found: ${missingOrderIds.join(', ')}`,
+      );
+    }
+
+    await this.orderRepository.update(
+      { checker_id: checker.id },
+      { where: { partner_order_id: orderIds } },
+    );
+
+    return {
+      message: 'Checker ID updated successfully',
+      updatedOrders: orderIds,
+    };
+  }
+
+  async unassignChecker(dto: UnassignCheckerDto) {
+    const { orderId, checkerId } = dto;
+
+    const checker = await this.userRepository.findOne({
+      where: { hashed_key: checkerId },
+      attributes: ['id'], // ✅ Get actual UUID
+    });
+
+    if (!checker) {
+      throw new NotFoundException(`Checker with ID ${checkerId} not found.`);
+    }
+
+    const order = await this.orderRepository.findOne({
+      where: { partner_order_id: orderId },
+      attributes: ['id', 'partner_order_id', 'checker_id'],
+    });
+
+    if (!order) {
+      throw new NotFoundException(`Order with ID ${orderId} not found.`);
+    }
+
+    if (order.checker_id !== checker.id) {
+      throw new BadRequestException(
+        `Checker is not assigned to the given order.`,
+      );
+    }
+
+    await this.orderRepository.update(
+      { checker_id: null },
+      { where: { partner_order_id: orderId } },
+    );
+
+    return {
+      message: 'Checker unassigned successfully',
+      unassignedOrder: orderId,
+    };
+  }
+
 }

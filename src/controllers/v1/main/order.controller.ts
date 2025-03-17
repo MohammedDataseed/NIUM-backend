@@ -10,6 +10,7 @@ import {
   Headers,
   BadRequestException,
   ValidationPipe,
+
 } from "@nestjs/common";
 import { OrdersService } from "../../../services/v1/order/order.service";
 import { CreateOrderDto, UpdateOrderDto } from "../../../dto/order.dto";
@@ -22,6 +23,7 @@ export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
   @Post()
   async createOrder(
+
     @Headers("partner-id-00eb04d0-646c-41d5-a69e-197b2b504f01")
     partnerId: string,
     @Headers("api-key-c1c9773f-49be-4f31-b37a-a853dc2b2981") apiKey: string,
@@ -30,12 +32,13 @@ export class OrdersController {
     const tracer = opentracing.globalTracer();
     const span = tracer.startSpan("create-order-controller");
 
+
     try {
       await this.ordersService.validatePartnerHeaders(partnerId, apiKey);
       const order = await this.ordersService.createOrder(
         span,
         createOrderDto,
-        partnerId
+        partnerId,
       );
       return {
         success: true,
@@ -51,6 +54,7 @@ export class OrdersController {
   @Put(":orderId")
   @ApiResponse({ status: 200, description: "Order updated successfully" })
   async updateOrder(
+
     @Param("orderId") orderId: string,
     @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
     updateOrderDto: UpdateOrderDto
@@ -62,7 +66,7 @@ export class OrdersController {
       return await this.ordersService.updateOrder(
         span,
         orderId,
-        updateOrderDto
+        updateOrderDto,
       );
     } finally {
       span.finish();
@@ -81,6 +85,7 @@ export class OrdersController {
       span.finish();
     }
   }
+
 
   @Get(":partnerOrderId")
   
@@ -101,6 +106,7 @@ export class OrdersController {
       span.finish();
     }
   }
+
 
   @Get(":orderId")
   @ApiResponse({ status: 200, description: "Order details" })
@@ -127,5 +133,32 @@ export class OrdersController {
     } finally {
       span.finish();
     }
+  }
+
+  @Post('update-checker')
+  @ApiResponse({ status: 200, description: 'Checker ID updated successfully' })
+  @ApiResponse({
+    status: 404,
+    description: 'Checker ID or Order IDs not found',
+  })
+  async updateChecker(
+    @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true })) // 🔹 Enforce strict validation
+    updateCheckerDto: UpdateCheckerDto,
+  ) {
+    return this.ordersService.updateChecker(updateCheckerDto);
+  }
+
+  @Post('unassign-checker')
+  @ApiResponse({ status: 200, description: 'Checker unassigned successfully' })
+  @ApiResponse({ status: 404, description: 'Checker ID or Order ID not found' })
+  @ApiResponse({
+    status: 400,
+    description: 'Checker is not assigned to this order',
+  })
+  async unassignChecker(
+    @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: false }))
+    unassignCheckerDto: UnassignCheckerDto,
+  ) {
+    return this.ordersService.unassignChecker(unassignCheckerDto);
   }
 }
