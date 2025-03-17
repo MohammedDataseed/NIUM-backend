@@ -1,6 +1,7 @@
 //ekyc-request.dto.ts
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { ValidateIf, IsOptional, IsString } from "class-validator";
+import { ValidateIf, IsString, IsNotEmpty, IsOptional, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
 
 class EsignFieldsDto {
   @ApiProperty({ example: {} })
@@ -108,25 +109,48 @@ export class EkycRequestDto {
   data: EkycDataDto;
 }
 
+
+export class EkycRetrieveDataDto {
+  @ApiProperty({
+    example: 'N0N0M8nTyzD3UghN6qehC9HTfwneEZJv',
+    description: 'User key for authentication',
+  })
+  @IsString()
+  @IsNotEmpty()
+  user_key: string;
+
+  @ApiProperty({
+    example: 'MMtdWgP',
+    description: 'eSign document ID (optional, fetched dynamically if not provided)',
+  })
+  @IsString()
+  @IsOptional()
+  esign_doc_id?: string;
+}
+
 export class EkycRetrieveRequestDto {
-  @ApiProperty({ example: "234", description: "Task ID for the e-KYC request" })
+  @ApiProperty({ example: '234', description: 'Task ID for the e-KYC request' })
+  @IsString()
+  @IsNotEmpty()
   task_id: string;
 
   @ApiProperty({
-    example: "1234",
-    description: "Group ID associated with the e-KYC request",
+    example: '1234',
+    description: 'Group ID associated with the e-KYC request',
   })
+  @IsString()
+  @IsNotEmpty()
   group_id: string;
 
   @ApiProperty({
     example: {
-      user_key: "N0N0M8nTyzD3UghN6qehC9HTfwneEZJv",
-      esign_doc_id: "MMtdWgP",
+      user_key: 'N0N0M8nTyzD3UghN6qehC9HTfwneEZJv',
+      esign_doc_id: 'MMtdWgP',
     },
-    description: "Additional data for the request",
+    description: 'Additional data for the request',
   })
-  data: {
-    user_key: string;
-    esign_doc_id: string;
-  };
+  @ValidateNested()
+  @Type(() => EkycRetrieveDataDto)
+  @IsNotEmpty()
+  data: EkycRetrieveDataDto;
 }

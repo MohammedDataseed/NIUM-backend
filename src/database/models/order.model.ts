@@ -114,6 +114,13 @@ export class Order extends Model<Order> {
   e_sign_doc_comments: string;
 
   // V-KYC Details
+
+  @Column({ type: DataType.STRING, allowNull: true })
+  v_kyc_reference_id: string;
+
+  @Column({ type: DataType.STRING, allowNull: true })
+  v_kyc_profile_id: string;
+
   @Column({ type: DataType.STRING, allowNull: true })
   @Optional()
   v_kyc_status: string; // Values: "Pending", "Completed"
@@ -197,6 +204,10 @@ export class Order extends Model<Order> {
   @HasMany(() => ESign, { foreignKey: "order_id", sourceKey: "id" })
   esigns: ESign[];
 
+    // Corrected Relationship (One Order -> Many ESigns)
+    @HasMany(() => Vkyc, { foreignKey: "order_id", sourceKey: "id" })
+    vkycs: Vkyc[];
+
   /** Generate `hashed_key` before creation */
   @BeforeCreate
   static generateHashedKey(instance: Order) {
@@ -206,6 +217,5 @@ export class Order extends Model<Order> {
     instance.hashed_key = `${randomPart}${timestampPart}`;
     console.log("Generated hashed_key:", instance.hashed_key); // Debugging
   }
-  // @BelongsTo(() => Vkyc, { foreignKey: "order_id" })
-  // vkyc: Vkyc;
+ 
 }

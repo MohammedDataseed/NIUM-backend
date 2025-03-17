@@ -11,6 +11,7 @@ import {
   UploadedFile,
   UseInterceptors,
   BadRequestException,
+  NotFoundException,
 } from "@nestjs/common";
 import { Response } from "express";
 import { FileInterceptor } from "@nestjs/platform-express";
@@ -26,7 +27,7 @@ import { PdfService } from "../../../services/v1/document-consolidate/document-c
 import { Express } from "express";
 
 class UploadPdfDto {
-  orderId: string;
+  partner_order_id : string;
   document_type_id: string;
   base64_file: string;
   merge_doc?: boolean;
@@ -37,6 +38,65 @@ class UploadPdfDto {
 export class PdfController {
   constructor(private readonly pdfService: PdfService) {}
 
+  // @Post("upload")
+  // @ApiOperation({ summary: "Upload a PDF document by Order ID" })
+  // @ApiConsumes("application/json")
+  // @ApiBody({
+  //   schema: {
+  //     type: "object",
+  //     properties: {
+  //       orderId: {
+  //         type: "string",
+  //         example: "BMFORDERID786",
+  //       },
+  //       document_type_id: {
+  //         type: "string",
+  //         example: "9aae975b52a0803109e4538a0bafd3e9m84deewb",
+  //       },
+  //       base64_file: {
+  //         type: "string",
+  //         example: "data:application/pdf;base64,JVBERi0xLjQKJ...",
+  //         description: "Base64 encoded PDF document",
+  //       },
+  //       merge_doc: { type: "boolean", example: false },
+  //       // uploaded_by: { type: 'string', example: '987e4567-e89b-12d3-a456-426614174111' },
+  //     },
+  //     required: ["orderId", "base64_file"],
+  //   },
+  // })
+  // @ApiResponse({
+  //   status: 201,
+  //   description: "PDF document uploaded successfully",
+  // })
+  // @ApiResponse({
+  //   status: 400,
+  //   description: "Invalid base64 format or order not found",
+  // })
+  // @ApiResponse({ status: 500, description: "Internal server error" })
+  // async uploadDocument(@Body() uploadPdfDto: UploadPdfDto) {
+  //   // Ensure only PDF files are allowed
+  //   if (!uploadPdfDto.base64_file.startsWith("data:application/pdf;base64,")) {
+  //     throw new BadRequestException("Only PDF files are allowed");
+  //   }
+
+  //   // // uploadPdfDto.document_type_id,
+  //   // return this.pdfService.uploadDocumentByOrderId(
+  //   //   uploadPdfDto.orderId,
+  //   //   uploadPdfDto.base64_file,
+  //   //   uploadPdfDto.merge_doc,
+  //   //   // uploadPdfDto.uploaded_by
+  //   // );
+
+  //   return this.pdfService.uploadDocumentByOrderIdWorking(
+  //     uploadPdfDto.orderId,
+  //     uploadPdfDto.document_type_id, // ✅ Now correctly passing document_type_id
+  //     uploadPdfDto.base64_file,
+  //     uploadPdfDto.merge_doc
+  //   );
+  // }
+
+
+
   @Post("upload")
   @ApiOperation({ summary: "Upload a PDF document by Order ID" })
   @ApiConsumes("application/json")
@@ -44,7 +104,7 @@ export class PdfController {
     schema: {
       type: "object",
       properties: {
-        orderId: {
+        partner_order_id : {
           type: "string",
           example: "BMFORDERID786",
         },
@@ -54,13 +114,12 @@ export class PdfController {
         },
         base64_file: {
           type: "string",
-          example: "data:application/pdf;base64,JVBERi0xLjQKJ...",
-          description: "Base64 encoded PDF document",
+          example: "JVBERi0xLjQKJ...", // Pure Base64 string (no prefix)
+          description: "Base64 encoded document",
         },
         merge_doc: { type: "boolean", example: false },
-        // uploaded_by: { type: 'string', example: '987e4567-e89b-12d3-a456-426614174111' },
       },
-      required: ["orderId", "base64_file"],
+      required: ["orderId", "document_type_id", "base64_file","merge_doc"],
     },
   })
   @ApiResponse({
@@ -73,26 +132,30 @@ export class PdfController {
   })
   @ApiResponse({ status: 500, description: "Internal server error" })
   async uploadDocument(@Body() uploadPdfDto: UploadPdfDto) {
-    // Ensure only PDF files are allowed
-    if (!uploadPdfDto.base64_file.startsWith("data:application/pdf;base64,")) {
-      throw new BadRequestException("Only PDF files are allowed");
+    const { partner_order_id , document_type_id, base64_file,merge_doc } = uploadPdfDto;
+  
+    if (!partner_order_id  || !document_type_id || !base64_file) {
+      throw new BadRequestException("Missing required fields.");
     }
-
-    // // uploadPdfDto.document_type_id,
-    // return this.pdfService.uploadDocumentByOrderId(
-    //   uploadPdfDto.orderId,
-    //   uploadPdfDto.base64_file,
-    //   uploadPdfDto.merge_doc,
-    //   // uploadPdfDto.uploaded_by
-    // );
-
-    return this.pdfService.uploadDocumentByOrderId(
-      uploadPdfDto.orderId,
-      uploadPdfDto.document_type_id, // ✅ Now correctly passing document_type_id
-      uploadPdfDto.base64_file,
-      uploadPdfDto.merge_doc
+  
+    // Ensure base64 string does not contain "data:application/pdf;base64,"
+    const pureBase64 = base64_file.replace(/^data:application\/pdf;base64,/, "");
+  
+    // Call service to upload document
+    const uploadedDocument = await this.pdfService.uploadDocumentByOrderId(
+      partner_order_id ,
+      document_type_id,
+      pureBase64,
+      merge_doc,
     );
+  
+    return {
+      message: "File uploaded successfully",
+      document_id:`${partner_order_id}_${document_type_id}`,
+      documentUrl: uploadedDocument.document_url, // Ensure this matches the service response
+    };
   }
+  
 
   @Post("upload-file")
   @UseInterceptors(FileInterceptor("file"))

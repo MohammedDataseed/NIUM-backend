@@ -47,7 +47,6 @@ import { ConfigController } from "./controllers/v1/main/config.controller";
     GracefulShutdownModule,
     MiddlewareModule,
     AuthModule,
-
     JwtModule.register({
       secret: process.env.JWT_SECRET || "123456", // ✅ Use environment variable
       signOptions: { expiresIn: "1h" }, // ✅ Token expiry
