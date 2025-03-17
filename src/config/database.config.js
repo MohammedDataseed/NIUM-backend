@@ -24,10 +24,6 @@ module.exports = {
     },
   },
   production: {
-    // username: process.env.PGUSER,
-    // password: process.env.PGPASSWORD,
-    // database: process.env.PGDATABASE,
-    // host: process.env.PGHOST,
     username: "postgres",
     password: "1234",
     database: "nium-dev",
