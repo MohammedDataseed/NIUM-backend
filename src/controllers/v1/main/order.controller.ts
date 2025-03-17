@@ -11,24 +11,32 @@ import {
   BadRequestException,
   ValidationPipe,
 
-} from "@nestjs/common";
-import { OrdersService } from "../../../services/v1/order/order.service";
-import { CreateOrderDto, UpdateOrderDto,UpdateCheckerDto,UnassignCheckerDto } from "../../../dto/order.dto";
-import { ApiTags, ApiResponse, ApiHeader } from "@nestjs/swagger";
-import * as opentracing from "opentracing";
+} from '@nestjs/common';
+import { OrdersService } from '../../../services/v1/order/order.service';
+import {
+  CreateOrderDto,
+  UpdateOrderDto,
+  UpdateCheckerDto,
+  UnassignCheckerDto,
+  GetCheckerOrdersDto,
+  UpdateOrderDetailsDto,
+} from '../../../dto/order.dto';
+// import { CreateOrderDto, UpdateOrderDto,UpdateCheckerDto,UnassignCheckerDto } from '../../../dto/order.dto';
+import { ApiTags, ApiResponse, ApiHeader } from '@nestjs/swagger';
+import * as opentracing from 'opentracing';
 
-@ApiTags("orders")
-@Controller("orders")
+@ApiTags('orders')
+@Controller('orders')
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
   @Post()
   async createOrder(
-    @Headers("partner-hashed-id") partnerId: string,
-    @Headers("api-key") apiKey: string,
+    @Headers('partner-hashed-id') partnerId: string,
+    @Headers('api-key') apiKey: string,
     @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true })) createOrderDto: CreateOrderDto
   ) {
     const tracer = opentracing.globalTracer();
-    const span = tracer.startSpan("create-order-controller");
+    const span = tracer.startSpan('create-order-controller');
     try {
       await this.ordersService.validatePartnerHeaders(partnerId, apiKey);
       const order = await this.ordersService.createOrder(
@@ -38,7 +46,7 @@ export class OrdersController {
       );
       return {
         success: true,
-        message:"order created successfully",
+        message:'order created successfully',
         data: order,
       };
     } catch (error) {
@@ -48,17 +56,17 @@ export class OrdersController {
     }
   }
 
-  @Put(":orderId")
-  @ApiResponse({ status: 200, description: "Order updated successfully" })
+  @Put(':orderId')
+  @ApiResponse({ status: 200, description: 'Order updated successfully' })
   async updateOrder(
 
-    @Param("orderId") orderId: string,
+    @Param('orderId') orderId: string,
     @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
     updateOrderDto: UpdateOrderDto
   ) {
     const span = opentracing
       .globalTracer()
-      .startSpan("update-order-controller");
+      .startSpan('update-order-controller');
     try {
       return await this.ordersService.updateOrder(
         span,
@@ -71,11 +79,11 @@ export class OrdersController {
   }
 
   @Get()
-  @ApiResponse({ status: 200, description: "List of orders" })
+  @ApiResponse({ status: 200, description: 'List of orders' })
   async findAll() {
     const span = opentracing
       .globalTracer()
-      .startSpan("find-all-orders-controller");
+      .startSpan('find-all-orders-controller');
     try {
       return await this.ordersService.findAll(span);
     } finally {
@@ -84,18 +92,18 @@ export class OrdersController {
   }
 
 
-  @Get(":partnerOrderId")
+  @Get(':partnerOrderId')
   
-  @ApiResponse({ status: 200, description: "Order details" })
+  @ApiResponse({ status: 200, description: 'Order details' })
   async findOneByOrderId(
-    @Headers("partner-hashed-key")
+    @Headers('partner-hashed-key')
     partnerId: string,
-    @Headers("partner-api-key") apiKey: string,
-    @Param("partnerOrderId")
+    @Headers('partner-api-key') apiKey: string,
+    @Param('partnerOrderId')
   orderId: string) {
     const span = opentracing
       .globalTracer()
-      .startSpan("find-one-order-controller");
+      .startSpan('find-one-order-controller');
     try {
       await this.ordersService.validatePartnerHeaders(partnerId, apiKey);
       return await this.ordersService.findOneByOrderId(span, orderId);
@@ -105,12 +113,12 @@ export class OrdersController {
   }
 
 
-  @Get(":orderId")
-  @ApiResponse({ status: 200, description: "Order details" })
-  async findOne(@Param("orderId") orderId: string) {
+  @Get(':orderId')
+  @ApiResponse({ status: 200, description: 'Order details' })
+  async findOne(@Param('orderId') orderId: string) {
     const span = opentracing
       .globalTracer()
-      .startSpan("find-one-order-controller");
+      .startSpan('find-one-order-controller');
     try {
       return await this.ordersService.findOne(span, orderId);
     } finally {
@@ -118,15 +126,15 @@ export class OrdersController {
     }
   }
 
-  @Delete(":orderId")
-  @ApiResponse({ status: 204, description: "Order deleted successfully" })
-  async deleteOrder(@Param("orderId") orderId: string) {
+  @Delete(':orderId')
+  @ApiResponse({ status: 204, description: 'Order deleted successfully' })
+  async deleteOrder(@Param('orderId') orderId: string) {
     const span = opentracing
       .globalTracer()
-      .startSpan("delete-order-controller");
+      .startSpan('delete-order-controller');
     try {
       await this.ordersService.deleteOrder(span, orderId);
-      return { message: "Order deleted successfully" };
+      return { message: 'Order deleted successfully' };
     } finally {
       span.finish();
     }
@@ -157,5 +165,28 @@ export class OrdersController {
     unassignCheckerDto: UnassignCheckerDto,
   ) {
     return this.ordersService.unassignChecker(unassignCheckerDto);
+  }
+
+  @Post('get-checker-orders')
+  @ApiResponse({ status: 200, description: 'Orders retrieved successfully' })
+  @ApiResponse({ status: 404, description: 'Checker ID not found' })
+  async getCheckerOrders(
+    @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: false }))
+    getCheckerOrdersDto: GetCheckerOrdersDto,
+  ) {
+    return this.ordersService.getOrdersByChecker(getCheckerOrdersDto);
+  }
+
+  @Post('update-order-details')
+  @ApiResponse({
+    status: 200,
+    description: 'Invoice number & status updated successfully',
+  })
+  @ApiResponse({ status: 404, description: 'Checker ID or Order ID not found' })
+  async updateOrderDetails(
+    @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: false }))
+    updateInvoiceStatusDto: UpdateOrderDetailsDto,
+  ) {
+    return this.ordersService.updateOrderDetails(updateInvoiceStatusDto);
   }
 }
