@@ -562,7 +562,6 @@ export class PdfService {
   }
 
    
-
   async uploadFile(buffer: Buffer, originalName: string, folderName: string) {
     const folder = folderName ? `${folderName}/` : "";
     const fileName = `${Date.now()}_${originalName}`;
@@ -593,7 +592,6 @@ export class PdfService {
       throw new InternalServerErrorException(`Upload error: ${error.message}`);
     }
   }
-
 
   async uploadDocumentByOrderId(
     partner_order_id: string,
