@@ -8,6 +8,8 @@ import {
   Body,
   Headers,
   Query,
+  ValidationPipe,
+
 } from "@nestjs/common";
 import { EkycService } from "../../../../services/v1/ekyc/ekyc.service";
 import {
@@ -65,7 +67,7 @@ export class EkycController {
       );
       return {
         success: true,
-        data: mergedPdfBase64,
+        data: mergedPdfBase64.base64,
         message: "Merged PDF Base64 retrieved successfully",
       };
     } catch (error) {
@@ -80,14 +82,8 @@ export class EkycController {
     }
   }
 
-  @Post("generate-esign-with-orderid")
+  @Post("generate-e-sign")
   @ApiOperation({ summary: "Send an e-KYC request to IDfy" })
-  @ApiHeader({
-    name: "X-API-Key",
-    description: "Authentication token - 67163d36-d269-11ef-b1ca-feecce57f827",
-    required: true,
-    example: "67163d36-d269-11ef-b1ca-feecce57f827",
-  })
   @ApiBody({
     schema: {
       properties: {
@@ -96,8 +92,12 @@ export class EkycController {
     },
   })
   async sendEkycLink(
-    @Headers("X-API-Key") token: string,
-    @Body("partner_order_id") partner_order_id: string
+     @Headers("partner-hashed-id") partnerId: string,
+        @Headers("api-key") apiKey: string,
+        @Body("partner_order_id", new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))  partner_order_id: string
+     
+    // @Headers("X-API-Key") token: string,
+    // @Body("partner_order_id") partner_order_id: string
   ) {
     if (!partner_order_id) {
       throw new HttpException(
@@ -108,7 +108,7 @@ export class EkycController {
 
     this.logger.log(`Processing e-KYC request for order: ${partner_order_id}`);
 
-    return this.ekycService.sendEkycRequest(token, partner_order_id);
+    return this.ekycService.sendEkycRequest(partner_order_id);
   }
 
   @Post("retrieve-webhook")
