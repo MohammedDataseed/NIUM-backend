@@ -3,80 +3,115 @@ import {
   Column,
   Model,
   PrimaryKey,
-  AutoIncrement,
+  Default,
   AllowNull,
   Unique,
   DataType,
-} from 'sequelize-typescript';
+  ForeignKey,
+  BelongsTo,
+  BelongsToMany,
+  BeforeCreate,
+} from "sequelize-typescript";
+import { Role } from "./role.model";
+import { Products } from "./products.model";
+import { User } from "./user.model";
+import { PartnerProducts } from "./partner_products.model";
+import * as crypto from "crypto"; // Import Node.js crypto module
 
 @Table({
-  tableName: 'partner',
+  tableName: "partners",
+  timestamps: true, // Sequelize will automatically manage createdAt and updatedAt
 })
 export class Partner extends Model<Partner> {
   @PrimaryKey
-  @AutoIncrement
-  @Column({
-    type: DataType.SMALLINT,
-    field: 'partner_id',
-  })
-  partnerid: number;
-
-  @Column({
-    field: 'name',
-  })
-  name: string | null;
-
-  @AllowNull
-  @Column({
-    field: 'description',
-  })
-  description: string | null;
+  @Default(DataType.UUIDV4)
+  @Column({ type: DataType.UUID, field: "id" })
+  id: string;
 
   @Unique
+  @AllowNull(false)
+  @Column({ type: DataType.STRING, field: "hashed_key" })
+  hashed_key: string;
+
+
+  @ForeignKey(() => Role)
+  @AllowNull(false)
+  @Column({ type: DataType.UUID, field: "role_id" })
+  role_id: string;
+
+  @Unique
+  @AllowNull(false)
+  @Column({ type: DataType.STRING, field: "email" })
+  email: string;
+
+  @AllowNull(false)
+  @Column({ type: DataType.STRING, field: "first_name" })
+  first_name: string;
+
+  @AllowNull(false)
+  @Column({ type: DataType.STRING, field: "last_name" })
+  last_name: string;
+
+  @AllowNull(false)
+  @Column({ type: DataType.STRING, field: "password" }) // Hash this before saving
+  password: string;
+
+  @Unique
+  @AllowNull(false)
+  @Column({ field: "api_key", type: DataType.STRING, unique: true })
+  api_key: string;
+
+  @Default(true)
+  @Column({ type: DataType.BOOLEAN, field: "is_active" })
+  is_active: boolean;
+
+  @AllowNull(false)
   @Column({
-    field: 'partner_key',
+    type: DataType.STRING,
+    field: "business_type",
   })
-  partnerKey: string;
+  business_type: string;
 
-  @Column({
-    field: 'type',
-  })
-  type: string;
+  @ForeignKey(() => User)
+  @Column({ type: DataType.UUID, field: "created_by" })
+  created_by: string;
 
-  @Column({ type: DataType.JSONB, field: 'config' })
-  config: any;
+  @ForeignKey(() => User)
+  @Column({ type: DataType.UUID, field: "updated_by" })
+  updated_by: string;
 
-  @Column({
-    field: 'is_active',
-    type: DataType.BOOLEAN,
-  })
-  isActive: boolean;
+  // Associations
+  @BelongsTo(() => Role)
+  role: Role;
 
-  @Column({
-    field: 'created_at',
-  })
-  createdAt: Date;
+  @BelongsTo(() => User, { foreignKey: "created_by" })
+  creator: User;
 
-  @Column({
-    field: 'created_by',
-  })
-  createdBy: number;
+  @BelongsTo(() => User, { foreignKey: "updated_by" })
+  updater: User;
 
-  @Column({
-    field: 'updated_at',
-  })
-  updatedAt: Date;
+  @BelongsToMany(() => Products, () => PartnerProducts)
+  products: Products[];
 
-  @Column({
-    field: 'updated_by',
-  })
-  updatedBy: number;
+  // // Hook to generate hashed_key before creating the record
+  // @BeforeCreate
+  // static generateHashedKey(instance: Partner) {
+  //   if (!instance.id) {
+  //     throw new Error("ID must be set before generating hashed_key");
+  //   }
 
-  @Column({
-    field: 'code',
-  })
-  code: string;
+  //   const hash = crypto
+  //     .createHash("sha256") // You can use md5, sha256, etc.
+  //     .update(instance.id + Date.now().toString()) // Combine id and timestamp for uniqueness
+  //     .digest("hex"); // Output as hexadecimal string
+  //   instance.hashed_key = hash;
 
-  @Column({ type: DataType.JSONB, field: 'notification_config' })
-  notificationConfig: JSON;
+  /** Generate `publicKey` before creation */
+  @BeforeCreate
+  static generatePublicKey(instance: Partner) {
+    const randomPart = crypto.randomBytes(16).toString("hex"); // 16-character random string
+    const timestampPart = Date.now().toString(36); // Convert timestamp to base36 for compactness
+    instance.hashed_key = `${randomPart}${timestampPart}`; // 16-char random + timestamp
+  
+  }
 }
