@@ -62,6 +62,7 @@ export class CreateOrderDto {
 
   @ApiProperty({
     type: Boolean,
+  })
   @IsBoolean()
   is_v_kyc_required: boolean;
 
