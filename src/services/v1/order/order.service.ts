@@ -15,20 +15,22 @@ import { User } from "../../../database/models/user.model";
 import { ESign } from "src/database/models/esign.model";
 import { Vkyc } from "src/database/models/vkyc.model";
 import { Partner } from "../../../database/models/partner.model";
-import { WhereOptions } from "sequelize";
+import { WhereOptions,Op } from "sequelize";
 
 // Define a new interface for the filtered order data
 export interface FilteredOrder {
   partner_order_id: string;
-  // nium_forex_order_id: string;
+  nium_order_id: string;
   order_status: string;
+  is_esign_required: boolean,
+  is_v_kyc_required: boolean,
   e_sign_status: string;
   e_sign_link_status: string;
   e_sign_link_expires: Date;
   e_sign_completed_by_customer: boolean;
   e_sign_customer_completion_date: Date;
   e_sign_doc_comments: string;
-  // is_e_sign_regenerated: boolean;
+  is_e_sign_regenerated: boolean;
   e_sign_regenerated_count: number;
   v_kyc_link_status: string;
   v_kyc_link_expires: Date;
@@ -36,7 +38,7 @@ export interface FilteredOrder {
   v_kyc_customer_completion_date: Date;
   v_kyc_comments: string;
   v_kyc_status: string;
-  // is_v_kyc_link_regenerated: boolean;
+  is_v_kyc_link_regenerated: boolean;
   v_kyc_regenerated_count: number;
 }
 
@@ -49,10 +51,10 @@ export class OrdersService {
     private readonly partnerRepository: typeof Partner,
     @Inject("USER_REPOSITORY")
     private readonly userRepository: typeof User,
-    @Inject("E_SIGN_REPOSITORY")
-    private readonly esignRepository: typeof ESign,
-    @Inject("V_KYC_REPOSITORY")
-    private readonly vkycRepository: typeof Vkyc
+    // @Inject("E_SIGN_REPOSITORY")
+    // private readonly esignRepository: typeof ESign,
+    // @Inject("V_KYC_REPOSITORY")
+    // private readonly vkycRepository: typeof Vkyc
   ) {}
 
 
@@ -76,15 +78,23 @@ export class OrdersService {
       }
 
       // Validate partner_id exists
-      const partner = await this.partnerRepository.findOne({
-        where: { id: partnerId },
-      });
+    
+      // const partner = await this.partnerRepository.findOne({
+      //   where: { id: partnerId },
+      //    });
+
+         const partner = await this.partnerRepository.findOne({
+          where: { hashed_key: partnerId },
+          attributes: ["id", "api_key"], // Fetch only necessary fields
+        });
+      
+      console.log("parter_id",partner?.id);
       if (!partner) {
         throw new BadRequestException("Invalid partner ID");
       }
 
       const orderData = {
-        partner_id: partnerId,
+        partner_id: partner?.id,
         partner_order_id: createOrderDto.partner_order_id,
         transaction_type: createOrderDto.transaction_type_id,
         is_esign_required: createOrderDto.is_e_sign_required,
@@ -97,8 +107,8 @@ export class OrdersService {
         order_status: "pending", // Default value
         e_sign_status: "not generated", // Default value
         v_kyc_status: "not generated", // Default value
-        created_by: partnerId,
-        updated_by: partnerId,
+        created_by: partner?.id,
+        updated_by: partner?.id,
       };
 
       console.log("orderData:", JSON.stringify(orderData, null, 2));
@@ -141,10 +151,13 @@ export class OrdersService {
     apiKey: string
   ): Promise<void> {
     console.log(`Validating partnerId: ${partnerId}, apiKey: ${apiKey}`); // Debug log
-    const partner = await this.partnerRepository.findOne({
-      where: { id: partnerId },
-    });
+  const partner = await this.partnerRepository.findOne({
+    where: { hashed_key: partnerId },
+    attributes: ["id", "api_key"], // Fetch only necessary fields
+  });
 
+console.log("parter_id",partner?.id);
+  
     console.log(
       "Partner found:",
       partner ? JSON.stringify(partner.toJSON()) : "null"
@@ -155,10 +168,7 @@ export class OrdersService {
     }
 
     // // Check if the partner has the "maker" role
-    // if (!partner.role
-    //   // ||
-    //   // partner.role_id == "a141eecb-19bc-4807-ba90-1b8edd407608"
-    //   // || partner.role.name !== 'maker'
+    // if (!partner.role|| partner.role.name !== 'maker'
     // ) {
     //   console.log("partner",partner);
     //   throw new UnauthorizedException('Partner does not have the maker role');
@@ -234,15 +244,17 @@ async findOneByOrderId(span: opentracing.Span, orderId: string): Promise<Filtere
     // Create the final result object based on the specified fields
     const result: FilteredOrder = {
       partner_order_id: order.partner_order_id,
-      // nium_forex_order_id: order.nium_forex_order_id,
+      nium_order_id: order.nium_order_id,
       order_status: order.order_status,
+      is_esign_required: order.is_esign_required,
+      is_v_kyc_required: order.is_v_kyc_required,
       e_sign_status: order.e_sign_status,
       e_sign_link_status: order.e_sign_link_status,
       e_sign_link_expires: order.e_sign_link_expires,
       e_sign_completed_by_customer: order.e_sign_completed_by_customer,
       e_sign_customer_completion_date: order.e_sign_customer_completion_date,
       e_sign_doc_comments: order.e_sign_doc_comments,
-      // is_e_sign_regenerated: order.is_e_sign_regenerated,
+      is_e_sign_regenerated: order.is_esign_regenerated,
       e_sign_regenerated_count: regeneratedEsignCount,
       v_kyc_link_status: order.v_kyc_link_status,
       v_kyc_link_expires: order.v_kyc_link_expires,
@@ -250,7 +262,7 @@ async findOneByOrderId(span: opentracing.Span, orderId: string): Promise<Filtere
       v_kyc_customer_completion_date: order.v_kyc_customer_completion_date,
       v_kyc_comments: order.v_kyc_comments,
       v_kyc_status: order.v_kyc_status,
-      // is_v_kyc_link_regenerated: order.is_v_kyc_link_regenerated,
+      is_v_kyc_link_regenerated: order.is_video_kyc_link_regenerated,
       v_kyc_regenerated_count: regeneratedVkycCount,
     };
 

@@ -152,7 +152,7 @@ export class PdfController {
     return {
       message: "File uploaded successfully",
       document_id:`${partner_order_id}_${document_type_id}`,
-      documentUrl: uploadedDocument.document_url, // Ensure this matches the service response
+      // documentUrl: uploadedDocument.document_url, // Ensure this matches the service response
     };
   }
   

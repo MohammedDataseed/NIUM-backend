@@ -23,16 +23,12 @@ export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
   @Post()
   async createOrder(
-
-    @Headers("partner-id-00eb04d0-646c-41d5-a69e-197b2b504f01")
-    partnerId: string,
-    @Headers("api-key-c1c9773f-49be-4f31-b37a-a853dc2b2981") apiKey: string,
-    @Body() createOrderDto: CreateOrderDto
+    @Headers("partner-hashed-id") partnerId: string,
+    @Headers("api-key") apiKey: string,
+    @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true })) createOrderDto: CreateOrderDto
   ) {
     const tracer = opentracing.globalTracer();
     const span = tracer.startSpan("create-order-controller");
-
-
     try {
       await this.ordersService.validatePartnerHeaders(partnerId, apiKey);
       const order = await this.ordersService.createOrder(
@@ -42,6 +38,7 @@ export class OrdersController {
       );
       return {
         success: true,
+        message:"order created successfully",
         data: order,
       };
     } catch (error) {
@@ -91,9 +88,9 @@ export class OrdersController {
   
   @ApiResponse({ status: 200, description: "Order details" })
   async findOneByOrderId(
-    @Headers("partner-id-00eb04d0-646c-41d5-a69e-197b2b504f01")
+    @Headers("partner-hashed-key")
     partnerId: string,
-    @Headers("api-key-c1c9773f-49be-4f31-b37a-a853dc2b2981") apiKey: string,
+    @Headers("partner-api-key") apiKey: string,
     @Param("partnerOrderId")
   orderId: string) {
     const span = opentracing
