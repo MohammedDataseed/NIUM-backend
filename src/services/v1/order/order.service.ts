@@ -9,7 +9,15 @@ import {
 
 } from "@nestjs/common";
 import { Order } from "../../../database/models/order.model";
-import { CreateOrderDto, UpdateOrderDto,UpdateCheckerDto,UnassignCheckerDto } from "../../../dto/order.dto";
+import {
+  CreateOrderDto,
+  UpdateOrderDto,
+  UpdateCheckerDto,
+  UnassignCheckerDto,
+  GetCheckerOrdersDto,
+  UpdateOrderDetailsDto,
+} from '../../../dto/order.dto';
+// import { CreateOrderDto, UpdateOrderDto,UpdateCheckerDto,UnassignCheckerDto } from "../../../dto/order.dto";
 import * as opentracing from "opentracing";
 import { User } from "../../../database/models/user.model";
 import { ESign } from "src/database/models/esign.model";
@@ -523,4 +531,79 @@ order.order_status = (
     };
   }
 
+  async getOrdersByChecker(dto: GetCheckerOrdersDto) {
+    const { checkerId, transaction_type } = dto;
+
+    const checker = await this.userRepository.findOne({
+      where: { hashed_key: checkerId },
+      attributes: ['id'],
+    });
+
+    if (!checker) {
+      throw new NotFoundException(`Checker with ID ${checkerId} not found.`);
+    }
+
+    const whereCondition: any = { checker_id: checker.id };
+
+    if (transaction_type === 'all') {
+      whereCondition.order_status != 'Completed';
+    } else if (transaction_type === 'completed') {
+      whereCondition.order_status = 'Completed';
+    } else {
+      whereCondition.order_status = {
+        [Op.or]: ['Pending', null],
+      };
+    }
+
+    const orders = await this.orderRepository.findAll({
+      where: whereCondition,
+      order: [['createdAt', 'DESC']],
+    });
+
+    return {
+      message: `Orders assigned to checker ${checkerId}`,
+      totalOrders: orders.length,
+      filterApplied: transaction_type || 'all',
+      orders,
+    };
+  }
+
+  async updateOrderDetails(dto: UpdateOrderDetailsDto) {
+    const {
+      partner_order_id,
+      checker_id,
+      nium_invoice_number,
+      incident_checker_comments,
+      incident_status,
+    } = dto;
+
+    const checker = await this.userRepository.findOne({
+      where: { hashed_key: checker_id },
+      attributes: ['id'],
+    });
+
+    if (!checker) {
+      throw new NotFoundException(`Checker with ID ${checker_id} not found.`);
+    }
+
+    const order = await this.orderRepository.findOne({
+      where: { partner_order_id: partner_order_id, checker_id: checker.id },
+    });
+
+    if (!order) {
+      throw new NotFoundException(
+        `Order ${partner_order_id} not found or not assigned to this checker.`,
+      );
+    }
+
+    order.nium_invoice_number = nium_invoice_number;
+    order.incident_status = incident_status;
+    order.incident_checker_comments = incident_checker_comments;
+    await order.save();
+
+    return {
+      message: 'Order details has updated successfully',
+      updatedOrder: order,
+    };
+  }
 }

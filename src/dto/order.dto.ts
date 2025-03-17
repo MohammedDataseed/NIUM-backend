@@ -13,6 +13,7 @@ import {
   IsObject,
   Matches,
   IsPhoneNumber,
+  IsIn,
 } from 'class-validator';
 
 export class CreateOrderDto {
@@ -399,3 +400,58 @@ export class UnassignCheckerDto {
   checkerId: string;
 }
 
+
+export class GetCheckerOrdersDto {
+  @ApiProperty({
+    type: String,
+    description: 'Checker ID (Hashed Key)',
+    example: 'aab26dd990e49d40cf5bc80774ef7e0bm87gffio',
+  })
+  @IsString()
+  checkerId: string;
+
+  @ApiProperty({
+    type: String,
+    description: 'Filter orders by transaction type (all/completed)',
+    example: 'all',
+    required: false,
+  })
+  @IsOptional()
+  @IsIn(['all', 'completed'], {
+    message: "filter must be either 'all' or 'completed'",
+  })
+  transaction_type?: string;
+}
+
+export class UpdateOrderDetailsDto {
+  @ApiProperty({ example: 'BMFORDERID432', description: 'Order ID' })
+  @IsString()
+  @IsNotEmpty()
+  partner_order_id: string;
+
+  @ApiProperty({
+    example: 'aab26dd990e49d40cf5bc80774ef7e0bm87gffio',
+    description: 'Checker ID (Hashed Key)',
+  })
+  @IsString()
+  @IsNotEmpty()
+  checker_id: string;
+
+  @ApiProperty({
+    example: 'INV-20240304001',
+    description: 'Nium Invoice Number',
+  })
+  @IsString()
+  @IsOptional()
+  nium_invoice_number: string;
+
+  @ApiProperty({ example: 'Doc unavailable', description: 'Checker Remarks' })
+  @IsString()
+  @IsOptional()
+  incident_checker_comments: string;
+
+  @ApiProperty({ example: '1 - Approved', description: 'Incident Status' })
+  @IsBoolean()
+  @IsOptional()
+  incident_status: boolean;
+}
