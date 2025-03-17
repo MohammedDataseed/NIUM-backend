@@ -34,6 +34,7 @@ export interface FilteredOrder {
   is_e_sign_regenerated: boolean;
   e_sign_regenerated_count: number;
   v_kyc_link_status: string;
+  v_kyc_link:string;
   v_kyc_link_expires: Date;
   v_kyc_completed_by_customer: boolean;
   v_kyc_customer_completion_date: Date;
@@ -224,7 +225,10 @@ async findOneByOrderId(span: opentracing.Span, orderId: string): Promise<Filtere
   try {
     const order = await this.orderRepository.findOne({
       where: { partner_order_id: orderId },
-      include: [{ association: "esigns" }], // Ensure related eSigns are included
+      include: [
+        { association: "esigns" },
+        { association: "vkycs" },  
+      ],
     });
 
     if (!order) {
@@ -233,6 +237,9 @@ async findOneByOrderId(span: opentracing.Span, orderId: string): Promise<Filtere
 
     // Determine the latest eSign attempt (highest attempt_number)
     const latestEsign = order.esigns?.sort((a, b) => b.attempt_number - a.attempt_number)?.[0] || null;
+
+    // Determine the latest vKYC attempt (highest attempt_number)
+    const latestVkyc = order.vkycs?.sort((a, b) => b.attempt_number - a.attempt_number)?.[0] || null;
 
     const regeneratedVkycCount = order.is_video_kyc_link_regenerated_details
       ? order.is_video_kyc_link_regenerated_details.length
@@ -245,6 +252,7 @@ async findOneByOrderId(span: opentracing.Span, orderId: string): Promise<Filtere
       order_status: order.order_status,
       is_esign_required: order.is_esign_required,
       is_v_kyc_required: order.is_v_kyc_required,
+      // eSign details
       e_sign_status: latestEsign?.status || order.e_sign_status,
       e_sign_link: latestEsign?.esign_details?.[0]?.esign_url || order.e_sign_link,
       e_sign_link_status: latestEsign?.esign_details?.[0]?.url_status ? "active" : "inactive",
@@ -252,18 +260,20 @@ async findOneByOrderId(span: opentracing.Span, orderId: string): Promise<Filtere
       e_sign_completed_by_customer: order.e_sign_completed_by_customer,
       e_sign_customer_completion_date: order.e_sign_customer_completion_date,
       e_sign_doc_comments: order.e_sign_doc_comments,
-      is_e_sign_regenerated: regeneratedEsignCount > 1, // If more than 1 attempt, it's regenerated
+      is_e_sign_regenerated: regeneratedEsignCount > 1,
       e_sign_regenerated_count: regeneratedEsignCount,
-      v_kyc_link_status: order.v_kyc_link_status,
-      v_kyc_link_expires: order.v_kyc_link_expires,
+      // vKYC details
+      v_kyc_status: latestVkyc?.status || order.v_kyc_status,
+      v_kyc_link: latestVkyc?.v_kyc_link || order.v_kyc_link,
+      v_kyc_link_status: latestVkyc?.v_kyc_link_status || order.v_kyc_link_status,
+      v_kyc_link_expires: latestVkyc?.v_kyc_link_expires || order.v_kyc_link_expires,
       v_kyc_completed_by_customer: order.v_kyc_completed_by_customer,
       v_kyc_customer_completion_date: order.v_kyc_customer_completion_date,
       v_kyc_comments: order.v_kyc_comments,
-      v_kyc_status: order.v_kyc_status,
       is_v_kyc_link_regenerated: order.is_video_kyc_link_regenerated,
       v_kyc_regenerated_count: regeneratedVkycCount,
     };
-
+    
     return result;
   } catch (error) {
     throw error;
