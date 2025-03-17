@@ -3,7 +3,7 @@ import { registerAs } from "@nestjs/config";
 
 export default registerAs("database", () => ({
   type: "postgres",
-  host: process.env.PGHOST || "13.201.102.229",
+  host: process.env.PGHOST || "localhost",
   port: process.env.PGPORT ? parseInt(process.env.PGPORT, 10) : 5433, // Ensures safe parsing
   username: process.env.PGUSER || "postgres",
   password: process.env.PGPASSWORD || "1234",

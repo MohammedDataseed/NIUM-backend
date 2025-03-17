@@ -152,7 +152,7 @@ export class PdfController {
     return {
       message: "File uploaded successfully",
       document_id:`${partner_order_id}_${document_type_id}`,
-      documentUrl: uploadedDocument.document_url, // Ensure this matches the service response
+      // documentUrl: uploadedDocument.document_url, // Ensure this matches the service response
     };
   }
   
@@ -252,9 +252,9 @@ export class PdfController {
   @ApiQuery({
     name: "partner_order_id",
     required: true,
-    description: "Order ID folder containing PDFs to merge",
+    description: "Order ID folder containing  to merge",
   })
-  @ApiResponse({ status: 201, description: "Merged PDF uploaded successfully" })
+  @ApiResponse({ status: 201, description: "Merged uploaded successfully" })
   @ApiResponse({ status: 400, description: "Bad Request" })
   async mergeFilesByOrderId(@Query("partner_order_id") orderId: string) {
     if (!orderId || typeof orderId !== "string" || !orderId.trim()) {

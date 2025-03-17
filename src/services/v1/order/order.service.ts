@@ -6,8 +6,9 @@ import {
   BadRequestException,
   NotFoundException,
   UnauthorizedException,
-} from '@nestjs/common';
-import { Order } from '../../../database/models/order.model';
+
+} from "@nestjs/common";
+import { Order } from "../../../database/models/order.model";
 import {
   CreateOrderDto,
   UpdateOrderDto,
@@ -16,60 +17,66 @@ import {
   GetCheckerOrdersDto,
   UpdateOrderDetailsDto,
 } from '../../../dto/order.dto';
-import * as opentracing from 'opentracing';
-import { User } from '../../../database/models/user.model';
-import { ESign } from 'src/database/models/esign.model';
-import { Vkyc } from 'src/database/models/vkyc.model';
-import { Partner } from '../../../database/models/partner.model';
-import { WhereOptions, Op } from 'sequelize';
+// import { CreateOrderDto, UpdateOrderDto,UpdateCheckerDto,UnassignCheckerDto } from "../../../dto/order.dto";
+import * as opentracing from "opentracing";
+import { User } from "../../../database/models/user.model";
+import { ESign } from "src/database/models/esign.model";
+import { Vkyc } from "src/database/models/vkyc.model";
+import { Partner } from "../../../database/models/partner.model";
+import { WhereOptions,Op } from "sequelize";
 
 // Define a new interface for the filtered order data
 export interface FilteredOrder {
   partner_order_id: string;
-  // nium_forex_order_id: string;
+  nium_order_id: string;
   order_status: string;
+  is_esign_required: boolean,
+  is_v_kyc_required: boolean,
   e_sign_status: string;
+  e_sign_link:string;
   e_sign_link_status: string;
   e_sign_link_expires: Date;
   e_sign_completed_by_customer: boolean;
   e_sign_customer_completion_date: Date;
   e_sign_doc_comments: string;
-  // is_e_sign_regenerated: boolean;
+  is_e_sign_regenerated: boolean;
   e_sign_regenerated_count: number;
   v_kyc_link_status: string;
+  v_kyc_link:string;
   v_kyc_link_expires: Date;
   v_kyc_completed_by_customer: boolean;
   v_kyc_customer_completion_date: Date;
   v_kyc_comments: string;
   v_kyc_status: string;
-  // is_v_kyc_link_regenerated: boolean;
+  is_v_kyc_link_regenerated: boolean;
   v_kyc_regenerated_count: number;
 }
 
 @Injectable()
 export class OrdersService {
   constructor(
-    @Inject('ORDER_REPOSITORY')
+    @Inject("ORDER_REPOSITORY")
     private readonly orderRepository: typeof Order,
-    @Inject('PARTNER_REPOSITORY') // Change to Partner repository
+    @Inject("PARTNER_REPOSITORY") // Change to Partner repository
     private readonly partnerRepository: typeof Partner,
-    @Inject('USER_REPOSITORY')
+    @Inject("USER_REPOSITORY")
     private readonly userRepository: typeof User,
-    @Inject('E_SIGN_REPOSITORY')
-    private readonly esignRepository: typeof ESign,
-    @Inject('V_KYC_REPOSITORY')
-    private readonly vkycRepository: typeof Vkyc,
+    // @Inject("E_SIGN_REPOSITORY")
+    // private readonly esignRepository: typeof ESign,
+    // @Inject("V_KYC_REPOSITORY")
+    // private readonly vkycRepository: typeof Vkyc
   ) {}
+
 
   // CREATE: Create a new order
   async createOrder(
     span: opentracing.Span,
     createOrderDto: CreateOrderDto,
-    partnerId: string,
+    partnerId: string
   ): Promise<Order> {
     const childSpan = span
       .tracer()
-      .startSpan('create-order', { childOf: span });
+      .startSpan("create-order", { childOf: span });
 
     try {
       // Check for existing order with the same partner_order_id
@@ -77,19 +84,27 @@ export class OrdersService {
         where: { partner_order_id: createOrderDto.partner_order_id },
       });
       if (existingOrder) {
-        throw new ConflictException('Order ID already exists');
+        throw new ConflictException("Order ID already exists");
       }
 
       // Validate partner_id exists
-      const partner = await this.partnerRepository.findOne({
-        where: { id: partnerId },
-      });
+    
+      // const partner = await this.partnerRepository.findOne({
+      //   where: { id: partnerId },
+      //    });
+
+         const partner = await this.partnerRepository.findOne({
+          where: { hashed_key: partnerId },
+          attributes: ["id", "api_key"], // Fetch only necessary fields
+        });
+      
+      console.log("parter_id",partner?.id);
       if (!partner) {
-        throw new BadRequestException('Invalid partner ID');
+        throw new BadRequestException("Invalid partner ID");
       }
 
       const orderData = {
-        partner_id: partnerId,
+        partner_id: partner?.id,
         partner_order_id: createOrderDto.partner_order_id,
         transaction_type: createOrderDto.transaction_type_id,
         is_esign_required: createOrderDto.is_e_sign_required,
@@ -99,18 +114,18 @@ export class OrdersService {
         customer_email: createOrderDto.customer_email,
         customer_phone: createOrderDto.customer_phone,
         customer_pan: createOrderDto.customer_pan,
-        order_status: 'pending', // Default value
-        e_sign_status: 'not generated', // Default value
-        v_kyc_status: 'not generated', // Default value
-        created_by: partnerId,
-        updated_by: partnerId,
+        order_status: "pending", // Default value
+        e_sign_status: "not generated", // Default value
+        v_kyc_status: "not generated", // Default value
+        created_by: partner?.id,
+        updated_by: partner?.id,
       };
 
-      console.log('orderData:', JSON.stringify(orderData, null, 2));
+      console.log("orderData:", JSON.stringify(orderData, null, 2));
       const order = await this.orderRepository.create(orderData);
       return order;
     } catch (error) {
-      childSpan.log({ event: 'error', message: error.message });
+      childSpan.log({ event: "error", message: error.message });
       throw error;
     } finally {
       childSpan.finish();
@@ -119,21 +134,21 @@ export class OrdersService {
 
   async findAll(
     span: opentracing.Span,
-    filters: WhereOptions<Order> = {},
+    filters: WhereOptions<Order> = {}
   ): Promise<Order[]> {
     const childSpan = span
       .tracer()
-      .startSpan('find-all-orders', { childOf: span });
+      .startSpan("find-all-orders", { childOf: span });
     try {
       return await this.orderRepository.findAll({
         where: filters,
         include: [
-          { model: ESign, as: 'esigns' },
-          { model: Vkyc, as: 'vkycs' }, // Include associated Vkycs
+          { model: ESign, as: "esigns" },
+          { model: Vkyc, as: "vkycs" }, // Include associated Vkycs
         ], // Ensure the alias matches your association
       });
     } catch (error) {
-      childSpan.log({ event: 'error', message: error.message });
+      childSpan.log({ event: "error", message: error.message });
       throw error;
     } finally {
       childSpan.finish();
@@ -143,27 +158,27 @@ export class OrdersService {
   // New method to validate headers
   async validatePartnerHeaders(
     partnerId: string,
-    apiKey: string,
+    apiKey: string
   ): Promise<void> {
     console.log(`Validating partnerId: ${partnerId}, apiKey: ${apiKey}`); // Debug log
-    const partner = await this.partnerRepository.findOne({
-      where: { id: partnerId },
-    });
+  const partner = await this.partnerRepository.findOne({
+    where: { hashed_key: partnerId },
+    attributes: ["id", "api_key"], // Fetch only necessary fields
+  });
 
+console.log("parter_id",partner?.id);
+  
     console.log(
-      'Partner found:',
-      partner ? JSON.stringify(partner.toJSON()) : 'null',
+      "Partner found:",
+      partner ? JSON.stringify(partner.toJSON()) : "null"
     ); // Debug log
 
     if (!partner) {
-      throw new BadRequestException('Invalid partner ID');
+      throw new BadRequestException("Invalid partner ID");
     }
 
     // // Check if the partner has the "maker" role
-    // if (!partner.role
-    //   // ||
-    //   // partner.role_id == "a141eecb-19bc-4807-ba90-1b8edd407608"
-    //   // || partner.role.name !== 'maker'
+    // if (!partner.role|| partner.role.name !== 'maker'
     // ) {
     //   console.log("partner",partner);
     //   throw new UnauthorizedException('Partner does not have the maker role');
@@ -171,109 +186,173 @@ export class OrdersService {
 
     // Check if the api-key matches the partner's api_key
     if (!partner.api_key || partner.api_key !== apiKey) {
-      throw new UnauthorizedException('Invalid API key for this partner');
+      throw new UnauthorizedException("Invalid API key for this partner");
     }
   }
 
-  async findOne(span: opentracing.Span, orderId: string): Promise<Order> {
-    const childSpan = span
-      .tracer()
-      .startSpan('find-one-order', { childOf: span });
+async findOne(span: opentracing.Span, orderId: string): Promise<Order> {
+  const childSpan = span.tracer().startSpan("find-one-order", { childOf: span });
 
-    try {
-      const order = await this.orderRepository.findOne({
-        where: { partner_order_id: orderId },
-      });
+  try {
+    const order = await this.orderRepository.findOne({
+      where: { partner_order_id: orderId },
+    });
 
-      if (!order) {
-        throw new NotFoundException(`Order with ID ${orderId} not found`);
-      }
-      // Add the count of regenerated video KYC links and e-sign links
-      const regeneratedVkycCount = order.is_video_kyc_link_regenerated_details
-        ? order.is_video_kyc_link_regenerated_details.length
-        : 0;
-      const regeneratedEsignCount = order.is_esign_regenerated ? 1 : 0;
-
-      // Create a new object excluding the 'is_video_kyc_link_regenerated_details' field
-      const { is_video_kyc_link_regenerated_details, ...orderWithoutVideoKyc } =
-        order;
-
-      // Return the order with the regenerated counts
-      return {
-        ...(orderWithoutVideoKyc as any), // Type assertion to 'any' to avoid TypeScript errors
-        regenerated_v_kyc_count: regeneratedVkycCount,
-        regenerated_e_sign_count: regeneratedEsignCount,
-      };
-    } catch (error) {
-      childSpan.log({ event: 'error', message: error.message });
-      throw error;
-    } finally {
-      childSpan.finish();
+    if (!order) {
+      throw new NotFoundException(`Order with ID ${orderId} not found`);
     }
+// Add the count of regenerated video KYC links and e-sign links
+const regeneratedVkycCount = order.is_video_kyc_link_regenerated_details
+? order.is_video_kyc_link_regenerated_details.length
+: 0;
+const regeneratedEsignCount = order.is_esign_regenerated ? 1 : 0;
+
+
+  // Create a new object excluding the 'is_video_kyc_link_regenerated_details' field
+  const { is_video_kyc_link_regenerated_details, ...orderWithoutVideoKyc } = order;
+
+  // Return the order with the regenerated counts
+  return {
+    ...(orderWithoutVideoKyc as any), // Type assertion to 'any' to avoid TypeScript errors
+    regenerated_v_kyc_count: regeneratedVkycCount,
+    regenerated_e_sign_count: regeneratedEsignCount,
+  };
+  } catch (error) {
+    childSpan.log({ event: "error", message: error.message });
+    throw error;
+  } finally {
+    childSpan.finish();
   }
+}
 
-  async findOneByOrderId(
-    span: opentracing.Span,
-    orderId: string,
-  ): Promise<FilteredOrder> {
-    const childSpan = span
-      .tracer()
-      .startSpan('find-one-order', { childOf: span });
 
-    try {
-      const order = await this.orderRepository.findOne({
-        where: { partner_order_id: orderId },
-      });
 
-      if (!order) {
-        throw new NotFoundException(`Order with ID ${orderId} not found`);
-      }
+async findOneByOrderId(span: opentracing.Span, orderId: string): Promise<FilteredOrder> {
+  const childSpan = span.tracer().startSpan("find-one-order", { childOf: span });
 
-      // Add the count of regenerated video KYC links and e-sign links
-      const regeneratedVkycCount = order.is_video_kyc_link_regenerated_details
-        ? order.is_video_kyc_link_regenerated_details.length
-        : 0;
-      const regeneratedEsignCount = order.is_esign_regenerated ? 1 : 0;
+  try {
+    const order = await this.orderRepository.findOne({
+      where: { partner_order_id: orderId },
+      include: [
+        { association: "esigns" },
+        { association: "vkycs" },  
+      ],
+    });
 
-      // Create a new object excluding unnecessary fields
-      const {
-        is_video_kyc_link_regenerated_details,
-        ...orderWithoutUnwantedFields
-      } = order;
-
-      // Create the final result object based on the specified fields
-      const result: FilteredOrder = {
-        partner_order_id: order.partner_order_id,
-        // nium_forex_order_id: order.nium_forex_order_id,
-        order_status: order.order_status,
-        e_sign_status: order.e_sign_status,
-        e_sign_link_status: order.e_sign_link_status,
-        e_sign_link_expires: order.e_sign_link_expires,
-        e_sign_completed_by_customer: order.e_sign_completed_by_customer,
-        e_sign_customer_completion_date: order.e_sign_customer_completion_date,
-        e_sign_doc_comments: order.e_sign_doc_comments,
-        // is_e_sign_regenerated: order.is_e_sign_regenerated,
-        e_sign_regenerated_count: regeneratedEsignCount,
-        v_kyc_link_status: order.v_kyc_link_status,
-        v_kyc_link_expires: order.v_kyc_link_expires,
-        v_kyc_completed_by_customer: order.v_kyc_completed_by_customer,
-        v_kyc_customer_completion_date: order.v_kyc_customer_completion_date,
-        v_kyc_comments: order.v_kyc_comments,
-        v_kyc_status: order.v_kyc_status,
-        // is_v_kyc_link_regenerated: order.is_v_kyc_link_regenerated,
-        v_kyc_regenerated_count: regeneratedVkycCount,
-      };
-
-      // Return the filtered order object with counts
-      return result;
-    } catch (error) {
-      //   childSpan.log({ event: "error", message: error.message });
-      //   throw error;
-    } finally {
-      childSpan.finish();
+    if (!order) {
+      throw new NotFoundException(`Order with ID ${orderId} not found`);
     }
-  }
 
+    // Determine the latest eSign attempt (highest attempt_number)
+    const latestEsign = order.esigns?.sort((a, b) => b.attempt_number - a.attempt_number)?.[0] || null;
+
+    // Determine the latest vKYC attempt (highest attempt_number)
+    const latestVkyc = order.vkycs?.sort((a, b) => b.attempt_number - a.attempt_number)?.[0] || null;
+
+    const regeneratedVkycCount = order.is_video_kyc_link_regenerated_details
+      ? order.is_video_kyc_link_regenerated_details.length
+      : 0;
+    const regeneratedEsignCount = order.esigns?.length || 0;
+
+    const result: FilteredOrder = {
+      partner_order_id: order.partner_order_id,
+      nium_order_id: order.nium_order_id,
+      order_status: order.order_status,
+      is_esign_required: order.is_esign_required,
+      is_v_kyc_required: order.is_v_kyc_required,
+      // eSign details
+      e_sign_status: latestEsign?.status || order.e_sign_status,
+      e_sign_link: latestEsign?.esign_details?.[0]?.esign_url || order.e_sign_link,
+      e_sign_link_status: latestEsign?.esign_details?.[0]?.url_status ? "active" : "inactive",
+      e_sign_link_expires: latestEsign?.esign_details?.[0]?.esign_expiry || order.e_sign_link_expires,
+      e_sign_completed_by_customer: order.e_sign_completed_by_customer,
+      e_sign_customer_completion_date: order.e_sign_customer_completion_date,
+      e_sign_doc_comments: order.e_sign_doc_comments,
+      is_e_sign_regenerated: regeneratedEsignCount > 1,
+      e_sign_regenerated_count: regeneratedEsignCount,
+      // vKYC details
+      v_kyc_status: latestVkyc?.status || order.v_kyc_status,
+      v_kyc_link: latestVkyc?.v_kyc_link || order.v_kyc_link,
+      v_kyc_link_status: latestVkyc?.v_kyc_link_status || order.v_kyc_link_status,
+      v_kyc_link_expires: latestVkyc?.v_kyc_link_expires || order.v_kyc_link_expires,
+      v_kyc_completed_by_customer: order.v_kyc_completed_by_customer,
+      v_kyc_customer_completion_date: order.v_kyc_customer_completion_date,
+      v_kyc_comments: order.v_kyc_comments,
+      is_v_kyc_link_regenerated: order.is_video_kyc_link_regenerated,
+      v_kyc_regenerated_count: regeneratedVkycCount,
+    };
+    
+    return result;
+  } catch (error) {
+    throw error;
+  } finally {
+    childSpan.finish();
+  }
+}
+
+// async findOneByOrderId(span: opentracing.Span, orderId: string): Promise<FilteredOrder> {
+//   const childSpan = span.tracer().startSpan("find-one-order", { childOf: span });
+
+//   try {
+//     const order = await this.orderRepository.findOne({
+//       where: { partner_order_id: orderId },
+//     });
+
+//     if (!order) {
+//       throw new NotFoundException(`Order with ID ${orderId} not found`);
+//     }
+
+//     // Add the count of regenerated video KYC links and e-sign links
+//     const regeneratedVkycCount = order.is_video_kyc_link_regenerated_details
+//       ? order.is_video_kyc_link_regenerated_details.length
+//       : 0;
+//     const regeneratedEsignCount = order.is_esign_regenerated ? 1 : 0;
+
+//     // Create a new object excluding unnecessary fields
+//     const {
+//       is_video_kyc_link_regenerated_details,
+//       ...orderWithoutUnwantedFields
+//     } = order;
+
+//     // Create the final result object based on the specified fields
+//     const result: FilteredOrder = {
+//       partner_order_id: order.partner_order_id,
+//       nium_order_id: order.nium_order_id,
+//       order_status: order.order_status,
+//       is_esign_required: order.is_esign_required,
+//       is_v_kyc_required: order.is_v_kyc_required,
+//       e_sign_status: order.e_sign_status,
+//       e_sign_link_status: order.e_sign_link_status,
+//       e_sign_link_expires: order.e_sign_link_expires,
+//       e_sign_completed_by_customer: order.e_sign_completed_by_customer,
+//       e_sign_customer_completion_date: order.e_sign_customer_completion_date,
+//       e_sign_doc_comments: order.e_sign_doc_comments,
+//       is_e_sign_regenerated: order.is_esign_regenerated,
+//       e_sign_regenerated_count: regeneratedEsignCount,
+//       v_kyc_link_status: order.v_kyc_link_status,
+//       v_kyc_link_expires: order.v_kyc_link_expires,
+//       v_kyc_completed_by_customer: order.v_kyc_completed_by_customer,
+//       v_kyc_customer_completion_date: order.v_kyc_customer_completion_date,
+//       v_kyc_comments: order.v_kyc_comments,
+//       v_kyc_status: order.v_kyc_status,
+//       is_v_kyc_link_regenerated: order.is_video_kyc_link_regenerated,
+//       v_kyc_regenerated_count: regeneratedVkycCount,
+//     };
+
+//     // Return the filtered order object with counts
+//     return result;
+//   }
+
+  
+//  catch (error) {
+//   //   childSpan.log({ event: "error", message: error.message });
+//   //   throw error;
+//   } finally {
+//     childSpan.finish();
+//   }
+// }
+
+  
   // async updateOrder(
   //   span: opentracing.Span,
   //   orderId: string,
@@ -330,43 +409,33 @@ export class OrdersService {
           updateOrderDto.v_kyc_reference_id || order.v_kyc_reference_id, // Ensure we only update if reference_id is provided
       });
 
-      // Check the conditions and set order_status to "completed" or "pending"
-      order.order_status =
-        (order.is_esign_required &&
-          order.is_v_kyc_required &&
-          order.e_sign_status === 'completed' &&
-          order.v_kyc_status === 'completed') ||
-        (!order.is_esign_required &&
-          order.is_v_kyc_required &&
-          !order.e_sign_status &&
-          order.v_kyc_status === 'completed') ||
-        (order.is_esign_required &&
-          !order.is_v_kyc_required &&
-          order.e_sign_status === 'completed' &&
-          !order.v_kyc_status) ||
-        (!order.is_esign_required &&
-          order.is_v_kyc_required &&
-          !order.e_sign_status &&
-          order.v_kyc_status === 'completed')
-          ? 'completed'
-          : 'pending'; // If any of the conditions is true, set to "completed", else "pending"
+     // Check the conditions and set order_status to "completed" or "pending"
+order.order_status = (
+  (order.is_esign_required && order.is_v_kyc_required && order.e_sign_status === "completed" && order.v_kyc_status === "completed") ||
+  (!order.is_esign_required && order.is_v_kyc_required && !order.e_sign_status && order.v_kyc_status === "completed") ||
+  (order.is_esign_required && !order.is_v_kyc_required && order.e_sign_status === "completed" && !order.v_kyc_status) ||
+  (!order.is_esign_required && order.is_v_kyc_required && !order.e_sign_status && order.v_kyc_status === "completed")
+) ? "completed" : "pending";  // If any of the conditions is true, set to "completed", else "pending"
+
 
       // Save the updated order
 
       await order.save();
       return order;
     } catch (error) {
-      childSpan.log({ event: 'error', message: error.message });
+      childSpan.log({ event: "error", message: error.message });
       throw error;
     } finally {
       childSpan.finish();
     }
   }
 
+
   async deleteOrder(span: opentracing.Span, orderId: string): Promise<void> {
     const childSpan = span
       .tracer()
-      .startSpan('delete-order', { childOf: span });
+      .startSpan("delete-order", { childOf: span });
+
 
     try {
       const order = await this.orderRepository.findOne({
@@ -378,7 +447,7 @@ export class OrdersService {
 
       await order.destroy();
     } catch (error) {
-      childSpan.log({ event: 'error', message: error.message });
+      childSpan.log({ event: "error", message: error.message });
       throw error;
     } finally {
       childSpan.finish();

@@ -2,6 +2,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 import {
+  IsNotEmpty,
   IsString,
   IsBoolean,
   IsEmail,
@@ -13,7 +14,6 @@ import {
   Matches,
   IsPhoneNumber,
   IsIn,
-  IsNotEmpty,
 } from 'class-validator';
 
 export class CreateOrderDto {
@@ -22,6 +22,7 @@ export class CreateOrderDto {
     description: 'Partner Order ID',
     example: 'BMFORDERID4321',
   })
+  @IsNotEmpty()
   @IsString()
   partner_order_id: string;
 
@@ -31,8 +32,10 @@ export class CreateOrderDto {
     description: 'Transaction Type ID',
     example: 'a8712d83154b960b9d3803d30b1112cam84dhj1k',
   })
-  @IsUUID()
-  @IsOptional()
+  @IsNotEmpty()
+  @IsString()
+  // @IsUUID()
+  // @IsOptional()
   transaction_type_id: string;
 
   @ApiProperty({
@@ -41,8 +44,10 @@ export class CreateOrderDto {
     description: 'Purpose Type ID',
     example: '378dcac6a3a4c406cc11e112b91a99e8m84dbjsa',
   })
-  @IsUUID()
-  @IsOptional()
+  @IsNotEmpty()
+  @IsString()
+  // @IsUUID()
+  // @IsOptional()
   purpose_type_id: string;
 
   @ApiProperty({
@@ -51,24 +56,22 @@ export class CreateOrderDto {
     description: 'Indicates if e-signature is required',
     example: true,
   })
+  @IsNotEmpty()
   @IsBoolean()
   is_e_sign_required: boolean;
 
   @ApiProperty({
     type: Boolean,
-
-    description: 'Indicates if V-KYC is required',
-    example: true,
-  })
   @IsBoolean()
   is_v_kyc_required: boolean;
 
   @ApiProperty({
     type: String,
-
     description: 'Customer Name',
+
     example: 'John Doe',
   })
+  @IsNotEmpty()
   @IsString()
   customer_name: string;
 
@@ -78,89 +81,32 @@ export class CreateOrderDto {
     description: 'Customer Email',
     example: 'john@gmail.com',
   })
+  @IsNotEmpty()
   @IsEmail()
   customer_email: string;
 
   @ApiProperty({
     type: String,
     description: 'Customer Phone',
+
     example: '9912345678',
   })
+  @IsNotEmpty()
   @IsPhoneNumber('IN')
   customer_phone: string;
 
   @ApiProperty({
     type: String,
     description: 'Customer PAN',
+
     example: 'ACTPAN123',
   })
+  @IsNotEmpty()
   @Matches(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, {
     message: 'Invalid PAN format',
   })
   customer_pan: string;
-}
 
-export class CreateOrderDto2 {
-  @ApiProperty({
-    type: String,
-
-    description: 'Order ID',
-    uniqueItems: true,
-    example: 'BMFORDERID001',
-  })
-  @IsString()
-  order_id: string;
-
-  @ApiProperty({
-    type: Boolean,
-    description: 'Indicates if e-signature is required',
-    example: true,
-  })
-  @IsBoolean()
-  is_e_sign_required: boolean;
-
-  @ApiProperty({
-    type: Boolean,
-    description: 'Indicates if V-KYC is required',
-    example: false,
-  })
-  @IsBoolean()
-  is_v_kyc_required: boolean;
-
-  @ApiProperty({
-    type: String,
-    description: 'Customer Name',
-    example: 'Mohammed Tayibulla',
-  })
-  @IsString()
-  customer_name: string;
-
-  @ApiProperty({
-    type: String,
-
-    description: 'Customer Email',
-    example: 'mohammed@dataseedtech.com',
-  })
-  @IsEmail()
-  customer_email: string;
-
-  @ApiProperty({
-    type: String,
-    description: 'Customer Phone',
-    example: '8550895486',
-  })
-  @IsPhoneNumber('IN')
-  customer_phone: string;
-
-  @ApiProperty({
-    type: String,
-    description: 'Customer PAN',
-    example: 'DAIPT0727K',
-  })
-  @Matches(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, {
-    message: 'Invalid PAN format',
-  })
-  customer_pan: string;
 
   @ApiProperty({
     type: String,
@@ -233,6 +179,7 @@ export class CreateOrderDto2 {
     isDocBackImage?: boolean;
     isUploaded?: boolean;
   }[];
+
 }
 
 export class UpdateOrderDto {
@@ -301,6 +248,7 @@ export class UpdateOrderDto {
   @IsOptional()
   e_sign_link_doc_id?: string;
   @ApiProperty({ example: '2025-03-30T12:00:00.000Z' })
+
   @IsDateString()
   @IsOptional()
   e_sign_link_expires?: string;
@@ -343,6 +291,7 @@ export class UpdateOrderDto {
   v_kyc_link_status?: string;
   @ApiProperty({ example: '2025-03-30T12:00:00.000Z' })
   @IsDateString()
+
   @IsOptional()
   v_kyc_link_expires?: string;
   @ApiProperty({ example: false })
@@ -529,6 +478,7 @@ export class UnassignCheckerDto {
   checkerId: string;
 }
 
+
 export class GetCheckerOrdersDto {
   @ApiProperty({
     type: String,
@@ -582,4 +532,5 @@ export class UpdateOrderDetailsDto {
   @IsBoolean()
   @IsOptional()
   incident_status: boolean;
+
 }

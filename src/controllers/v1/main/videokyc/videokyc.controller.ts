@@ -9,6 +9,7 @@ import {
   Headers,
   HttpException,
   HttpStatus,
+  ValidationPipe
 } from "@nestjs/common";
 import { VideokycService } from "../../../../services/v1/videokyc/videokyc.service";
 import {
@@ -29,12 +30,7 @@ export class VideokycController {
 
   @Post("generate-v-kyc")
   @ApiOperation({ summary: "Send an v-kyc request to IDfy" })
-  @ApiHeader({
-    name: "X-API-Key",
-    description: "Authentication token - 67163d36-d269-11ef-b1ca-feecce57f827",
-    required: true,
-    example: "67163d36-d269-11ef-b1ca-feecce57f827",
-  })
+  
   @ApiBody({
     schema: {
       properties: {
@@ -62,21 +58,18 @@ export class VideokycController {
     description: "Internal server error",
   })
   async generateVkyc(
-    @Headers("X-API-Key") token: string,
-
-    @Body("partner_order_id") partner_order_id: string
-  ) {
+     @Headers("partner-hashed-id") partnerId: string,
+            @Headers("api-key") apiKey: string,
+            @Body("partner_order_id", new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))  partner_order_id: string
+        ) {
     try {
-      if (!token) {
+      if (!partner_order_id) {
         throw new HttpException(
-          "X-API-Key header is required",
-          HttpStatus.UNAUTHORIZED
+          "Missing required partner_order_id in request data",
+          HttpStatus.BAD_REQUEST
         );
       }
-
-      // Extract just the reference_id from the DTO
       const result = await this.videokycService.sendVideokycRequest(
-        token,
         partner_order_id
       );
       return {
@@ -161,8 +154,7 @@ export class VideokycController {
 
       // Extract just the reference_id from the DTO
       const result = await this.videokycService.sendVideokycRequest(
-        token,
-        requestData.reference_id
+         requestData.reference_id
       );
       return {
         success: true,
