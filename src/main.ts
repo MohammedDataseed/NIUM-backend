@@ -123,9 +123,7 @@ async function bootstrap() {
     .setTitle(`InstaReM ${process.env.SERVICE_NAME}`)
     .setDescription(process.env.SERVICE_NAME)
     .setVersion("1.0")
-    // .addServer("http://localhost:3002", "Local") // ✅ Local server
-    // .addServer("https://nium.thestorywallcafe.com", "Production") // ✅ Production server
-    .addBearerAuth(
+     .addBearerAuth(
       {
         type: "http",
         scheme: "bearer",
@@ -136,12 +134,7 @@ async function bootstrap() {
     .build();
   const document = SwaggerModule.createDocument(app, options);
   // SwaggerModule.setup("v1/api-docs", app, document);
-  SwaggerModule.setup("v1/api-docs", app, document, {
-    swaggerOptions: {
-      deepLinking: true, // ✅ Enables deep linking
-      filter: true, // ✅ Enables search for controllers & endpoints
-    },
-  });
+  SwaggerModule.setup("v1/api-docs", app, document);
 
   const port = config.get<number>("PORT") || 3002; // Default to 3002 if undefined
 
