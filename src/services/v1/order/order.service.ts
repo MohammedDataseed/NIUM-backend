@@ -9,7 +9,7 @@ import {
 
 } from "@nestjs/common";
 import { Order } from "../../../database/models/order.model";
-import { CreateOrderDto, UpdateOrderDto } from "../../../dto/order.dto";
+import { CreateOrderDto, UpdateOrderDto,UpdateCheckerDto,UnassignCheckerDto } from "../../../dto/order.dto";
 import * as opentracing from "opentracing";
 import { User } from "../../../database/models/user.model";
 import { ESign } from "src/database/models/esign.model";
@@ -256,36 +256,32 @@ async findOneByOrderId(span: opentracing.Span, orderId: string): Promise<Filtere
 
     // Return the filtered order object with counts
     return result;
+  }
 
-
-  // READ: Fetch a single order by order_id
-  async findOne(span: opentracing.Span, orderId: string): Promise<Order> {
-    const childSpan = span
-      .tracer()
-      .startSpan('find-one-order', { childOf: span });
-  } catch (error) {
-    childSpan.log({ event: "error", message: error.message });
-    throw error;
+  
+ catch (error) {
+  //   childSpan.log({ event: "error", message: error.message });
+  //   throw error;
   } finally {
     childSpan.finish();
   }
 }
 
   
-  async updateOrder(
-    span: opentracing.Span,
-    orderId: string,
-    updateOrderDto: Partial<UpdateOrderDto>
-  ): Promise<Order> {
-    const childSpan = span
-      .tracer()
-      .startSpan("update-order", { childOf: span });
-    try {
-      const order = await this.orderRepository.findOne({
-        where: { partner_order_id: orderId },
-      });
-      if (!order)
-        throw new NotFoundException(`Order with ID ${orderId} not found`);
+  // async updateOrder(
+  //   span: opentracing.Span,
+  //   orderId: string,
+  //   updateOrderDto: Partial<UpdateOrderDto>
+  // ): Promise<Order> {
+  //   const childSpan = span
+  //     .tracer()
+  //     .startSpan("update-order", { childOf: span });
+  //   try {
+  //     const order = await this.orderRepository.findOne({
+  //       where: { partner_order_id: orderId },
+  //     });
+  //     if (!order)
+  //       throw new NotFoundException(`Order with ID ${orderId} not found`);
 
   //UPDATE: Update an existing order by order_id
   async updateOrder(

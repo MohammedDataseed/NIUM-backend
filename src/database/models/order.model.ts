@@ -149,6 +149,31 @@ export class Order extends Model<Order> {
   @Optional()
   v_kyc_comments: string;
 
+  // Incident 
+  @Column({ type: DataType.BOOLEAN, allowNull: true })
+  @Optional()
+  incident_status: boolean;
+
+  @Column({ type: DataType.STRING, allowNull: true })
+  @Optional()
+  incident_checker_comments: string;
+
+  @Column({ type: DataType.STRING, allowNull: true })
+  @Optional()
+  nium_order_id: string;
+
+  @Column({ type: DataType.STRING, allowNull: true })
+  @Optional()
+  nium_invoice_number: string;
+
+  @Column({ type: DataType.DATE, allowNull: true })
+  @Optional()
+  date_of_departure: Date;
+
+  @Column({ type: DataType.DATE, allowNull: true })
+  @Optional()
+  incident_completion_date: Date;
+
   // E-Sign Regeneration
   @Column({ type: DataType.BOOLEAN, allowNull: true, defaultValue: false })
   @Optional()
@@ -204,9 +229,9 @@ export class Order extends Model<Order> {
   @HasMany(() => ESign, { foreignKey: "order_id", sourceKey: "id" })
   esigns: ESign[];
 
-    // Corrected Relationship (One Order -> Many ESigns)
-    @HasMany(() => Vkyc, { foreignKey: "order_id", sourceKey: "id" })
-    vkycs: Vkyc[];
+  // Corrected Relationship (One Order -> Many ESigns)
+  @HasMany(() => Vkyc, { foreignKey: "order_id", sourceKey: "id" })
+  vkycs: Vkyc[];
 
   /** Generate `hashed_key` before creation */
   @BeforeCreate

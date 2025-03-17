@@ -13,7 +13,7 @@ import {
 
 } from "@nestjs/common";
 import { OrdersService } from "../../../services/v1/order/order.service";
-import { CreateOrderDto, UpdateOrderDto } from "../../../dto/order.dto";
+import { CreateOrderDto, UpdateOrderDto,UpdateCheckerDto,UnassignCheckerDto } from "../../../dto/order.dto";
 import { ApiTags, ApiResponse, ApiHeader } from "@nestjs/swagger";
 import * as opentracing from "opentracing";
 
