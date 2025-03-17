@@ -10,7 +10,6 @@ import {
   Headers,
   BadRequestException,
   ValidationPipe,
-
 } from '@nestjs/common';
 import { OrdersService } from '../../../services/v1/order/order.service';
 import {
@@ -21,7 +20,6 @@ import {
   GetCheckerOrdersDto,
   UpdateOrderDetailsDto,
 } from '../../../dto/order.dto';
-// import { CreateOrderDto, UpdateOrderDto,UpdateCheckerDto,UnassignCheckerDto } from '../../../dto/order.dto';
 import { ApiTags, ApiResponse, ApiHeader } from '@nestjs/swagger';
 import * as opentracing from 'opentracing';
 
@@ -31,6 +29,7 @@ export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
   @Post()
   async createOrder(
+
     @Headers('partner-hashed-id') partnerId: string,
     @Headers('api-key') apiKey: string,
     @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true })) createOrderDto: CreateOrderDto
@@ -59,10 +58,9 @@ export class OrdersController {
   @Put(':orderId')
   @ApiResponse({ status: 200, description: 'Order updated successfully' })
   async updateOrder(
-
     @Param('orderId') orderId: string,
     @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
-    updateOrderDto: UpdateOrderDto
+    updateOrderDto: UpdateOrderDto,
   ) {
     const span = opentracing
       .globalTracer()
