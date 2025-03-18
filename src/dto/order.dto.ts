@@ -28,37 +28,24 @@ export class CreateOrderDto {
 
   @ApiProperty({
     type: String,
-
     description: 'Transaction Type ID',
     example: 'a8712d83154b960b9d3803d30b1112cam84dhj1k',
   })
   @IsNotEmpty()
   @IsString()
-  // @IsUUID()
-  // @IsOptional()
   transaction_type_id: string;
 
-  @ApiProperty({
-    type: String,
 
-    description: 'Purpose Type ID',
-    example: '378dcac6a3a4c406cc11e112b91a99e8m84dbjsa',
-  })
-  @IsNotEmpty()
-  @IsString()
-  // @IsUUID()
-  // @IsOptional()
-  purpose_type_id: string;
 
   @ApiProperty({
     type: Boolean,
-
     description: 'Indicates if e-signature is required',
     example: true,
   })
   @IsNotEmpty()
   @IsBoolean()
   is_e_sign_required: boolean;
+
 
   @ApiProperty({
     type: Boolean,
@@ -68,8 +55,16 @@ export class CreateOrderDto {
 
   @ApiProperty({
     type: String,
+    description: 'Purpose Type ID',
+    example: '378dcac6a3a4c406cc11e112b91a99e8m84dbjsa',
+  })
+  @IsNotEmpty()
+  @IsString()
+  purpose_type_id: string;
+  
+  @ApiProperty({
+    type: String,
     description: 'Customer Name',
-
     example: 'John Doe',
   })
   @IsNotEmpty()
@@ -78,7 +73,6 @@ export class CreateOrderDto {
 
   @ApiProperty({
     type: String,
-
     description: 'Customer Email',
     example: 'john@gmail.com',
   })
@@ -89,7 +83,6 @@ export class CreateOrderDto {
   @ApiProperty({
     type: String,
     description: 'Customer Phone',
-
     example: '9912345678',
   })
   @IsNotEmpty()
@@ -99,7 +92,6 @@ export class CreateOrderDto {
   @ApiProperty({
     type: String,
     description: 'Customer PAN',
-
     example: 'ACTPAN123',
   })
   @IsNotEmpty()
@@ -109,77 +101,77 @@ export class CreateOrderDto {
   customer_pan: string;
 
 
-  @ApiProperty({
-    type: String,
-    description: 'Created By (Partner ID)',
-    example: '00eb04d0-646c-41d5-a69e-197b2b504f01',
-    required: true,
-  })
-  @IsUUID()
-  created_by: string;
+  // @ApiProperty({
+  //   type: String,
+  //   description: 'Created By (Partner ID)',
+  //   example: '00eb04d0-646c-41d5-a69e-197b2b504f01',
+  //   required: true,
+  // })
+  // @IsUUID()
+  // created_by: string;
 
-  @ApiProperty({
-    type: String,
-    description: 'Updated By (Partner ID)',
-    example: '00eb04d0-646c-41d5-a69e-197b2b504f01',
-    required: true,
-  })
-  @IsUUID()
-  updated_by: string;
+  // @ApiProperty({
+  //   type: String,
+  //   description: 'Updated By (Partner ID)',
+  //   example: '00eb04d0-646c-41d5-a69e-197b2b504f01',
+  //   required: true,
+  // })
+  // @IsUUID()
+  // updated_by: string;
 
-  @ApiProperty({
-    type: String,
-    description: 'Checker ID (User ID)',
-    example: '49592f43-c59f-4084-bf3a-79a7ba6f182e',
-    required: true,
-  })
-  @IsUUID()
-  @IsOptional()
-  checker_id: string;
+  // @ApiProperty({
+  //   type: String,
+  //   description: 'Checker ID (User ID)',
+  //   example: '49592f43-c59f-4084-bf3a-79a7ba6f182e',
+  //   required: true,
+  // })
+  // @IsUUID()
+  // @IsOptional()
+  // checker_id: string;
 
-  @ApiProperty({
-    type: Object,
-    description: 'Merged document details',
-    required: false,
-    example: {
-      url: 'http://example.com/merged.pdf',
-      mimeType: 'application/pdf',
-      size: 1024,
-    },
-  })
-  @IsOptional()
-  @IsObject()
-  merged_document?: {
-    url: string;
-    mimeType?: string;
-    size?: number;
-    createdAt?: string;
-    documentIds?: string[];
-  };
+  // @ApiProperty({
+  //   type: Object,
+  //   description: 'Merged document details',
+  //   required: false,
+  //   example: {
+  //     url: 'http://example.com/merged.pdf',
+  //     mimeType: 'application/pdf',
+  //     size: 1024,
+  //   },
+  // })
+  // @IsOptional()
+  // @IsObject()
+  // merged_document?: {
+  //   url: string;
+  //   mimeType?: string;
+  //   size?: number;
+  //   createdAt?: string;
+  //   documentIds?: string[];
+  // };
 
-  @ApiProperty({
-    type: [Object],
-    description: 'Array of documents associated with the order',
-    required: false,
-  })
-  @IsOptional()
-  @IsArray()
-  documents?: {
-    purposeId: string;
-    document_type_id: string;
-    documentName: string;
-    documentUrl: {
-      url: string;
-      mimeType?: string;
-      size?: number;
-      uploadedAt?: string;
-    };
-    status?: 'pending' | 'approved' | 'rejected';
-    documentExpiry?: string;
-    isDocFrontImage?: boolean;
-    isDocBackImage?: boolean;
-    isUploaded?: boolean;
-  }[];
+  // @ApiProperty({
+  //   type: [Object],
+  //   description: 'Array of documents associated with the order',
+  //   required: false,
+  // })
+  // @IsOptional()
+  // @IsArray()
+  // documents?: {
+  //   purposeId: string;
+  //   document_type_id: string;
+  //   documentName: string;
+  //   documentUrl: {
+  //     url: string;
+  //     mimeType?: string;
+  //     size?: number;
+  //     uploadedAt?: string;
+  //   };
+  //   status?: 'pending' | 'approved' | 'rejected';
+  //   documentExpiry?: string;
+  //   isDocFrontImage?: boolean;
+  //   isDocBackImage?: boolean;
+  //   isUploaded?: boolean;
+  // }[];
 
 }
 

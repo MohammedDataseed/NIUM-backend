@@ -23,6 +23,9 @@ import { User } from "../../../database/models/user.model";
 import { ESign } from "src/database/models/esign.model";
 import { Vkyc } from "src/database/models/vkyc.model";
 import { Partner } from "../../../database/models/partner.model";
+import { Purpose } from "src/database/models/purpose.model";
+import { transaction_type } from "src/database/models/transaction_type.model";
+
 import { WhereOptions,Op } from "sequelize";
 
 // Define a new interface for the filtered order data
@@ -61,6 +64,10 @@ export class OrdersService {
     private readonly partnerRepository: typeof Partner,
     @Inject("USER_REPOSITORY")
     private readonly userRepository: typeof User,
+    @Inject("PURPOSE_REPOSITORY") // Change to Partner repository
+    private readonly purposeTypeRepository: typeof Purpose,
+    @Inject("TRANSACTION_TYPE_REPOSITORY")
+    private readonly transactionTypeRepository: typeof transaction_type,
     // @Inject("E_SIGN_REPOSITORY")
     // private readonly esignRepository: typeof ESign,
     // @Inject("V_KYC_REPOSITORY")
@@ -73,7 +80,7 @@ export class OrdersService {
     span: opentracing.Span,
     createOrderDto: CreateOrderDto,
     partnerId: string
-  ): Promise<Order> {
+  ): Promise<{ message: string; partner_order_id: string; nium_forex_order_id: string }> {
     const childSpan = span
       .tracer()
       .startSpan("create-order", { childOf: span });
@@ -103,6 +110,27 @@ export class OrdersService {
         throw new BadRequestException("Invalid partner ID");
       }
 
+      // Validate purpose_type_id exists and is active
+    const purposeType = await this.purposeTypeRepository.findOne({
+      where: { hashed_key: createOrderDto.purpose_type_id, isActive: true },
+    });
+    if (!purposeType) {
+      throw new BadRequestException("Invalid or inactive purpose_type_id");
+    }
+
+    // Validate transaction_type_id exists and is active
+    const transactionType = await this.transactionTypeRepository.findOne({
+      where: { hashed_key: createOrderDto.transaction_type_id, isActive: true },
+    });
+    if (!transactionType) {
+      throw new BadRequestException("Invalid or inactive transaction_type_id");
+    }
+
+
+      // Generate a unique nium_order_id
+    const niumOrderId = `NIUMF${Math.floor(100000 + Math.random() * 900000)}`; // Example: NIUMF789012
+
+
       const orderData = {
         partner_id: partner?.id,
         partner_order_id: createOrderDto.partner_order_id,
@@ -114,6 +142,7 @@ export class OrdersService {
         customer_email: createOrderDto.customer_email,
         customer_phone: createOrderDto.customer_phone,
         customer_pan: createOrderDto.customer_pan,
+        nium_order_id: niumOrderId, // Assigning the generated nium_order_id
         order_status: "pending", // Default value
         e_sign_status: "not generated", // Default value
         v_kyc_status: "not generated", // Default value
@@ -123,7 +152,13 @@ export class OrdersService {
 
       console.log("orderData:", JSON.stringify(orderData, null, 2));
       const order = await this.orderRepository.create(orderData);
-      return order;
+      // Return structured response
+    return {
+      message: "Order created successfully",
+      partner_order_id: order.partner_order_id,
+      nium_forex_order_id: order.nium_order_id, // Return generated nium_order_id
+    };
+      // return order;
     } catch (error) {
       childSpan.log({ event: "error", message: error.message });
       throw error;

@@ -27,27 +27,23 @@ import * as opentracing from 'opentracing';
 @Controller('orders')
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
-  @Post()
+  @Post('generate-order')
   async createOrder(
 
-    @Headers('partner-hashed-id') partnerId: string,
-    @Headers('api-key') apiKey: string,
+    @Headers('api_key') api_key: string,
+    @Headers('partner_id') partner_id: string,
     @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true })) createOrderDto: CreateOrderDto
   ) {
     const tracer = opentracing.globalTracer();
     const span = tracer.startSpan('create-order-controller');
     try {
-      await this.ordersService.validatePartnerHeaders(partnerId, apiKey);
+      await this.ordersService.validatePartnerHeaders(partner_id, api_key);
       const order = await this.ordersService.createOrder(
         span,
         createOrderDto,
-        partnerId,
+        partner_id,
       );
-      return {
-        success: true,
-        message:'order created successfully',
-        data: order,
-      };
+      return order;
     } catch (error) {
       throw error;
     } finally {
