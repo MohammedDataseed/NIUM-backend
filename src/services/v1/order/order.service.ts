@@ -166,31 +166,51 @@ export class OrdersService {
       childSpan.finish();
     }
   }
+
+  // async findAll(
+  //   span: opentracing.Span,
+  //   filters: WhereOptions<Order> = {}
+  // ): Promise<Order[] | null> {
+  //   const childSpan = span.tracer().startSpan("find-all-orders", { childOf: span });
   
+  //   try {
+  //     const orders = await this.orderRepository.findAll({
+  //       where: filters,
+  //       include: [
+  //         { model: ESign, as: "esigns" },
+  //         { model: Vkyc, as: "vkycs" }
+  //       ],
+  //     });
+  
+  //     return orders.length > 0 ? orders : [];
+  //   } catch (error) {
+  //     childSpan.log({ event: "error", message: error.message });
+  //     throw error;
+  //   } finally {
+  //     childSpan.finish();
+  //   }
+  // }
+
+
   async findAll(
     span: opentracing.Span,
-    filters: WhereOptions<Order> = {}
   ): Promise<Order[] | null> {
-    const childSpan = span.tracer().startSpan("find-all-orders", { childOf: span });
+    const childSpan = span.tracer().startSpan('find-all-orders', { childOf: span });
   
     try {
+     
       const orders = await this.orderRepository.findAll({
-        where: filters,
-        include: [
-          { model: ESign, as: "esigns" },
-          { model: Vkyc, as: "vkycs" }
-        ],
+       
       });
   
-      return orders.length > 0 ? orders : [];
+      return orders.length > 0 ? orders : null;
     } catch (error) {
-      childSpan.log({ event: "error", message: error.message });
+      childSpan.log({ event: 'error', message: error.message });
       throw error;
     } finally {
       childSpan.finish();
     }
   }
-
   async validatePartnerHeaders(
     partnerId: string,
     apiKey: string
@@ -268,10 +288,10 @@ async findOneByOrderId(span: opentracing.Span, orderId: string): Promise<Filtere
   try {
     const order = await this.orderRepository.findOne({
       where: { partner_order_id: orderId },
-      include: [
-        { association: "esigns" },
-        { association: "vkycs" },  
-      ],
+      // include: [
+      //   { association: "esigns" },
+      //   { association: "vkycs" },  
+      // ],
     });
 
     if (!order) {

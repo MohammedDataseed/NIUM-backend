@@ -11,6 +11,9 @@ import {
   BadRequestException,
   ValidationPipe,
 } from '@nestjs/common';
+import { Op } from 'sequelize';
+import { validate as isUUID } from 'uuid';
+
 import { OrdersService } from '../../../services/v1/order/order.service';
 import {
   CreateOrderDto,
@@ -41,7 +44,7 @@ export class OrdersController {
     }
   }
 
-  
+
   @Post('generate-order')
   async createOrder(
 
