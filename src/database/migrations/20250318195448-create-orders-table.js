@@ -5,9 +5,9 @@ module.exports = {
     await queryInterface.createTable("orders", {
       id: {
         type: Sequelize.UUID,
-        allowNull: false,
-        primaryKey: true,
         defaultValue: Sequelize.UUIDV4,
+        primaryKey: true,
+        allowNull: false,
       },
       hashed_key: {
         type: Sequelize.STRING,
@@ -15,13 +15,13 @@ module.exports = {
         unique: true,
       },
       partner_id: {
-        type: Sequelize.UUID,
-        allowNull: false,
-      },
-      order_id: {
         type: Sequelize.STRING,
         allowNull: false,
-        unique: true,
+      },
+      partner_order_id: {
+        type: Sequelize.STRING,
+        allowNull: false,
+        unique: true, // Ensuring unique partner order ID
       },
       transaction_type: {
         type: Sequelize.STRING,
@@ -41,8 +41,6 @@ module.exports = {
         allowNull: false,
         defaultValue: false,
       },
-
-      // Customer Details
       customer_name: {
         type: Sequelize.STRING,
         allowNull: false,
@@ -59,14 +57,10 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
-
-      // Order Details
       order_status: {
         type: Sequelize.STRING,
         allowNull: true,
       },
-
-      // E-Sign Details
       e_sign_status: {
         type: Sequelize.STRING,
         allowNull: true,
@@ -76,6 +70,14 @@ module.exports = {
         allowNull: true,
       },
       e_sign_link_status: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      e_sign_link_doc_id: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      e_sign_link_request_id: {
         type: Sequelize.STRING,
         allowNull: true,
       },
@@ -95,8 +97,14 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: true,
       },
-
-      // V-KYC Details
+      v_kyc_reference_id: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      v_kyc_profile_id: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
       v_kyc_status: {
         type: Sequelize.STRING,
         allowNull: true,
@@ -125,8 +133,30 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: true,
       },
-
-      // E-Sign Regeneration
+      incident_status: {
+        type: Sequelize.BOOLEAN,
+        allowNull: true,
+      },
+      incident_checker_comments: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      nium_order_id: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      nium_invoice_number: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      date_of_departure: {
+        type: Sequelize.DATE,
+        allowNull: true,
+      },
+      incident_completion_date: {
+        type: Sequelize.DATE,
+        allowNull: true,
+      },
       is_esign_regenerated: {
         type: Sequelize.BOOLEAN,
         allowNull: true,
@@ -136,8 +166,6 @@ module.exports = {
         type: Sequelize.JSONB,
         allowNull: true,
       },
-
-      // V-KYC Link Regeneration
       is_video_kyc_link_regenerated: {
         type: Sequelize.BOOLEAN,
         allowNull: true,
@@ -147,8 +175,6 @@ module.exports = {
         type: Sequelize.JSONB,
         allowNull: true,
       },
-
-      // User Tracking
       created_by: {
         type: Sequelize.UUID,
         allowNull: true,
@@ -179,13 +205,10 @@ module.exports = {
         onUpdate: "CASCADE",
         onDelete: "SET NULL",
       },
-
-      // JSONB Data for Merged Document
       merged_document: {
         type: Sequelize.JSONB,
         allowNull: true,
       },
-
       createdAt: {
         type: Sequelize.DATE,
         allowNull: false,
@@ -197,9 +220,45 @@ module.exports = {
         defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
       },
     });
+
+    // Add unique index for hashed_key
+    await queryInterface.addIndex("orders", ["hashed_key"], {
+      unique: true,
+      name: "unique_order_hashed_key",
+    });
+
+    // ✅ Create Foreign Key Relationships with eSigns and Vkycs
+    await queryInterface.addConstraint("esigns", {
+      fields: ["order_id"],
+      type: "foreign key",
+      name: "fk_esigns_orders",
+      references: {
+        table: "orders",
+        field: "id",
+      },
+      onUpdate: "CASCADE",
+      onDelete: "CASCADE",
+    });
+
+    await queryInterface.addConstraint("vkycs", {
+      fields: ["order_id"],
+      type: "foreign key",
+      name: "fk_vkycs_orders",
+      references: {
+        table: "orders",
+        field: "id",
+      },
+      onUpdate: "CASCADE",
+      onDelete: "CASCADE",
+    });
   },
 
   down: async (queryInterface, Sequelize) => {
+    // Remove foreign key constraints
+    await queryInterface.removeConstraint("esigns", "fk_esigns_orders");
+    await queryInterface.removeConstraint("vkycs", "fk_vkycs_orders");
+
+    // Drop orders table
     await queryInterface.dropTable("orders");
   },
 };

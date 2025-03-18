@@ -8,6 +8,7 @@ import {
   UnauthorizedException,
 
 } from "@nestjs/common";
+import {Sequelize} from "sequelize"
 import { Order } from "../../../database/models/order.model";
 import {
   CreateOrderDto,
@@ -199,11 +200,37 @@ export class OrdersService {
   
     try {
      
-      const orders = await this.orderRepository.findAll({
+      // const orders = await this.orderRepository.findAll({
        
+      // });
+      const orders = await this.orderRepository.findAll({
+        include: [
+          {
+            model: ESign,
+            as: 'esigns',
+            required: false,
+            where: Sequelize.where(
+              Sequelize.cast(Sequelize.col('esigns.order_id'), 'uuid'), // Cast as UUID
+              Op.eq,
+              Sequelize.col('Order.id')
+            ),
+          },
+          {
+            model: Vkyc,
+            as: 'vkycs',
+            required: false,
+            where: Sequelize.where(
+              Sequelize.cast(Sequelize.col('vkycs.order_id'), 'uuid'), // Cast as UUID
+              Op.eq,
+              Sequelize.col('Order.id')
+            ),
+          },
+        ],
       });
+      
+      
   
-      return orders.length > 0 ? orders : null;
+      return orders.length > 0 ? orders : [];
     } catch (error) {
       childSpan.log({ event: 'error', message: error.message });
       throw error;
@@ -288,10 +315,10 @@ async findOneByOrderId(span: opentracing.Span, orderId: string): Promise<Filtere
   try {
     const order = await this.orderRepository.findOne({
       where: { partner_order_id: orderId },
-      // include: [
-      //   { association: "esigns" },
-      //   { association: "vkycs" },  
-      // ],
+      include: [
+        { association: "esigns" },
+        { association: "vkycs" },  
+      ],
     });
 
     if (!order) {
@@ -320,7 +347,7 @@ async findOneByOrderId(span: opentracing.Span, orderId: string): Promise<Filtere
       e_sign_link: latestEsign?.esign_details?.[0]?.esign_url || order.e_sign_link,
       e_sign_link_status: latestEsign?.esign_details?.[0]?.url_status,
       e_sign_link_expires: latestEsign?.esign_details?.[0]?.esign_expiry || order.e_sign_link_expires,
-      e_sign_completed_by_customer: order.e_sign_completed_by_customer,
+      e_sign_completed_by_customer: latestEsign?.is_signed,
       e_sign_customer_completion_date: order.e_sign_customer_completion_date,
       e_sign_doc_comments: order.e_sign_doc_comments,
       is_e_sign_regenerated: regeneratedEsignCount > 1,

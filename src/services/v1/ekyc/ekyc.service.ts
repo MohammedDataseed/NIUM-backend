@@ -4,6 +4,7 @@ import {
   HttpException,
   HttpStatus,
   Logger,
+  NotFoundException
 } from "@nestjs/common";
 import * as fs from "fs";
 import * as opentracing from "opentracing";
@@ -64,12 +65,13 @@ export class EkycService {
   private readonly API_KEY = "67163d36-d269-11ef-b1ca-feecce57f827";
   private readonly ACCOUNT_ID =
     "9d956848da98/b5d7ded1-218b-4c63-97ea-71ba70f038d3";
+    private readonly USER_KEY ="N0N0M8nTyzD3UghN6qehC9HTfwneEZJv"; // Add this
   // private readonly REQUEST_API_URL = process.env.REQUEST_API_URL;
   // private readonly REQUEST_TASK_API_URL = process.env.REQUEST_TASK_API_URL;
   // private readonly RETRIEVE_API_URL = process.env.RETRIEVE_API_URL;
   // private readonly API_KEY = process.env.API_KEY;
   // private readonly ACCOUNT_ID = process.env.ACCOUNT_ID;
-  private readonly USER_KEY = process.env.USER_KEY; // Add this
+  // private readonly USER_KEY = process.env.USER_KEY; // Add this
   private readonly PROFILE_ID = process.env.E_ESIGN_PROFILE_ID; // Add this
   private readonly logger = new Logger(EkycService.name);
 
@@ -431,7 +433,7 @@ return pdfBuffer.toString("base64"); // Ensure this is the only encoding step
       order_id: orderId,
       data: {
         flow_type: "PDF",
-        user_key: "N0N0M8nTyzD3UghN6qehC9HTfwneEZJv",
+        user_key: this.USER_KEY,
         verify_aadhaar_details: false,
         esign_file_details: {
           esign_profile_id: this.PROFILE_ID,
@@ -761,6 +763,211 @@ return pdfBuffer.toString("base64"); // Ensure this is the only encoding step
     }
   }
 
+  // async handleEkycRetrieveWebhook(partner_order_id: string): Promise<any> {
+
+  //   this.logger.log(
+  //     `Processing e-KYC retrieve webhook for partner_order_id: ${partner_order_id}`
+  //   );
+  //   // Fetch order details including partner_id and esign_doc_id
+  //   const order = await this.orderRepository.findOne({
+  //     where: { partner_order_id: String(partner_order_id) },
+  //     include: [{ model: ESign, as: "esigns" }],
+  //   });
+    
+  //   if (!order) {
+  //     this.logger.warn(
+  //       `No order found for partner_order_id: ${partner_order_id}`
+  //     );
+  //     throw new HttpException("Order not found", HttpStatus.NOT_FOUND);
+  //   }
+  //   const task_id = partner_order_id; // task_id is same as partner_order_id
+  //   const group_id = order.partner_id; // Fetch group_id from order as partner_id
+
+  //   if (!group_id) {
+  //     this.logger.warn(
+  //       `No partner_id (group_id) found for partner_order_id: ${partner_order_id}`
+  //     );
+  //     throw new HttpException(
+  //       "group_id not available in order",
+  //       HttpStatus.BAD_REQUEST
+  //     );
+  //   }
+  //   const esignRecords = order.esigns || [];
+  //   if (!esignRecords.length) {
+  //     this.logger.warn(
+  //       `No ESign records found for partner_order_id: ${partner_order_id}`
+  //     );
+  //     throw new HttpException("No ESign records found", HttpStatus.NOT_FOUND);
+  //   }
+  //   // Get esign_doc_id from Order table (assuming it's a field like e_sign_link_doc_id)
+  //   const esign_doc_id = order.e_sign_link_doc_id; // Adjust field name if different
+
+  //   if (!esign_doc_id) {
+  //     this.logger.warn(
+  //       `No esign_doc_id found in order for partner_order_id: ${partner_order_id}`
+  //     );
+  //     throw new HttpException(
+  //       "esign_doc_id not available",
+  //       HttpStatus.BAD_REQUEST
+  //     );
+  //   }
+  //   console.log("esign_doc_id",esign_doc_id)
+  //   // Prepare request payload
+  //   const requestData = {
+  //     task_id,
+  //     group_id,
+  //     data: {
+  //       user_key:this.USER_KEY, // Fetch from .env
+  //       esign_doc_id,
+  //     },
+  //   };
+
+  //   const responseData = await this.retrieveEkycData(requestData);
+  //   // Find matching ESign record
+  //   const esignRecord = await this.esignRepository.findOne({
+  //     where: {
+  //       partner_order_id,
+  //       [Op.or]: [
+  //         { esign_doc_id },
+  //         Sequelize.where(
+  //           Sequelize.literal("esign_details->>'esign_doc_id'"),
+  //           Op.eq,
+  //           esign_doc_id
+  //         ),
+  //       ],
+  //     },
+  //     logging: console.log, // Debugging
+  //   });
+
+  //   if (!esignRecord) {
+  //     this.logger.warn(
+  //       `No ESign record found for task_id: ${task_id} and esign_doc_id: ${esign_doc_id}`
+  //     );
+  //     throw new HttpException("ESign record not found", HttpStatus.NOT_FOUND);
+  //   }
+
+  //   const { source_output } = responseData.result;
+  //   const requestDetail = source_output.request_details[0];
+
+  //   const completedAt = responseData.completed_at
+  //     ? new Date(responseData.completed_at)
+  //     : null;
+
+  //   // Manually parse `esign_expiry` if it exists
+  //   let esignExpiry = esignRecord.esign_expiry; // Default to existing expiry
+
+  //   if (requestDetail.expiry_date) {
+  //     const rawExpiry = requestDetail.expiry_date; // Example: "24-03-2025 23:59:59"
+  //     const [day, month, year, hours, minutes, seconds] =
+  //       rawExpiry.split(/[-\s:]/);
+  //     const formattedExpiry = `${year}-${month}-${day}T${hours || "00"}:${
+  //       minutes || "00"
+  //     }:${seconds || "00"}Z`;
+  //     esignExpiry = new Date(formattedExpiry);
+  //   }
+
+  //   // Validate `completedAt`
+  //   if (completedAt && isNaN(completedAt.getTime())) {
+  //     this.logger.error(
+  //       `Invalid completed_at value: ${responseData.completed_at}`
+  //     );
+  //     throw new HttpException(
+  //       "Invalid completed_at timestamp",
+  //       HttpStatus.BAD_REQUEST
+  //     );
+  //   }
+
+  //   // Validate `esignExpiry`
+  //   if (esignExpiry && isNaN(esignExpiry.getTime())) {
+  //     this.logger.error(
+  //       `Invalid esign_expiry value: ${requestDetail.expiry_date}`
+  //     );
+  //     throw new HttpException(
+  //       "Invalid esign_expiry timestamp",
+  //       HttpStatus.BAD_REQUEST
+  //     );
+  //   }
+
+  //   // Determine e_sign_status
+  //   let eSignStatus: string;
+  //   const { is_active, is_signed, is_expired, is_rejected } = requestDetail;
+
+  //   if (is_active && is_signed) {
+  //     eSignStatus = "completed";
+  //   } else if (is_active && !is_expired && !is_rejected && !is_signed) {
+  //     eSignStatus = "pending";
+  //   } else if (is_expired && !is_rejected) {
+  //     eSignStatus = "expired";
+  //   } else if (is_rejected || (is_active && is_expired)) {
+  //     eSignStatus = "rejected";
+  //   } else {
+  //     eSignStatus = "pending"; // Default case
+  //   }
+
+  //   await esignRecord.update({
+  //     status: responseData.status,
+  //     request_id: responseData.request_id,
+  //     active: is_active,
+  //     expired: is_expired,
+  //     rejected: is_rejected,
+  //     is_signed: is_signed,
+  //     esign_url: requestDetail.esign_url,
+  //     esigner_email: requestDetail.esigner_email,
+  //     esigner_phone: requestDetail.esigner_phone,
+  //     esign_type: requestDetail.esign_type,
+  //     esign_folder: source_output.esign_folder,
+  //     esign_irn: source_output.esign_irn,
+  //     esigners: source_output.esigners,
+  //     file_details: source_output.file_details,
+  //     request_details: source_output.request_details,
+  //     esign_details: {
+  //       ...esignRecord.esign_details,
+  //       status: source_output.status,
+  //     },
+  //   });
+
+  //   await order.update({
+  //     e_sign_status: eSignStatus,
+  //   });
+
+  //   this.logger.log(
+  //     `Updated Order record for task_id: ${task_id}, e_sign_status: ${eSignStatus}`
+  //   );
+  //   this.logger.log(
+  //     `Updated ESign record for task_id: ${task_id}, esign_doc_id: ${esign_doc_id}`
+  //   );
+
+  //   return {
+  //     success: true,
+  //     message: "Webhook processed successfully",
+  //     data: responseData,
+  //   };
+  // }
+
+  // async retrieveEkycData(requestData: any) {
+  //   try {
+  //     const response = await axios.post(this.RETRIEVE_API_URL, requestData, {
+  //       headers: {
+  //         "api-key": this.API_KEY,
+  //         "account-id": this.ACCOUNT_ID,
+  //         "Content-Type": "application/json"
+  //       },
+  //     });
+
+  //     return response.data;
+  //   } catch (error) {
+  //     this.logger.error(
+  //       `Failed to retrieve e-KYC data: ${error.message}`,
+  //       error.stack
+  //     );
+  //     throw new HttpException(
+  //       error.response?.data || "Failed to retrieve e-KYC data",
+  //       error.response?.status || HttpStatus.INTERNAL_SERVER_ERROR
+  //     );
+  //   }
+  // }
+
+
   async handleEkycRetrieveWebhook(partner_order_id: string): Promise<any> {
     const token = process.env.API_KEY; // Fetch from .env
     if (!token || typeof token !== "string") {
@@ -779,19 +986,22 @@ return pdfBuffer.toString("base64"); // Ensure this is the only encoding step
     this.logger.log(
       `Processing e-KYC retrieve webhook for partner_order_id: ${partner_order_id}`
     );
-    // Fetch order details including partner_id and esign_doc_id
-    const order = await this.orderRepository.findOne({
-      where: { partner_order_id },
-      include: [{ model: ESign, as: "esigns" }],
-    });
-    if (!order) {
+   
+    // Check for existing order with the same partner_order_id
+  const orderData = await this.orderRepository.findOne({
+    where: { partner_order_id: partner_order_id },
+    include: [
+     { model: ESign, as: "esigns" },
+    ]
+  });
+    if (!orderData) {
       this.logger.warn(
         `No order found for partner_order_id: ${partner_order_id}`
       );
       throw new HttpException("Order not found", HttpStatus.NOT_FOUND);
     }
     const task_id = partner_order_id; // task_id is same as partner_order_id
-    const group_id = order.partner_id; // Fetch group_id from order as partner_id
+    const group_id = orderData?.dataValues?.partner_id; // Fetch group_id from order as partner_id
 
     if (!group_id) {
       this.logger.warn(
@@ -802,7 +1012,8 @@ return pdfBuffer.toString("base64"); // Ensure this is the only encoding step
         HttpStatus.BAD_REQUEST
       );
     }
-    const esignRecords = order.esigns || [];
+    console.log(orderData?.dataValues)
+    const esignRecords = orderData?.dataValues?.esigns || [];
     if (!esignRecords.length) {
       this.logger.warn(
         `No ESign records found for partner_order_id: ${partner_order_id}`
@@ -810,7 +1021,7 @@ return pdfBuffer.toString("base64"); // Ensure this is the only encoding step
       throw new HttpException("No ESign records found", HttpStatus.NOT_FOUND);
     }
     // Get esign_doc_id from Order table (assuming it's a field like e_sign_link_doc_id)
-    const esign_doc_id = order.e_sign_link_doc_id; // Adjust field name if different
+    const esign_doc_id = orderData?.dataValues?.e_sign_link_doc_id; // Adjust field name if different
 
     if (!esign_doc_id) {
       this.logger.warn(
@@ -832,7 +1043,8 @@ return pdfBuffer.toString("base64"); // Ensure this is the only encoding step
       },
     };
 
-    const responseData = await this.retrieveEkycData(token, requestData);
+    const responseData = await this.retrieveEkycData(requestData);
+    console.log(responseData)
     // Find matching ESign record
     const esignRecord = await this.esignRepository.findOne({
       where: {
@@ -936,7 +1148,7 @@ return pdfBuffer.toString("base64"); // Ensure this is the only encoding step
       },
     });
 
-    await order.update({
+    await orderData.update({
       e_sign_status: eSignStatus,
     });
 
@@ -954,14 +1166,15 @@ return pdfBuffer.toString("base64"); // Ensure this is the only encoding step
     };
   }
 
-  async retrieveEkycData(token: string, requestData: any) {
+ 
+
+  async retrieveEkycData( requestData: any) {
     try {
       const response = await axios.post(this.RETRIEVE_API_URL, requestData, {
         headers: {
           "api-key": this.API_KEY,
           "account-id": this.ACCOUNT_ID,
-          "Content-Type": "application/json",
-          "X-API-Key": token,
+          "Content-Type": "application/json"
         },
       });
 

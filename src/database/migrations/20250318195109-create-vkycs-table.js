@@ -2,23 +2,27 @@
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable("esigns", {
+    await queryInterface.createTable("vkycs", {
       id: {
         type: Sequelize.UUID,
-        defaultValue: Sequelize.UUIDV4,
+        defaultValue: Sequelize.UUIDV4, // ✅ Using Sequelize's built-in UUIDV4
         primaryKey: true,
         allowNull: false,
       },
       hashed_key: {
         type: Sequelize.STRING,
-        unique: true,
         allowNull: true,
+        unique: true,
+      },
+      partner_order_id: {
+        type: Sequelize.STRING,
+        allowNull: false,
       },
       order_id: {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
-          model: "orders",
+          model: "orders", // ✅ Foreign Key reference to `orders` table
           key: "id",
         },
         onUpdate: "CASCADE",
@@ -28,112 +32,96 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
       },
-      task_id: {
+      reference_id: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      profile_id: {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      group_id: {
+      v_kyc_link: {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      esign_file_details: {
-        type: Sequelize.JSONB,
+      v_kyc_link_expires: {
+        type: Sequelize.DATE,
         allowNull: false,
       },
-      esign_stamp_details: {
-        type: Sequelize.JSONB,
+      v_kyc_link_status: {
+        type: Sequelize.STRING,
         allowNull: false,
       },
-      esign_invitees: {
-        type: Sequelize.JSONB,
-        allowNull: false,
+      v_kyc_comments: {
+        type: Sequelize.STRING,
+        allowNull: true,
       },
-      esign_details: {
+      v_kyc_doc_completion_date: {
+        type: Sequelize.DATE,
+        allowNull: true,
+      },
+      device_info: {
         type: Sequelize.JSONB,
         allowNull: true,
       },
-      esign_doc_id: {
+      profile_data: {
+        type: Sequelize.JSONB,
+        allowNull: true,
+      },
+      performed_by: {
+        type: Sequelize.JSONB,
+        allowNull: true,
+      },
+      resources_documents: {
+        type: Sequelize.JSONB,
+        allowNull: true,
+      },
+      resources_images: {
+        type: Sequelize.JSONB,
+        allowNull: true,
+      },
+      resources_videos: {
+        type: Sequelize.JSONB,
+        allowNull: true,
+      },
+      resources_text: {
+        type: Sequelize.JSONB,
+        allowNull: true,
+      },
+      location_info: {
+        type: Sequelize.JSONB,
+        allowNull: true,
+      },
+      first_name: {
         type: Sequelize.STRING,
+        allowNull: true,
+      },
+      reviewer_action: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      tasks: {
+        type: Sequelize.JSONB,
         allowNull: true,
       },
       status: {
         type: Sequelize.STRING,
         allowNull: true,
       },
-      request_id: {
-        type: Sequelize.STRING,
-        allowNull: true,
-      },
-      completed_at: {
-        type: Sequelize.DATE,
-        allowNull: true,
-      },
-      esign_expiry: {
-        type: Sequelize.DATE,
-        allowNull: true,
-      },
-      active: {
-        type: Sequelize.BOOLEAN,
-        allowNull: false,
-        defaultValue: false,
-      },
-      expired: {
-        type: Sequelize.BOOLEAN,
-        allowNull: false,
-        defaultValue: false,
-      },
-      rejected: {
-        type: Sequelize.BOOLEAN,
-        allowNull: false,
-        defaultValue: false,
-      },
-      result: {
+      status_description: {
         type: Sequelize.JSONB,
         allowNull: true,
       },
-      esigners: {
-        type: Sequelize.JSONB,
-        allowNull: true,
-      },
-      file_details: {
-        type: Sequelize.JSONB,
-        allowNull: true,
-      },
-      request_details: {
-        type: Sequelize.JSONB,
-        allowNull: true,
-      },
-      esign_irn: {
+      status_detail: {
         type: Sequelize.STRING,
         allowNull: true,
       },
-      esign_folder: {
-        type: Sequelize.STRING,
+      created_by: {
+        type: Sequelize.UUID,
         allowNull: true,
       },
-      esign_type: {
-        type: Sequelize.STRING,
-        allowNull: true,
-      },
-      esign_url: {
-        type: Sequelize.STRING,
-        allowNull: true,
-      },
-      esigner_email: {
-        type: Sequelize.STRING,
-        allowNull: true,
-      },
-      esigner_phone: {
-        type: Sequelize.STRING,
-        allowNull: true,
-      },
-      is_signed: {
-        type: Sequelize.BOOLEAN,
-        allowNull: false,
-        defaultValue: false,
-      },
-      type: {
-        type: Sequelize.STRING,
+      updated_by: {
+        type: Sequelize.UUID,
         allowNull: true,
       },
       createdAt: {
@@ -147,9 +135,15 @@ module.exports = {
         defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
       },
     });
+
+    // ✅ Ensure hashed_key is UNIQUE
+    await queryInterface.addIndex("vkycs", ["hashed_key"], {
+      unique: true,
+      name: "unique_vkyc_hashed_key",
+    });
   },
 
-  down: async (queryInterface) => {
-    await queryInterface.dropTable("esigns");
+  down: async (queryInterface, Sequelize) => {
+    await queryInterface.dropTable("vkycs");
   },
 };

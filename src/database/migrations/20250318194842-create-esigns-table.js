@@ -1,18 +1,18 @@
 "use strict";
 
 module.exports = {
-  async up(queryInterface, Sequelize) {
+  up: async (queryInterface, Sequelize) => {
     await queryInterface.createTable("esigns", {
       id: {
         type: Sequelize.UUID,
-        defaultValue: Sequelize.UUIDV4,
+        defaultValue: Sequelize.UUIDV4, // 🔥 Using Sequelize.UUIDV4
         primaryKey: true,
         allowNull: false,
       },
       hashed_key: {
         type: Sequelize.STRING,
-        unique: true,
         allowNull: true,
+        unique: true,
       },
       partner_order_id: {
         type: Sequelize.STRING,
@@ -22,7 +22,7 @@ module.exports = {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
-          model: "orders",
+          model: "orders", // 🔥 Ensures ForeignKey to `orders` table
           key: "id",
         },
         onUpdate: "CASCADE",
@@ -143,17 +143,23 @@ module.exports = {
       createdAt: {
         type: Sequelize.DATE,
         allowNull: false,
-        defaultValue: Sequelize.fn("NOW"),
+        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
       },
       updatedAt: {
         type: Sequelize.DATE,
         allowNull: false,
-        defaultValue: Sequelize.fn("NOW"),
+        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
       },
+    });
+
+    // 🔥 Ensure hashed_key is UNIQUE
+    await queryInterface.addIndex("esigns", ["hashed_key"], {
+      unique: true,
+      name: "unique_esign_hashed_key",
     });
   },
 
-  async down(queryInterface, Sequelize) {
+  down: async (queryInterface, Sequelize) => {
     await queryInterface.dropTable("esigns");
   },
 };

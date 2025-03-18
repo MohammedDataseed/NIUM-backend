@@ -39,7 +39,7 @@ export class Order extends Model<Order> {
   hashed_key: string;
 
 
-  @Column({ type: DataType.UUID, allowNull: false })
+  @Column({ type: DataType.STRING, allowNull: false })
   partner_id: string;
 
   @Unique // 🔥 Ensure uniqueness
