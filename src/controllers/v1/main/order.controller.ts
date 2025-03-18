@@ -27,6 +27,21 @@ import * as opentracing from 'opentracing';
 @Controller('orders')
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
+
+  @Get()
+  @ApiResponse({ status: 200, description: 'List of orders' })
+  async findAll() {
+    const span = opentracing
+      .globalTracer()
+      .startSpan('find-all-orders-controller');
+    try {
+      return await this.ordersService.findAll(span);
+    } finally {
+      span.finish();
+    }
+  }
+
+  
   @Post('generate-order')
   async createOrder(
 
@@ -72,19 +87,7 @@ export class OrdersController {
     }
   }
 
-  @Get()
-  @ApiResponse({ status: 200, description: 'List of orders' })
-  async findAll() {
-    const span = opentracing
-      .globalTracer()
-      .startSpan('find-all-orders-controller');
-    try {
-      return await this.ordersService.findAll(span);
-    } finally {
-      span.finish();
-    }
-  }
-
+ 
 
   @Get(':partnerOrderId')
   

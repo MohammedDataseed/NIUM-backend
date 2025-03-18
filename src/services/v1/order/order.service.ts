@@ -166,22 +166,23 @@ export class OrdersService {
       childSpan.finish();
     }
   }
-
+  
   async findAll(
     span: opentracing.Span,
     filters: WhereOptions<Order> = {}
-  ): Promise<Order[]> {
-    const childSpan = span
-      .tracer()
-      .startSpan("find-all-orders", { childOf: span });
+  ): Promise<Order[] | null> {
+    const childSpan = span.tracer().startSpan("find-all-orders", { childOf: span });
+  
     try {
-      return await this.orderRepository.findAll({
+      const orders = await this.orderRepository.findAll({
         where: filters,
         include: [
           { model: ESign, as: "esigns" },
-          { model: Vkyc, as: "vkycs" }, // Include associated Vkycs
-        ], // Ensure the alias matches your association
+          { model: Vkyc, as: "vkycs" }
+        ],
       });
+  
+      return orders.length > 0 ? orders : [];
     } catch (error) {
       childSpan.log({ event: "error", message: error.message });
       throw error;
@@ -190,7 +191,6 @@ export class OrdersService {
     }
   }
 
-  // New method to validate headers
   async validatePartnerHeaders(
     partnerId: string,
     apiKey: string

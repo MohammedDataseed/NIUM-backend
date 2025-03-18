@@ -4,7 +4,7 @@ module.exports = {
   development: {
     username: "postgres",
     password: "1234",
-    database: "nium-test-2",
+    database: "nium-dev",
     host: "localhost",
     dialect: "postgres", // Ensure this is here
     pool: {
@@ -28,7 +28,7 @@ module.exports = {
     password: "1234",
     database: "nium-dev",
     host: "13.201.102.229",
-    dialect: "postgres", 
+    dialect: "postgres",
     pool: {
       max: Number(process.env.PGMAX) || 5,
       idle: Number(process.env.PGIDLETIMEOUT) || 10000,
