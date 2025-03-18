@@ -621,6 +621,8 @@ return pdfBuffer.toString("base64"); // Ensure this is the only encoding step
         orderId,
         esignRecord: esignRecord.toJSON(),
       });
+
+      
     } catch (error) {
       this.logger.error(
         `Failed to save e-KYC request and response data: ${error.message}`,

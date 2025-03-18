@@ -280,7 +280,7 @@ async findOneByOrderId(span: opentracing.Span, orderId: string): Promise<Filtere
 
     // Determine the latest eSign attempt (highest attempt_number)
     const latestEsign = order.esigns?.sort((a, b) => b.attempt_number - a.attempt_number)?.[0] || null;
-
+    console.log(latestEsign)
     // Determine the latest vKYC attempt (highest attempt_number)
     const latestVkyc = order.vkycs?.sort((a, b) => b.attempt_number - a.attempt_number)?.[0] || null;
 
@@ -296,9 +296,9 @@ async findOneByOrderId(span: opentracing.Span, orderId: string): Promise<Filtere
       is_esign_required: order.is_esign_required,
       is_v_kyc_required: order.is_v_kyc_required,
       // eSign details
-      e_sign_status: latestEsign?.status || order.e_sign_status,
+      e_sign_status: latestEsign?.status == "completed" ? "completed":"pending",
       e_sign_link: latestEsign?.esign_details?.[0]?.esign_url || order.e_sign_link,
-      e_sign_link_status: latestEsign?.esign_details?.[0]?.url_status ? "active" : "inactive",
+      e_sign_link_status: latestEsign?.esign_details?.[0]?.url_status,
       e_sign_link_expires: latestEsign?.esign_details?.[0]?.esign_expiry || order.e_sign_link_expires,
       e_sign_completed_by_customer: order.e_sign_completed_by_customer,
       e_sign_customer_completion_date: order.e_sign_customer_completion_date,

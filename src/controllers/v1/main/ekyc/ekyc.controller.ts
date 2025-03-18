@@ -96,8 +96,6 @@ export class EkycController {
         @Headers("api-key") apiKey: string,
         @Body("partner_order_id", new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))  partner_order_id: string
      
-    // @Headers("X-API-Key") token: string,
-    // @Body("partner_order_id") partner_order_id: string
   ) {
     if (!partner_order_id) {
       throw new HttpException(
@@ -108,7 +106,30 @@ export class EkycController {
 
     this.logger.log(`Processing e-KYC request for order: ${partner_order_id}`);
 
-    return this.ekycService.sendEkycRequest(partner_order_id);
+    // return this.ekycService.sendEkycRequest(partner_order_id);
+    // Call the service method
+  const response = await this.ekycService.sendEkycRequest(partner_order_id);
+
+  // If response is successful, transform the output
+  if (response.success) {
+    return {
+      success: true,
+      message: "E-sign link generated successfully",
+      e_sign_link: response.data?.result?.source_output?.esign_details?.find(
+        (esign) => esign.url_status === true
+      )?.esign_url || null,
+      e_sign_link_status: response.data?.result?.source_output?.esign_details?.some(
+        (esign) => esign.url_status === true
+      ) ? "active" : "inactive",
+      e_sign_link_expires: response.data?.result?.source_output?.esign_details?.find(
+        (esign) => esign.url_status === true
+      )?.esign_expiry || null,
+      e_sign_status: "pending",
+    };
+  }
+
+  // If response is unsuccessful, return the original response
+  return response;
   }
 
   @Post("retrieve-webhook")
