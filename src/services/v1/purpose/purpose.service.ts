@@ -110,14 +110,14 @@ export class PurposeService {
   }
 
   async findAllConfig(): Promise<
-    { purpose_type_id: string; purpose_name: string }[]
+    { id: string; text: string }[]
   > {
     const purposes = await this.purposeRepository.findAll({
       where: { isActive: true }, // Only fetch active documents
     });
     return purposes.map((purpose) => ({
-      purpose_type_id: purpose.hashed_key,
-      purpose_name: purpose.purposeName,
+      id: purpose.hashed_key,
+      text: purpose.purposeName,
     }));
   }
 
