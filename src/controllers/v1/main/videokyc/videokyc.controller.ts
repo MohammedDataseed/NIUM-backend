@@ -1,5 +1,8 @@
 // videokyc.controller.ts
 import {
+  HttpException,
+  HttpStatus,
+  Logger,
   Controller,
   Post,
   Get,
@@ -7,10 +10,11 @@ import {
   Body,
   Query,
   Headers,
-  HttpException,
-  HttpStatus,
   ValidationPipe
 } from "@nestjs/common";
+import { OrdersService } from "../../../../services/v1/order/order.service";
+import * as opentracing from "opentracing";
+
 import { VideokycService } from "../../../../services/v1/videokyc/videokyc.service";
 import {
   ApiTags,
@@ -26,7 +30,13 @@ import { AddressDto, SyncProfileDto } from "src/dto/video-kyc.dto";
 @ApiTags("V-KYC")
 @Controller("videokyc")
 export class VideokycController {
-  constructor(private readonly videokycService: VideokycService) {}
+   private readonly logger = new Logger(VideokycService.name);
+   
+  constructor(
+    private readonly videokycService: VideokycService,
+    private readonly ordersService: OrdersService
+ 
+  ) {}
 
   @Post("generate-v-kyc")
   @ApiOperation({ summary: "Send an v-kyc request to IDfy" })
@@ -58,17 +68,27 @@ export class VideokycController {
     description: "Internal server error",
   })
   async generateVkyc(
-     @Headers("partner-hashed-id") partnerId: string,
-            @Headers("api-key") apiKey: string,
-            @Body("partner_order_id", new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))  partner_order_id: string
+    @Headers("api_key") apiKey: string,
+    @Headers("partner_id") partnerId: string,
+   @Body("partner_order_id", new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))  partner_order_id: string
         ) {
+    // try {
+if (!partner_order_id) {
+      throw new HttpException(
+        "Missing required partner_order_id in request data",
+        HttpStatus.BAD_REQUEST
+      );
+    }
+
+    this.logger.log(`Processing V-KYC request for order: ${partner_order_id}`);
+
+    const span = opentracing
+      .globalTracer()
+      .startSpan("find-one-order-controller");
     try {
-      if (!partner_order_id) {
-        throw new HttpException(
-          "Missing required partner_order_id in request data",
-          HttpStatus.BAD_REQUEST
-        );
-      }
+      // return this.ekycService.sendEkycRequest(partner_order_id);
+      await this.ordersService.validatePartnerHeaders(partnerId, apiKey);
+      
       const result = await this.videokycService.sendVideokycRequest(
         partner_order_id
       );
@@ -76,18 +96,52 @@ export class VideokycController {
         success: true,
         data: result,
       };
+
+      
+      // // If response is successful, transform the output
+      // if (response.success) {
+      //   return {
+      //     success: true,
+      //     message: "V-KYC link generated successfully",
+      //     e_sign_link:
+      //       response.data?.result?.source_output?.esign_details?.find(
+      //         (esign) => esign.url_status === true
+      //       )?.esign_url || null,
+      //     e_sign_link_status:
+      //       response.data?.result?.source_output?.esign_details?.some(
+      //         (esign) => esign.url_status === true
+      //       )
+      //         ? "active"
+      //         : "inactive",
+      //     e_sign_link_expires:
+      //       response.data?.result?.source_output?.esign_details?.find(
+      //         (esign) => esign.url_status === true
+      //       )?.esign_expiry || null,
+      //     e_sign_status: "pending",
+      //   };
+      // }
+
+      // // If response is unsuccessful, return the original response
+      // return response;
     } catch (error) {
-      throw error instanceof HttpException
-        ? error
-        : new HttpException(
-            "Failed to process sync profiles request",
-            HttpStatus.INTERNAL_SERVER_ERROR
-          );
+      throw error;
+    } finally {
+      span.finish();
     }
   }
 
+  //   } catch (error) {
+  //     throw error instanceof HttpException
+  //       ? error
+  //       : new HttpException(
+  //           "Failed to process sync profiles request",
+  //           HttpStatus.INTERNAL_SERVER_ERROR
+  //         );
+  //   }
+  // }
+
   @Post("retrieve-webhook")
-  @ApiOperation({ summary: "Retrieve e-KYC data via webhook" })
+  @ApiOperation({ summary: "Retrieve V-KYC data via webhook" })
   @ApiResponse({ status: 200, description: "Webhook processed successfully" })
   @ApiResponse({ status: 400, description: "Invalid request data" })
   @ApiResponse({ status: 500, description: "Internal server error" })

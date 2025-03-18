@@ -276,32 +276,36 @@ export class VideokycService {
       } finally {
         childSpan.finish();
       }
-    } catch (error) {
-      this.logger.error(
-        `Error fetching order details: ${error.message}`,
-        error.stack
-      );
-      console.log("Event: Error fetching order details", {
-        orderId,
-        error: error.message,
-      });
 
-      if (error.response) {
-        // Handle specific response errors (like 404)
-        console.error("Error Response:", error.response.data);
-      }
+// ✅ **Return Response in the Expected Format**
+    return {
+      success: true,
+      message: "v-KYC link generated successfully",
+      v_kyc_link:
+        response.data?.capture_link || null,
+      v_kyc_link_status: response.data?.status || "capture_pending",
+      v_kyc_link_expires:
+        response.data?.capture_expires_at || null,
+      v_kyc_status: "pending",
+    };
+  } catch (error) {
+    this.logger.error(`Error fetching order details: ${error.message}`, error.stack);
+    console.log("Event: Error fetching order details", { orderId, error: error.message });
 
-      throw new HttpException(
-        {
-          success: false,
-          message: "Failed to generate vkyc",
-          details: error.message,
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR
-      );
+    if (error.response) {
+      console.error("Error Response:", error.response.data);
     }
-  }
 
+    throw new HttpException(
+      {
+        success: false,
+        message: "Failed to generate vkyc",
+        details: error.message,
+      },
+      HttpStatus.INTERNAL_SERVER_ERROR
+    );
+  }
+}
   async handleEkycRetrieveWebhook(partner_order_id: string): Promise<any> {
     const token = process.env.API_KEY; // Fetch from .env
     if (!token || typeof token !== "string") {
