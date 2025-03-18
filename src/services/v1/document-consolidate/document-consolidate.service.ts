@@ -44,7 +44,6 @@ import { DocumentType } from "src/database/models/documentType.model"; // Assumi
 @Injectable()
 export class PdfService {
   private readonly s3: S3Client;
-  private baseUrl = "http://localhost:3002"; // Replace with your actual domain
   private readonly MAX_SIZE_BYTES = 1 * 1024 * 1024; // 1MB limit
 
   constructor(
@@ -386,24 +385,91 @@ async uploadDocumentByOrderId(
   });
 
   // Merge if merge_doc=true
+  let mergedDocument: any = null;
+
   let mergedUrl: string | null = null;
   if (merge_doc) {
     console.log("Merging documents...");
     const mergeResult = await this.mergeFilesByFolder(partner_order_id);
     if (mergeResult.files && mergeResult.files.length > 0) {
-      mergedUrl = mergeResult.files[0].url;
+      // mergedUrl = mergeResult.files[0].url;
+      const mergedFile = mergeResult.files[0];
+      mergedUrl = mergedFile.url;
+   
+    // Get file size from buffer
+    const fileSize = mergedFile.buffer.length;
+// Check if an existing merged document exists
+let existingMergedDocument = await this.documentRepository.findOne({
+  where: {
+    entityId: order.id,
+    document_name: `merged_${partner_order_id}.pdf`,
+  },
+});
+
+// If exists, update it; otherwise, create a new one
+if (existingMergedDocument) {
+  await this.documentRepository.update(
+    {
+      documentUrl: {
+        url: mergedUrl,
+        mimeType: "application/pdf",
+        size: fileSize,
+        uploadedAt: new Date().toISOString(),
+      },
+      isUploaded: true,
+    },
+    { where: { id: existingMergedDocument.id } }
+  );
+
+  mergedDocument = existingMergedDocument; // Use the existing document reference
+  console.log("Existing merged document updated:", mergedDocument);
+} else {
+  // Create new merged document
+  mergedDocument = await this.documentRepository.create({
+    entityId: order.id,
+    entityType: "customer",
+    purposeId: null,
+    document_type_id: documentType.id,
+    document_name: `merged_${partner_order_id}.pdf`,
+    documentUrl: {
+      url: mergedUrl,
+      mimeType: "application/pdf",
+      size: fileSize,
+      uploadedAt: new Date().toISOString(),
+    },
+    isUploaded: true,
+  });
+
+  console.log("New merged document uploaded to DB:", mergedDocument);
+}
+   // Correctly update order with merged document object
+   await this.orderRepository.update(
+    {
+      merged_document: {
+        url: mergedUrl,
+        mimeType: "application/pdf",
+        size: fileSize,
+        createdAt: new Date().toISOString(),
+        documentIds: [mergedDocument.id], // Assuming document has an `id`
+      },
+    },
+    { where: { partner_order_id: partner_order_id } }
+  );
+
     } else {
       throw new InternalServerErrorException("Merged file could not be processed.");
     }
   }
 
   return {
-    message: merge_doc ? "File uploaded and merged successfully" : "File uploaded successfully",
-    document_id: document.documentId,
-    document_url: individualMaskedUrl,
-    ...(merge_doc && { merged_document_url: mergedUrl }),
-  };
+    message: merge_doc ? "Document uploaded and merged successfully" : "Document uploaded successfully",
+    document_id: document.entityId,
+     ...(merge_doc && {
+    merged_document_id: mergedDocument.id, // Include merged document ID
+  }),
+   };
 }
+
 async mergeFilesByFolderWork(folderName: string, newFileBuffer?: Buffer, newFileMimeType?: string) {
   const prefix = `${folderName}/`;
   const MAX_SIZE_BYTES = 4 * 1024 * 1024;
@@ -540,8 +606,6 @@ async compressToSize(buffer: Buffer, maxSize: number): Promise<Buffer> {
 
   return compressedBuffer;
 }
-
-
 
 async mergeFilesByFolder(folderName: string, newFileBuffer?: Buffer, newFileMimeType?: string) {
   const prefix = `${folderName}/`;
