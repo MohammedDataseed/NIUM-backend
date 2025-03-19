@@ -13,6 +13,8 @@ import { Request, Response, NextFunction } from "express";
 import { createProxyMiddleware, Options } from "http-proxy-middleware";
 const contextService = require("request-context");
 
+import * as bodyParser from "body-parser";
+
 async function bootstrap() {
   // initiate express app
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -61,6 +63,9 @@ async function bootstrap() {
 
   app.use(helmet());
   // Increase the JSON body size limit to 1MB (or adjust as needed)
+  // Increase request body size limit
+  app.use(bodyParser.json({ limit: "300mb" }));
+  app.use(bodyParser.urlencoded({ limit: "300mb", extended: true }));
   app.use(json({ limit: "300mb" })); // 5mb = 5120 * 1024 bytes
   app.setGlobalPrefix("v1/api");
   app.use(contextService.middleware("request"));
