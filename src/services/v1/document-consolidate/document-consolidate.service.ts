@@ -33,7 +33,7 @@ const unlink = promisify(fs.unlink);
 @Injectable()
 export class PdfService {
   private readonly s3: S3Client;
-  private readonly MAX_SIZE_BYTES = 1 * 1024 * 1024; // 1MB limit
+  private readonly MAX_SIZE_BYTES = 20 * 1024 * 1024; // 1MB limit
   private readonly TEMP_DIR = path.join(process.cwd(), "temp");
 
   constructor(
