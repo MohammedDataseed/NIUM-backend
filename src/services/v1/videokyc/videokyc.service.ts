@@ -268,8 +268,8 @@ export class VideokycService {
         throw new HttpException(
           {
             success: false,
-            message: "Failed to update order with v-kyc details",
-            details: error.message,
+            message: error.message,
+            details: "Failed to update order with v-kyc details",
           },
           HttpStatus.INTERNAL_SERVER_ERROR
         );
@@ -299,8 +299,8 @@ export class VideokycService {
     throw new HttpException(
       {
         success: false,
-        message: "Failed to generate vkyc",
-        details: error.message,
+        message: error.message,
+        details: "Failed to generate vkyc",
       },
       HttpStatus.INTERNAL_SERVER_ERROR
     );
