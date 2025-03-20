@@ -334,7 +334,9 @@ async findOneByOrderId(span: opentracing.Span, orderId: string): Promise<Filtere
     const regeneratedVkycCount = order.is_video_kyc_link_regenerated_details
       ? order.is_video_kyc_link_regenerated_details.length
       : 0;
-    const regeneratedEsignCount = order.esigns?.length || 0;
+    // const regeneratedEsignCount = order.esigns?.length || 0;
+    const regeneratedEsignCount = order.esigns?.length > 1 ? order.esigns.length - 1 : 0;
+
 
     const result: FilteredOrder = {
       partner_order_id: order.partner_order_id,
