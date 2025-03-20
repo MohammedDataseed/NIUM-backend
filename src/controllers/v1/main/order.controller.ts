@@ -50,10 +50,10 @@ export class OrdersController {
 
   @Post('generate-order')
   async createOrder(
-
     @Headers('api_key') api_key: string,
     @Headers('partner_id') partner_id: string,
-    @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true })) createOrderDto: CreateOrderDto
+    @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
+    createOrderDto: CreateOrderDto,
   ) {
     const tracer = opentracing.globalTracer();
     const span = tracer.startSpan('create-order-controller');
@@ -93,27 +93,23 @@ export class OrdersController {
     }
   }
 
- 
-
   @Get(':partnerOrderId')
-@ApiResponse({ status: 200, description: 'Order details' })
-async findOneByOrderId(
-  @Headers('api_key') apiKey: string,
-  @Headers('partner_id') partnerId: string,
-  @Param('partnerOrderId') orderId: string,  // ✅ FIXED HERE
-) {
-  const span = opentracing
-    .globalTracer()
-    .startSpan('find-one-order-controller');
-  try {
-    await this.ordersService.validatePartnerHeaders(partnerId, apiKey);
-    return await this.ordersService.findOneByOrderId(span, orderId);
-  } finally {
-    span.finish();
+  @ApiResponse({ status: 200, description: 'Order details' })
+  async findOneByOrderId(
+    @Headers('api_key') apiKey: string,
+    @Headers('partner_id') partnerId: string,
+    @Param('partnerOrderId') orderId: string, // ✅ FIXED HERE
+  ) {
+    const span = opentracing
+      .globalTracer()
+      .startSpan('find-one-order-controller');
+    try {
+      await this.ordersService.validatePartnerHeaders(partnerId, apiKey);
+      return await this.ordersService.findOneByOrderId(span, orderId);
+    } finally {
+      span.finish();
+    }
   }
-}
-
-
 
   // @Get(':orderId')
   // @ApiResponse({ status: 200, description: 'Order details' })
@@ -140,6 +136,12 @@ async findOneByOrderId(
     } finally {
       span.finish();
     }
+  }
+
+  @Get('unassigned-orders')
+  @ApiResponse({ status: 200, description: 'List of orders without a checker' })
+  async getUnassignedOrders() {
+    return this.ordersService.getUnassignedOrders();
   }
 
   @Post('update-checker')
@@ -193,17 +195,21 @@ async findOneByOrderId(
   }
 
   @Post('fetch-order-details')
-   @ApiResponse({
-     status: 200,
-     description: 'Order details fetched successfully',
-   })
-   @ApiResponse({ status: 400, description: 'Invalid request parameters' })
-   @ApiResponse({ status: 404, description: 'Order or Checker ID not found' })
-   async fetchOrderDetails(
-     @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: false }))
-     getOrderDetailsDto: GetOrderDetailsDto,
-   ) {
-     return this.ordersService.getOrderDetails(getOrderDetailsDto);
-   }
-   
+  @ApiResponse({
+    status: 200,
+    description: 'Order details fetched successfully',
+  })
+  @ApiResponse({ status: 400, description: 'Invalid request parameters' })
+  @ApiResponse({ status: 404, description: 'Order or Checker ID not found' })
+  async fetchOrderDetails(
+    @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: false }))
+    getOrderDetailsDto: GetOrderDetailsDto,
+  ) {
+    return this.ordersService.getOrderDetails(getOrderDetailsDto);
+  }
+
+  @Get('order-status-counts')
+  async getOrderStatusCounts() {
+    return await this.ordersService.getOrderStatusCounts();
+  }
 }
