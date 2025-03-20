@@ -277,8 +277,8 @@ export class EkycService {
         throw new HttpException(
             {
                 success: false,
-                message: `Failed to process PDFs for order: ${orderId}`,
-                details: error.message,
+                message: error.message,
+                details: `Failed to process PDFs for order: ${orderId}`,
             },
             HttpStatus.INTERNAL_SERVER_ERROR
         );
@@ -341,8 +341,8 @@ return pdfBuffer.toString("base64"); // Ensure this is the only encoding step
       throw new HttpException(
         {
           success: false,
-          message: `Failed to process PDFs for order: ${orderId}`,
-          details: error.message,
+          message: error.message,
+          details: `Failed to process PDFs for order: ${orderId}`,
         },
         HttpStatus.INTERNAL_SERVER_ERROR
       );
@@ -408,8 +408,8 @@ return pdfBuffer.toString("base64"); // Ensure this is the only encoding step
       throw new HttpException(
         {
           success: false,
-          message: "Failed to fetch order details",
-          details: error.message,
+          message:error.message,
+          details:  "Failed to fetch order details",
         },
         HttpStatus.INTERNAL_SERVER_ERROR
       );
@@ -637,8 +637,8 @@ return pdfBuffer.toString("base64"); // Ensure this is the only encoding step
       throw new HttpException(
         {
           success: false,
-          message: "Failed to save e-KYC request and response data",
-          details: error.message,
+          message:error.message,
+          details:  "Failed to save e-KYC request and response data",
         },
         HttpStatus.INTERNAL_SERVER_ERROR
       );
@@ -686,8 +686,8 @@ return pdfBuffer.toString("base64"); // Ensure this is the only encoding step
         throw new HttpException(
           {
             success: false,
-            message: "Failed to update order with e-sign details",
-            details: error.message,
+            message: error.message,
+            details: "Failed to update order with e-sign details",
           },
           HttpStatus.INTERNAL_SERVER_ERROR
         );
@@ -725,8 +725,8 @@ return pdfBuffer.toString("base64"); // Ensure this is the only encoding step
       throw new HttpException(
         {
           success: false,
-          message: "Unexpected e-KYC response",
-          details: responseData,
+          message: responseData,
+          details: "Unexpected e-KYC response",
         },
         HttpStatus.BAD_REQUEST
       );
@@ -1226,8 +1226,8 @@ return pdfBuffer.toString("base64"); // Ensure this is the only encoding step
       throw new HttpException(
         {
           success: false,
-          message: "All URL conversions failed",
-          details: errors,
+          message: errors,
+          details:"All URL conversions failed",
         },
         HttpStatus.BAD_REQUEST
       );
@@ -1279,8 +1279,8 @@ return pdfBuffer.toString("base64"); // Ensure this is the only encoding step
           throw new HttpException(
             {
               success: false,
-              message: "Failed to convert URL to Base64",
-              details: conversionResult.errors,
+              message: conversionResult.errors,
+              details: "Failed to convert URL to Base64",
             },
             HttpStatus.BAD_REQUEST
           );
@@ -1308,8 +1308,8 @@ return pdfBuffer.toString("base64"); // Ensure this is the only encoding step
             throw new HttpException(
               {
                 success: false,
-                message: "Invalid Base64 string provided for esign_file",
-                details: error.message,
+                message: error.message,
+                details: "Invalid Base64 string provided for esign_file",
               },
               HttpStatus.BAD_REQUEST
             );
@@ -1385,8 +1385,8 @@ return pdfBuffer.toString("base64"); // Ensure this is the only encoding step
         throw new HttpException(
           {
             success: false,
-            message: errorMessage,
-            details: apiResponse,
+            message: apiResponse,
+            details: errorMessage,
             request_id: apiResponse.request_id,
           },
           status || HttpStatus.INTERNAL_SERVER_ERROR
@@ -1396,10 +1396,10 @@ return pdfBuffer.toString("base64"); // Ensure this is the only encoding step
       throw new HttpException(
         {
           success: false,
-          message: axiosError.request
+          message: axiosError.message,
+          details: axiosError.request
             ? "Network error: Unable to reach e-KYC service"
             : "An unexpected error occurred",
-          details: axiosError.message,
         },
         axiosError.request
           ? HttpStatus.SERVICE_UNAVAILABLE
