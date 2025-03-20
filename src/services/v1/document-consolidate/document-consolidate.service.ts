@@ -55,7 +55,7 @@ export class PdfService {
     private readonly orderRepository: typeof Order,
     @Inject("DOCUMENT_TYPE_REPOSITORY")
     private readonly documentTypeRepository: typeof DocumentType,
-    private readonly configService: ConfigService,
+    private readonly configService: ConfigService
   ) {
     this.s3 = new S3Client({
       region: process.env.AWS_REGION,
@@ -65,7 +65,7 @@ export class PdfService {
       },
     });
   }
-  
+
   async listFilesByFolder(folderName: string) {
     const prefix = `${folderName}/`;
 
@@ -306,36 +306,57 @@ export class PdfService {
     }
   }
 
-async uploadDocumentByOrderId(
-  partner_order_id: string,
-  document_type_id: string,
-  base64File: string,
-  merge_doc: boolean = false
-) {
-  const order = await this.orderRepository.findOne({ where: { partner_order_id } });
-  if (!order) throw new BadRequestException(`Order ID ${partner_order_id} not found`);
+  async uploadDocumentByOrderId(
+    partner_order_id: string,
+    document_type_id: string,
+    base64File: string,
+    merge_doc: boolean = false
+  ) {
+    const order = await this.orderRepository.findOne({
+      where: { partner_order_id },
+    });
+    if (!order)
+      throw new BadRequestException(`Order ID ${partner_order_id} not found`);
 
-  const documentType = await this.documentTypeRepository.findOne({ where: { hashed_key: document_type_id } });
-  if (!documentType) throw new BadRequestException(`Invalid document_type_id: ${document_type_id}`);
+    const documentType = await this.documentTypeRepository.findOne({
+      where: { hashed_key: document_type_id },
+    });
+    if (!documentType)
+      throw new BadRequestException(
+        `Invalid document_type_id: ${document_type_id}`
+      );
 
-  function isValidBase64(str: string): boolean {
-    const base64Regex = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
-    return base64Regex.test(str);
-  }
+    function isValidBase64(str: string): boolean {
+      const base64Regex =
+        /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
+      return base64Regex.test(str);
+    }
 
-  if (!isValidBase64(base64File)) throw new BadRequestException("Invalid Base64 encoding.");
+    if (!isValidBase64(base64File))
+      throw new BadRequestException("Invalid Base64 encoding.");
 
-  let mimeType: string, base64Data: string;
-  const fileMatch = base64File.match(/^data:(image\/jpeg|image\/jpg|image\/png|application\/pdf);base64,(.+)$/);
-  if (fileMatch) {
-    mimeType = fileMatch[1];
-    base64Data = fileMatch[2];
-  } else {
-    base64Data = base64File;
-    const magicNumbers: Record<string, string> = { "JVBERi0": "application/pdf", "/9j/": "image/jpeg", "iVBORw": "image/png" };
-    mimeType = Object.entries(magicNumbers).find(([magic]) => base64Data.startsWith(magic))?.[1];
-    if (!mimeType) throw new BadRequestException("Invalid base64 format. Only JPEG, JPG, PNG, and PDF allowed.");
-  }
+    let mimeType: string, base64Data: string;
+    const fileMatch = base64File.match(
+      /^data:(image\/jpeg|image\/jpg|image\/png|application\/pdf);base64,(.+)$/
+    );
+    if (fileMatch) {
+      mimeType = fileMatch[1];
+      base64Data = fileMatch[2];
+    } else {
+      base64Data = base64File;
+      const magicNumbers: Record<string, string> = {
+        JVBERi0: "application/pdf",
+        "/9j/": "image/jpeg",
+        iVBORw: "image/png",
+      };
+      mimeType = Object.entries(magicNumbers).find(([magic]) =>
+        base64Data.startsWith(magic)
+      )?.[1];
+      if (!mimeType)
+        throw new BadRequestException(
+          "Invalid base64 format. Only JPEG, JPG, PNG, and PDF allowed."
+        );
+    }
 
     let buffer = Buffer.from(base64Data, "base64");
     const MAX_SIZE_BYTES = 15 * 1024 * 1024;
@@ -726,101 +747,105 @@ async uploadDocumentByOrderId(
     }
   }
 
-//   private async compressToSize(
-//     pdfBuffer: Buffer,
-//     maxSize: number
-//   ): Promise<Buffer> {
-//     const tempInput = path.join(this.TEMP_DIR, `input_${Date.now()}.pdf`);
-//     const tempOutput = path.join(this.TEMP_DIR, `output_${Date.now()}.pdf`);
+  //   private async compressToSize(
+  //     pdfBuffer: Buffer,
+  //     maxSize: number
+  //   ): Promise<Buffer> {
+  //     const tempInput = path.join(this.TEMP_DIR, `input_${Date.now()}.pdf`);
+  //     const tempOutput = path.join(this.TEMP_DIR, `output_${Date.now()}.pdf`);
 
-//     try {
-//       // Save the original PDF buffer to a temporary file
-//       await writeFile(tempInput, pdfBuffer);
+  //     try {
+  //       // Save the original PDF buffer to a temporary file
+  //       await writeFile(tempInput, pdfBuffer);
 
-//       // Run Ghostscript compression command
-//       const gsCommand = `gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/screen -dNOPAUSE -dQUIET -dBATCH -sOutputFile=${tempOutput} ${tempInput}`;
-//       const { exec } = require("child_process");
+  //       // Run Ghostscript compression command
+  //       const gsCommand = `gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/screen -dNOPAUSE -dQUIET -dBATCH -sOutputFile=${tempOutput} ${tempInput}`;
+  //       const { exec } = require("child_process");
 
-//       await new Promise((resolve, reject) => {
-//         exec(gsCommand, (error: any) => {
-//           if (error) {
-//             reject(
-//               new Error(`Ghostscript compression failed: ${error.message}`)
-//             );
-//           } else {
-//             resolve(null);
-//           }
-//         });
-//       });
+  //       await new Promise((resolve, reject) => {
+  //         exec(gsCommand, (error: any) => {
+  //           if (error) {
+  //             reject(
+  //               new Error(`Ghostscript compression failed: ${error.message}`)
+  //             );
+  //           } else {
+  //             resolve(null);
+  //           }
+  //         });
+  //       });
 
-//       // Read the compressed file
-//       const compressedBuffer = await fs.promises.readFile(tempOutput);
-//       console.log(`Compressed PDF size: ${compressedBuffer.length} bytes`);
+  //       // Read the compressed file
+  //       const compressedBuffer = await fs.promises.readFile(tempOutput);
+  //       console.log(`Compressed PDF size: ${compressedBuffer.length} bytes`);
 
-//       if (compressedBuffer.length > maxSize) {
-//         console.warn(
-//           `Compressed PDF (${compressedBuffer.length} bytes) still exceeds max size (${maxSize} bytes).`
-//         );
-//       }
+  //       if (compressedBuffer.length > maxSize) {
+  //         console.warn(
+  //           `Compressed PDF (${compressedBuffer.length} bytes) still exceeds max size (${maxSize} bytes).`
+  //         );
+  //       }
 
-//     return compressedBuffer;
-//   } catch (error) {
-//     console.error(`Error in convertImageToPdf: ${error.message}`);
-//     throw new InternalServerErrorException(
-//       `Image conversion failed: ${error.message}`
-//     );
-//   }
-// }
+  //     return compressedBuffer;
+  //   } catch (error) {
+  //     console.error(`Error in convertImageToPdf: ${error.message}`);
+  //     throw new InternalServerErrorException(
+  //       `Image conversion failed: ${error.message}`
+  //     );
+  //   }
+  // }
 
-private async compressToSize(pdfBuffer: Buffer, maxSize: number): Promise<Buffer> {
-  const tempInput = path.join(this.TEMP_DIR, `input_${Date.now()}.pdf`);
-  const tempOutput = path.join(this.TEMP_DIR, `output_${Date.now()}.pdf`);
+  private async compressToSize(
+    pdfBuffer: Buffer,
+    maxSize: number
+  ): Promise<Buffer> {
+    const tempInput = path.join(this.TEMP_DIR, `input_${Date.now()}.pdf`);
+    const tempOutput = path.join(this.TEMP_DIR, `output_${Date.now()}.pdf`);
 
-  try {
-    // Save the original PDF buffer to a temporary file
-    await writeFile(tempInput, pdfBuffer);
-
-    // Run Ghostscript compression command
-    const gsCommand = `gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/screen -dNOPAUSE -dQUIET -dBATCH -sOutputFile=${tempOutput} ${tempInput}`;
-    const { exec } = require("child_process");
-
-    await new Promise((resolve, reject) => {
-      exec(gsCommand, (error: any) => {
-        if (error) {
-          reject(new Error(`Ghostscript compression failed: ${error.message}`));
-        } else {
-          resolve(null);
-        }
-      });
-    });
-
-    // Read the compressed file
-    const compressedBuffer = await fs.promises.readFile(tempOutput);
-    console.log(`Compressed PDF size: ${compressedBuffer.length} bytes`);
-
-    if (compressedBuffer.length > maxSize) {
-      console.warn(
-        `Compressed PDF (${compressedBuffer.length} bytes) still exceeds max size (${maxSize} bytes).`
-      );
-    }
-
-    return compressedBuffer;
-  } catch (error) {
-    console.error(`Error in compressToSize: ${error.message}`);
-    throw new InternalServerErrorException(
-      `PDF compression failed: ${error.message}`
-    );
-  } finally {
-    // Cleanup temporary files
     try {
-      await fs.promises.unlink(tempInput);
-      await fs.promises.unlink(tempOutput);
-    } catch (cleanupError) {
-      console.warn(`Failed to delete temp files: ${cleanupError.message}`);
+      // Save the original PDF buffer to a temporary file
+      await writeFile(tempInput, pdfBuffer);
+
+      // Run Ghostscript compression command
+      const gsCommand = `gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/screen -dNOPAUSE -dQUIET -dBATCH -sOutputFile=${tempOutput} ${tempInput}`;
+      const { exec } = require("child_process");
+
+      await new Promise((resolve, reject) => {
+        exec(gsCommand, (error: any) => {
+          if (error) {
+            reject(
+              new Error(`Ghostscript compression failed: ${error.message}`)
+            );
+          } else {
+            resolve(null);
+          }
+        });
+      });
+
+      // Read the compressed file
+      const compressedBuffer = await fs.promises.readFile(tempOutput);
+      console.log(`Compressed PDF size: ${compressedBuffer.length} bytes`);
+
+      if (compressedBuffer.length > maxSize) {
+        console.warn(
+          `Compressed PDF (${compressedBuffer.length} bytes) still exceeds max size (${maxSize} bytes).`
+        );
+      }
+
+      return compressedBuffer;
+    } catch (error) {
+      console.error(`Error in compressToSize: ${error.message}`);
+      throw new InternalServerErrorException(
+        `PDF compression failed: ${error.message}`
+      );
+    } finally {
+      // Cleanup temporary files
+      try {
+        await fs.promises.unlink(tempInput);
+        await fs.promises.unlink(tempOutput);
+      } catch (cleanupError) {
+        console.warn(`Failed to delete temp files: ${cleanupError.message}`);
+      }
     }
   }
-}
-
 
   async mergeFilesByFolder(
     folderName: string,
@@ -948,17 +973,29 @@ private async compressToSize(pdfBuffer: Buffer, maxSize: number): Promise<Buffer
 
     // ✅ Construct permanent public URL instead of using signed URL
     const mergedPublicUrl = `https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${mergedKey}`;
+    // const maskedUrl = `${process.env.API_BASE_URL}/v1/api/documents/${folderName}/merge_document_${folderName}.pdf`;
+    const maskedUrl = `${process.env.API_BASE_URL}/v1/api/documents/${mergedKey}`;
+    // const maskedUrl = `http://localhost:3002/v1/api/documents/${mergedKey}`;
 
     // return { files: [{ buffer: Buffer.from(mergedBytes), url: mergedSignedUrl, s3Key: mergedKey }] };
     // return { files: [{ buffer: Buffer.from(mergedBytes), url: mergedSignedUrl, s3Key: mergedKey }] };
+    // return {
+    //   files: [
+    //     {
+    //       buffer: Buffer.from(mergedBytes),
+    //       url: mergedPublicUrl,
+    //       s3Key: mergedKey,
+    //     },
+    //   ],
+    // };
     return {
       files: [
         {
           buffer: Buffer.from(mergedBytes),
-          url: mergedPublicUrl,
+          url: maskedUrl,
           s3Key: mergedKey,
         },
       ],
     };
-}
+  }
 }

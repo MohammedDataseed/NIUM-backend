@@ -15,9 +15,11 @@ import {
   NotFoundException,
   ValidationError,
   ValidationPipe,
+  HttpStatus,
+  HttpException,
 } from "@nestjs/common";
 import { OrdersService } from "../../../services/v1/order/order.service";
-
+import axios from 'axios';
 import * as opentracing from "opentracing";
 import { Response } from "express";
 import { FileInterceptor } from "@nestjs/platform-express";
@@ -32,7 +34,10 @@ import {
 import { PdfService } from "../../../services/v1/document-consolidate/document-consolidate.service";
 import { Express } from "express";
 import { IsString, IsBoolean, IsNotEmpty } from "class-validator";
-
+import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
+import { GetObjectCommandOutput } from '@aws-sdk/client-s3';
+import { Readable } from 'stream';
+const s3 = new S3Client({ region: 'ap-south-1' });
 export class UploadPdfDto {
   @IsString()
   @IsNotEmpty()
@@ -57,7 +62,10 @@ export class PdfController {
   constructor(
     private readonly ordersService: OrdersService,
     private readonly pdfService: PdfService
-  ) {}
+  ) {
+    this.s3BaseUrl = 'https://docnest.s3.ap-south-1.amazonaws.com';
+  }
+  private readonly s3BaseUrl: string;
 
   @Post("upload")
   @ApiOperation({ summary: "Upload a PDF document by Order ID" })
@@ -353,4 +361,39 @@ export class PdfController {
   //   res.setHeader('Content-Type', 'application/pdf');
   //   fileStream.pipe(res);
   // }
+  // @Get(':folder/:filename')
+  // async getMergedPdf(@Param('folder') folder: string, @Param('filename') filename: string, @Res() res: Response) {
+  //   const fileUrl = `https://docnest.s3.ap-south-1.amazonaws.com/${folder}/${filename}`;
+    
+  //   return res.redirect(fileUrl); // Redirect to S3
+  // }
+  @Get(':folder/:filename')
+  async getMergedPdf(
+    @Param('folder') folder: string,
+    @Param('filename') filename: string,
+    @Res() res: Response
+  ) {
+    const bucket = 'docnest';
+    const key = `${folder}/${filename}`;
+  
+    try {
+      const command = new GetObjectCommand({ Bucket: bucket, Key: key });
+      const s3Response: GetObjectCommandOutput = await s3.send(command);
+  
+      if (!s3Response.Body) {
+        throw new HttpException('File not found', HttpStatus.NOT_FOUND);
+      }
+  
+      // Set correct headers for PDF
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `inline; filename=${filename}`);
+  
+      // Stream directly from S3 to response
+      (s3Response.Body as Readable).pipe(res);
+    } catch (error) {
+      console.error('Error fetching file from S3:', error);
+      throw new HttpException('File not found', HttpStatus.NOT_FOUND);
+    }
+  }
+
 }
