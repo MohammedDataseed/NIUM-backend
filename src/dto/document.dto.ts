@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsUUID, IsBoolean, IsOptional, MaxLength } from 'class-validator';
+import {
+  IsString,
+  IsUUID,
+  IsBoolean,
+  IsOptional,
+  MaxLength,
+} from 'class-validator';
 
 export class DocumentUploadDto {
   @ApiProperty({

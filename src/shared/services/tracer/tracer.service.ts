@@ -111,7 +111,7 @@ export class TracerService {
       console.warn('Invalid parent span detected, starting a new root span.');
       parentSpan = undefined; // If invalid, create a new root span
     }
-  
+
     const span = this.tracer.startSpan('database', {
       childOf: parentSpan || undefined, // Avoid passing invalid parentSpan
       tags: {
@@ -120,11 +120,10 @@ export class TracerService {
         [opentracing.Tags.DB_STATEMENT]: dbOperation,
       },
     });
-  
+
     this.requestStorage.set(`active-span`, span);
     return span;
   }
-  
 
   traceHttpRequest(parentSpan: opentracing.Span, uri: string, method: string) {
     const span = this.tracer.startSpan(`http: ${uri}`, {

@@ -15,18 +15,18 @@ import { MailerService } from 'src/shared/services/mailer/mailer.service';
     PassportModule,
     SharedModule,
     MailModule, // ✅ Add MailModule to imports
-  
+
     JwtModule.registerAsync({
       imports: [ConfigModule], // ✅ Import ConfigModule for dependency injection
       inject: [ConfigService], // ✅ Inject ConfigService
       useFactory: (configService: ConfigService) => {
         const secret = configService.get<string>('JWT_SECRET');
-        const expiresIn=configService.get<string>('JWT_SECRET_EXPIRE')
+        const expiresIn = configService.get<string>('JWT_SECRET_EXPIRE');
         if (!secret) {
           throw new Error('JWT_SECRET is not defined in environment variables');
         }
         return { secret, signOptions: { expiresIn: expiresIn } };
-      },      
+      },
     }),
   ],
   providers: [JwtAuthService, UserService, MailerService], // ✅ Add MailService

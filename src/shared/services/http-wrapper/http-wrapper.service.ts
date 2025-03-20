@@ -64,7 +64,7 @@ export class HttpWrapperService {
   }
 
   private processReqest(body, queryParmas) {
-    return ([body, queryParmas] = [body, queryParmas].map(item => {
+    return ([body, queryParmas] = [body, queryParmas].map((item) => {
       if (Array.isArray(item)) {
         return changeCase.snakeArray(item, {
           recursive: true,
@@ -99,10 +99,10 @@ export class HttpWrapperService {
       responseType,
     } as AxiosRequestConfig;
     return this.http.get(url, options).pipe(
-      map(response => {
+      map((response) => {
         return this.processResponse(traceSpan, response);
       }),
-      catchError(err => {
+      catchError((err) => {
         this.tracerService.finishSpanWithResult(traceSpan, 200, true);
         return throwError(this.processAxiosError(err));
       }),
@@ -127,10 +127,10 @@ export class HttpWrapperService {
     // inject tracer
     this.tracerService.inject(traceSpan, headers);
     return this.http.post(url, body, { params: queryParams, headers }).pipe(
-      map(response => {
+      map((response) => {
         return this.processResponse(traceSpan, response);
       }),
-      catchError(err => {
+      catchError((err) => {
         this.tracerService.finishSpanWithResult(traceSpan, 200, true);
         return throwError(this.processAxiosError(err));
       }),
@@ -155,10 +155,10 @@ export class HttpWrapperService {
     this.tracerService.inject(traceSpan, headers);
     if (isMultipart) {
       const form = new FormData();
-      files.forEach(file => {
+      files.forEach((file) => {
         form.append(file.fieldname, file.buffer, file.originalname);
       });
-      Object.keys(body).forEach(item => {
+      Object.keys(body).forEach((item) => {
         form.append(item, body[item]);
       });
       body = form;
@@ -169,10 +169,10 @@ export class HttpWrapperService {
       };
     }
     return this.http.patch(url, body, { params: queryParams, headers }).pipe(
-      map(response => {
+      map((response) => {
         return this.processResponse(traceSpan, response);
       }),
-      catchError(err => {
+      catchError((err) => {
         this.tracerService.finishSpanWithResult(traceSpan, 200, true);
         return throwError(this.processAxiosError(err));
       }),
@@ -189,10 +189,10 @@ export class HttpWrapperService {
     // inject tracer
     this.tracerService.inject(traceSpan, headers);
     return this.http.put(url, body, { params: queryParams, headers }).pipe(
-      map(response => {
+      map((response) => {
         return this.processResponse(traceSpan, response);
       }),
-      catchError(err => {
+      catchError((err) => {
         this.tracerService.finishSpanWithResult(traceSpan, 200, true);
         return throwError(this.processAxiosError(err));
       }),

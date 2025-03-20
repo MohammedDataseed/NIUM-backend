@@ -1,21 +1,21 @@
 //vkyc.model.ts
-  import {
-    Table,
-    Column,
-    Model,
-    DataType,
-    ForeignKey,
-    BelongsTo,
-    Unique,
-    BeforeValidate,
-    AllowNull,
-    BeforeCreate,
-  } from "sequelize-typescript";
-  import { Order } from "./order.model";
-  import * as crypto from "crypto";
+import {
+  Table,
+  Column,
+  Model,
+  DataType,
+  ForeignKey,
+  BelongsTo,
+  Unique,
+  BeforeValidate,
+  AllowNull,
+  BeforeCreate,
+} from 'sequelize-typescript';
+import { Order } from './order.model';
+import * as crypto from 'crypto';
 
 @Table({
-  tableName: "vkycs",
+  tableName: 'vkycs',
   timestamps: true,
 })
 export class Vkyc extends Model<Vkyc> {
@@ -28,7 +28,7 @@ export class Vkyc extends Model<Vkyc> {
   id: string;
   @Unique
   @AllowNull(true)
-  @Column({ type: DataType.STRING, field: "hashed_key" })
+  @Column({ type: DataType.STRING, field: 'hashed_key' })
   hashed_key: string;
 
   @Column({ type: DataType.STRING, allowNull: false })
@@ -38,7 +38,7 @@ export class Vkyc extends Model<Vkyc> {
   @Column({ type: DataType.UUID, allowNull: false })
   order_id: string; // 🔥 This will store the actual primary key of Order
 
-  @BelongsTo(() => Order, { foreignKey: "order_id", targetKey: "id" })
+  @BelongsTo(() => Order, { foreignKey: 'order_id', targetKey: 'id' })
   order: Order;
 
   @Column({ type: DataType.INTEGER, allowNull: false })
@@ -70,31 +70,31 @@ export class Vkyc extends Model<Vkyc> {
   // New fields from the second API response
 
   @Column({ type: DataType.JSONB, allowNull: true })
-  device_info: any;  // stores device info like IP and User Agent
+  device_info: any; // stores device info like IP and User Agent
 
   @Column({ type: DataType.JSONB, allowNull: true })
-  profile_data: any;  // stores profile details like email, mobile, and notes
+  profile_data: any; // stores profile details like email, mobile, and notes
 
   @Column({ type: DataType.JSONB, allowNull: true })
-  performed_by: any[];  // stores actions performed by various accounts
+  performed_by: any[]; // stores actions performed by various accounts
 
   @Column({ type: DataType.JSONB, allowNull: true })
-  resources_documents: any[];  // stores the document resources
+  resources_documents: any[]; // stores the document resources
 
   @Column({ type: DataType.JSONB, allowNull: true })
-  resources_images: any[];  // stores the image resources
+  resources_images: any[]; // stores the image resources
 
   @Column({ type: DataType.JSONB, allowNull: true })
-  resources_videos: any[];  // stores video resources
+  resources_videos: any[]; // stores video resources
 
   @Column({ type: DataType.JSONB, allowNull: true })
-  resources_text: any[];  // stores text resources such as location, name, dob
-  
+  resources_text: any[]; // stores text resources such as location, name, dob
+
   @Column({ type: DataType.JSONB, allowNull: true })
-  location_info: any;  // stores location data like address and coordinates
+  location_info: any; // stores location data like address and coordinates
 
   @Column({ type: DataType.STRING, allowNull: true })
-  first_name: string;  // stores first name from the profile data
+  first_name: string; // stores first name from the profile data
   @Column({
     type: DataType.STRING,
     allowNull: true,
@@ -133,12 +133,12 @@ export class Vkyc extends Model<Vkyc> {
   @AllowNull(true)
   @Column({ type: DataType.UUID, allowNull: true })
   updated_by: string | null; // Optional UUID
-  
+
   /** Generate `hashed_key` before creation */
-      @BeforeValidate
-      static generatehashed_key(instance: Vkyc) {
-        const randomPart = crypto.randomBytes(16).toString("hex");
-        const timestampPart = Date.now().toString(36);
-        instance.hashed_key = `${randomPart}${timestampPart}`;
-      }
+  @BeforeValidate
+  static generatehashed_key(instance: Vkyc) {
+    const randomPart = crypto.randomBytes(16).toString('hex');
+    const timestampPart = Date.now().toString(36);
+    instance.hashed_key = `${randomPart}${timestampPart}`;
+  }
 }

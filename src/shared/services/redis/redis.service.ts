@@ -10,20 +10,28 @@ export class RedisService {
   public client!: RedisClient;
   private prefix = 'retail:instapoints';
 
-  constructor(private logger: LoggerService, private readonly configService: ConfigService) {
+  constructor(
+    private logger: LoggerService,
+    private readonly configService: ConfigService,
+  ) {
     if (configService.get('NODE_ENV') === NODE_ENV_VALUES.TEST) {
       this.client = createMockClient();
       return;
     } else {
-      this.client = createClient({ url: this.configService.get('REDIS_CONNECTION_URL'), db: this.configService.get('REDIS_DB') || 0 });
+      this.client = createClient({
+        url: this.configService.get('REDIS_CONNECTION_URL'),
+        db: this.configService.get('REDIS_DB') || 0,
+      });
     }
 
-    this.client.on('error', err => {
+    this.client.on('error', (err) => {
       this.logger.error('Cannot make redis connection');
       process.kill(process.pid, 'SIGINT');
     });
-    this.client.on('ready', err => {
-      this.logger.info(`Redis connected at ${this.configService.get('REDIS_CONNECTION_URL')}`);
+    this.client.on('ready', (err) => {
+      this.logger.info(
+        `Redis connected at ${this.configService.get('REDIS_CONNECTION_URL')}`,
+      );
     });
   }
 
@@ -63,7 +71,9 @@ export class RedisService {
     });
   }
 
-  public async getValue(key: string): Promise<object | number | string | boolean | null> {
+  public async getValue(
+    key: string,
+  ): Promise<object | number | string | boolean | null> {
     return new Promise((resolve, reject) => {
       this.client.get(key, (err, response) => {
         if (err) {
@@ -79,7 +89,9 @@ export class RedisService {
     return disablePrefix ? key : `${this.prefix}:${key}`;
   }
 
-  public async getExactKeyValue(key: string): Promise<object | number | string | boolean | null> {
+  public async getExactKeyValue(
+    key: string,
+  ): Promise<object | number | string | boolean | null> {
     return new Promise((resolve, reject) => {
       this.client.get(this.keyTransform(key, true), (err, response) => {
         if (err) {
@@ -90,15 +102,24 @@ export class RedisService {
     });
   }
 
-  public async setExactKeyWithExpiry(key: string, value: object | boolean, expire: string): Promise<boolean> {
+  public async setExactKeyWithExpiry(
+    key: string,
+    value: object | boolean,
+    expire: string,
+  ): Promise<boolean> {
     return new Promise((resolve, reject) => {
       const _value = JSON.stringify(value);
-      this.client.setex(this.keyTransform(key, true), parseInt(expire, 10), _value, (err, response) => {
-        if (err) {
-          return reject(err);
-        }
-        resolve(true);
-      });
+      this.client.setex(
+        this.keyTransform(key, true),
+        parseInt(expire, 10),
+        _value,
+        (err, response) => {
+          if (err) {
+            return reject(err);
+          }
+          resolve(true);
+        },
+      );
     });
   }
 

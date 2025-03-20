@@ -2,15 +2,19 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class AddressDto {
-  @ApiProperty({ description: 'Type of address (e.g., current)', example: 'current' })
+  @ApiProperty({
+    description: 'Type of address (e.g., current)',
+    example: 'current',
+  })
   type: string;
 
   @ApiProperty({ description: 'House number', example: '' })
   house_number: string;
 
-  @ApiProperty({ 
-    description: 'Full street address', 
-    example: '26/1, P & T drivers colony,near ammar school, DJ halli, Bengaluru-560045' 
+  @ApiProperty({
+    description: 'Full street address',
+    example:
+      '26/1, P & T drivers colony,near ammar school, DJ halli, Bengaluru-560045',
   })
   street_address: string;
 
@@ -34,10 +38,10 @@ export class AddressDto {
 }
 
 export class SyncProfileDto {
-  @ApiProperty({ 
-    description: 'Unique reference identifier', 
+  @ApiProperty({
+    description: 'Unique reference identifier',
     example: '677',
-    required: true 
+    required: true,
   })
   reference_id: string;
 }

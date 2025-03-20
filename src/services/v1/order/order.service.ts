@@ -69,9 +69,7 @@ export class OrdersService {
     private readonly purposeTypeRepository: typeof Purpose,
     @Inject('TRANSACTION_TYPE_REPOSITORY')
     private readonly transactionTypeRepository: typeof transaction_type,
-  
   ) {}
-
 
   // CREATE: Create a new order
   async createOrder(
@@ -95,8 +93,6 @@ export class OrdersService {
       if (existingOrder) {
         throw new ConflictException('Order ID already exists');
       }
-
-
 
       const partner = await this.partnerRepository.findOne({
         where: { hashed_key: partnerId },
@@ -145,8 +141,8 @@ export class OrdersService {
         customer_pan: createOrderDto.customer_pan,
         nium_order_id: niumOrderId, // Assigning the generated nium_order_id
         order_status: 'pending', // Default value
-        e_sign_status:'pending', // Default value
-        v_kyc_status:'pending', // Default value
+        e_sign_status: 'pending', // Default value
+        v_kyc_status: 'pending', // Default value
         created_by: partner?.id,
         updated_by: partner?.id,
       };
@@ -168,7 +164,6 @@ export class OrdersService {
     }
   }
 
-  
   async findAll(span: opentracing.Span): Promise<Order[] | null> {
     const childSpan = span
       .tracer()
@@ -231,8 +226,6 @@ export class OrdersService {
     if (!partner) {
       throw new BadRequestException('Invalid partner ID');
     }
-
-
 
     // Check if the api-key matches the partner's api_key
     if (!partner.api_key || partner.api_key !== apiKey) {
@@ -354,7 +347,7 @@ export class OrdersService {
       childSpan.finish();
     }
   }
-  
+
   async updateOrder(
     span: opentracing.Span,
     orderId: string,

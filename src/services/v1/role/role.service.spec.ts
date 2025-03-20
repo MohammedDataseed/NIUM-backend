@@ -1,12 +1,12 @@
-import { Test, TestingModule } from "@nestjs/testing";
-import { RoleService } from "./role.service";
-import { SharedModule } from "../../../shared/shared.module";
-import { TracerService } from "../../../shared/services/tracer/tracer.service";
-import { repositoryProviders } from "../../../database/providers/model-repository.provider";
-import { databaseProviders } from "../../../database/providers/database.provider";
-import { ConfigService, ConfigModule } from "@nestjs/config";
+import { Test, TestingModule } from '@nestjs/testing';
+import { RoleService } from './role.service';
+import { SharedModule } from '../../../shared/shared.module';
+import { TracerService } from '../../../shared/services/tracer/tracer.service';
+import { repositoryProviders } from '../../../database/providers/model-repository.provider';
+import { databaseProviders } from '../../../database/providers/database.provider';
+import { ConfigService, ConfigModule } from '@nestjs/config';
 
-describe("RoleService", () => {
+describe('RoleService', () => {
   let service: RoleService;
 
   beforeEach(async () => {
@@ -24,7 +24,7 @@ describe("RoleService", () => {
     service = module.get<RoleService>(RoleService);
   });
 
-  it("should be defined", () => {
+  it('should be defined', () => {
     expect(service).toBeDefined();
   });
 });
