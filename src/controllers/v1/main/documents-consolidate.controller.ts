@@ -367,7 +367,7 @@ export class PdfController {
     
   //   return res.redirect(fileUrl); // Redirect to S3
   // }
-  @Get(':folder/:filename')
+  @Get('esign/:folder/:filename')
   async getMergedPdf(
     @Param('folder') folder: string,
     @Param('filename') filename: string,

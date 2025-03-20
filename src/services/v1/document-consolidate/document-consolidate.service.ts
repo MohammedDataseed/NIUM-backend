@@ -974,7 +974,7 @@ export class PdfService {
     // ✅ Construct permanent public URL instead of using signed URL
     const mergedPublicUrl = `https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${mergedKey}`;
     // const maskedUrl = `${process.env.API_BASE_URL}/v1/api/documents/${folderName}/merge_document_${folderName}.pdf`;
-    const maskedUrl = `${process.env.API_BASE_URL}/v1/api/documents/${mergedKey}`;
+    const maskedUrl = `${process.env.API_BASE_URL}/v1/api/documents/esign/${mergedKey}`;
     // const maskedUrl = `http://localhost:3002/v1/api/documents/${mergedKey}`;
 
     // return { files: [{ buffer: Buffer.from(mergedBytes), url: mergedSignedUrl, s3Key: mergedKey }] };
