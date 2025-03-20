@@ -765,10 +765,25 @@ export class OrdersService {
       {} as Record<string, string>,
     );
 
+    const purposeTypes = await this.purposeTypeRepository.findAll({
+      attributes: ['hashed_key', 'purpose_name'],
+      raw: true,
+    });
+
+    const purposeTypeMap = purposeTypes.reduce(
+      (acc, type) => {
+        acc[type.hashed_key] = type.purposeName;
+        return acc;
+      },
+      {} as Record<string, string>,
+    );
+
     return orders.map((order) => {
       const sequelizeOrderInstance = this.orderRepository.build(order); // Convert plain object to Sequelize instance
       sequelizeOrderInstance.transaction_type =
         transactionTypeMap[order.transaction_type] || null;
+      sequelizeOrderInstance.purpose_type =
+        purposeTypeMap[order.purpose_type] || null;
       return sequelizeOrderInstance;
     });
   }
