@@ -48,7 +48,7 @@ import { ConfigController } from "./controllers/v1/main/config.controller";
     MiddlewareModule,
     AuthModule,
     JwtModule.register({
-      secret: process.env.JWT_SECRET || "123456", // ✅ Use environment variable
+      secret: process.env.JWT_SECRET, // ✅ Use environment variable
       signOptions: { expiresIn: "1h" }, // ✅ Token expiry
     }),
   ],

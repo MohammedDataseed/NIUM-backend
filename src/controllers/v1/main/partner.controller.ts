@@ -36,7 +36,7 @@ export class PartnerController {
   ) {}
 
   /** 🔹 Get All Partners */
-  //@UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Get()
   @ApiOperation({ summary: "Get all partners" })
   @ApiResponse({
@@ -60,7 +60,7 @@ export class PartnerController {
   }
 
   /** 🔹 Get Partner by Hashed Key */
-  //@UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Get(":hashed_key")
   @ApiOperation({ summary: "Get a partner by hashed key" })
   @ApiParam({
@@ -125,7 +125,7 @@ export class PartnerController {
   }
 
   /** 🔹 Update Partner */
-  //@UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Put(":hashed_key")
   @ApiOperation({ summary: "Update a partner by hashed key" })
   @ApiParam({
@@ -170,7 +170,7 @@ export class PartnerController {
   }
 
   /** 🔹 Delete Partner */
-  //@UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Delete(":hashed_key")
   @ApiOperation({ summary: "Delete a partner by hashed key" })
   @ApiParam({

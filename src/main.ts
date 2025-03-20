@@ -65,21 +65,6 @@ async function bootstrap() {
   app.setGlobalPrefix("v1/api");
   app.use(contextService.middleware("request"));
 
-  // Proxy Routes
-  // app.use('/tayib-jet.vercel.app/*', createProxyMiddleware({
-  //   target: 'https://tayib-jet.vercel.app',
-  //   changeOrigin: true,
-  //   pathRewrite: (path, req) => {
-  //     return path.replace('/tayib-jet.vercel.app', '');
-  //   },
-  //   onProxyReq: (proxyReq, req, res) => {
-  //     // Ensure the origin header is set correctly
-  //     proxyReq.setHeader('Origin', 'https://tayib-jet.vercel.app');
-  //   }
-  // } as any)); // Cast to `any` to bypass TypeScript type issue
-
-  // Proxy for v_kyc_link
-
   const proxyOptions = {
     target: "https://capture.kyc.idfy.com", // Target API
     changeOrigin: true, // Correct origin header handling

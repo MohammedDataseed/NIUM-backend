@@ -69,11 +69,9 @@ export class OrdersService {
     private readonly purposeTypeRepository: typeof Purpose,
     @Inject('TRANSACTION_TYPE_REPOSITORY')
     private readonly transactionTypeRepository: typeof transaction_type,
-    // @Inject("E_SIGN_REPOSITORY")
-    // private readonly esignRepository: typeof ESign,
-    // @Inject("V_KYC_REPOSITORY")
-    // private readonly vkycRepository: typeof Vkyc
+  
   ) {}
+
 
   // CREATE: Create a new order
   async createOrder(
@@ -98,11 +96,7 @@ export class OrdersService {
         throw new ConflictException('Order ID already exists');
       }
 
-      // Validate partner_id exists
 
-      // const partner = await this.partnerRepository.findOne({
-      //   where: { id: partnerId },
-      //    });
 
       const partner = await this.partnerRepository.findOne({
         where: { hashed_key: partnerId },
@@ -151,8 +145,8 @@ export class OrdersService {
         customer_pan: createOrderDto.customer_pan,
         nium_order_id: niumOrderId, // Assigning the generated nium_order_id
         order_status: 'pending', // Default value
-        e_sign_status: 'not generated', // Default value
-        v_kyc_status: 'not generated', // Default value
+        e_sign_status:'pending', // Default value
+        v_kyc_status:'pending', // Default value
         created_by: partner?.id,
         updated_by: partner?.id,
       };
@@ -174,30 +168,7 @@ export class OrdersService {
     }
   }
 
-  // async findAll(
-  //   span: opentracing.Span,
-  //   filters: WhereOptions<Order> = {}
-  // ): Promise<Order[] | null> {
-  //   const childSpan = span.tracer().startSpan("find-all-orders", { childOf: span });
-
-  //   try {
-  //     const orders = await this.orderRepository.findAll({
-  //       where: filters,
-  //       include: [
-  //         { model: ESign, as: "esigns" },
-  //         { model: Vkyc, as: "vkycs" }
-  //       ],
-  //     });
-
-  //     return orders.length > 0 ? orders : [];
-  //   } catch (error) {
-  //     childSpan.log({ event: "error", message: error.message });
-  //     throw error;
-  //   } finally {
-  //     childSpan.finish();
-  //   }
-  // }
-
+  
   async findAll(span: opentracing.Span): Promise<Order[] | null> {
     const childSpan = span
       .tracer()
@@ -261,12 +232,7 @@ export class OrdersService {
       throw new BadRequestException('Invalid partner ID');
     }
 
-    // // Check if the partner has the "maker" role
-    // if (!partner.role|| partner.role.name !== 'maker'
-    // ) {
-    //   console.log("partner",partner);
-    //   throw new UnauthorizedException('Partner does not have the maker role');
-    // }
+
 
     // Check if the api-key matches the partner's api_key
     if (!partner.api_key || partner.api_key !== apiKey) {
@@ -388,84 +354,7 @@ export class OrdersService {
       childSpan.finish();
     }
   }
-
-  // async findOneByOrderId(span: opentracing.Span, orderId: string): Promise<FilteredOrder> {
-  //   const childSpan = span.tracer().startSpan("find-one-order", { childOf: span });
-
-  //   try {
-  //     const order = await this.orderRepository.findOne({
-  //       where: { partner_order_id: orderId },
-  //     });
-
-  //     if (!order) {
-  //       throw new NotFoundException(`Order with ID ${orderId} not found`);
-  //     }
-
-  //     // Add the count of regenerated video KYC links and e-sign links
-  //     const regeneratedVkycCount = order.is_video_kyc_link_regenerated_details
-  //       ? order.is_video_kyc_link_regenerated_details.length
-  //       : 0;
-  //     const regeneratedEsignCount = order.is_esign_regenerated ? 1 : 0;
-
-  //     // Create a new object excluding unnecessary fields
-  //     const {
-  //       is_video_kyc_link_regenerated_details,
-  //       ...orderWithoutUnwantedFields
-  //     } = order;
-
-  //     // Create the final result object based on the specified fields
-  //     const result: FilteredOrder = {
-  //       partner_order_id: order.partner_order_id,
-  //       nium_order_id: order.nium_order_id,
-  //       order_status: order.order_status,
-  //       is_esign_required: order.is_esign_required,
-  //       is_v_kyc_required: order.is_v_kyc_required,
-  //       e_sign_status: order.e_sign_status,
-  //       e_sign_link_status: order.e_sign_link_status,
-  //       e_sign_link_expires: order.e_sign_link_expires,
-  //       e_sign_completed_by_customer: order.e_sign_completed_by_customer,
-  //       e_sign_customer_completion_date: order.e_sign_customer_completion_date,
-  //       e_sign_doc_comments: order.e_sign_doc_comments,
-  //       is_e_sign_regenerated: order.is_esign_regenerated,
-  //       e_sign_regenerated_count: regeneratedEsignCount,
-  //       v_kyc_link_status: order.v_kyc_link_status,
-  //       v_kyc_link_expires: order.v_kyc_link_expires,
-  //       v_kyc_completed_by_customer: order.v_kyc_completed_by_customer,
-  //       v_kyc_customer_completion_date: order.v_kyc_customer_completion_date,
-  //       v_kyc_comments: order.v_kyc_comments,
-  //       v_kyc_status: order.v_kyc_status,
-  //       is_v_kyc_link_regenerated: order.is_video_kyc_link_regenerated,
-  //       v_kyc_regenerated_count: regeneratedVkycCount,
-  //     };
-
-  //     // Return the filtered order object with counts
-  //     return result;
-  //   }
-
-  //  catch (error) {
-  //   //   childSpan.log({ event: "error", message: error.message });
-  //   //   throw error;
-  //   } finally {
-  //     childSpan.finish();
-  //   }
-  // }
-
-  // async updateOrder(
-  //   span: opentracing.Span,
-  //   orderId: string,
-  //   updateOrderDto: Partial<UpdateOrderDto>
-  // ): Promise<Order> {
-  //   const childSpan = span
-  //     .tracer()
-  //     .startSpan("update-order", { childOf: span });
-  //   try {
-  //     const order = await this.orderRepository.findOne({
-  //       where: { partner_order_id: orderId },
-  //     });
-  //     if (!order)
-  //       throw new NotFoundException(`Order with ID ${orderId} not found`);
-
-  //UPDATE: Update an existing order by order_id
+  
   async updateOrder(
     span: opentracing.Span,
     orderId: string,

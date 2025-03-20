@@ -53,61 +53,6 @@ export class RoleService {
     }
   }
 
-  // Create a new role
-
-//   async createRole(span: opentracing.Span, createRoleDto: CreateRoleDto): Promise<Role> {
-//     const childSpan = span.tracer().startSpan("create-role", { childOf: span });
-
-//     try {
-//         const existingRole = await this.roleRepository.findOne({
-//             where: { name: createRoleDto.name },
-//         });
-//         if (existingRole) {
-//             throw new ConflictException("Role already exists");
-//         }
-
-//         // Fetch creator's role ID using hashed_key
-//         let createdById: string | null = null;
-       
-//         if (createRoleDto.created_by) {
-//             const creatorRole = await this.roleRepository.findOne({
-//                 where: { hashed_key: createRoleDto.created_by },
-//             });
-//             if (!creatorRole) {
-//                 throw new NotFoundException("Creator role not found");
-//             }
-//             createdById = creatorRole.id;
-//         }
-
-//         // Create new role instance
-      
-//         const role = this.roleRepository.build({
-//           name: createRoleDto.name,
-//           status: createRoleDto.status ?? true,
-//           created_by: createdById
-//       });
-      
-//       // Fallback in case @BeforeCreate doesn't trigger
-//       if (!role.hashed_key) {
-//           role.hashed_key = crypto.randomBytes(16).toString("hex") + Date.now().toString(36);
-//       }
-      
-//       await role.save();
-      
-
-//         // // Generate hashed_key
-//         // role.hashed_key = crypto.createHash("sha256")
-//         //     .update(`${role.name}-${Date.now()}`)
-//         //     .digest("hex");
-
-//         await role.save(); // Save the role
-
-//         return role;
-//     } finally {
-//         childSpan.finish();
-//     }
-// }
-
 
 async createRole(span: opentracing.Span, createRoleDto: CreateRoleDto): Promise<Role> {
   const childSpan = span.tracer().startSpan("create-role", { childOf: span });

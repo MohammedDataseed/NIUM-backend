@@ -7,7 +7,6 @@ import {
 import { DocumentType } from "../../../database/models/documentType.model";
 import * as opentracing from "opentracing";
 import {
-  DocumentTypeDto,
   CreateDocumentTypeDto,
   UpdateDocumentTypeDto,
 } from "../../../dto/documentType.dto";

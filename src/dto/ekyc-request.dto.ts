@@ -9,10 +9,10 @@ class EsignFieldsDto {
 }
 
 class EsignFileDetailsDto {
-  @ApiProperty({ example: "SWRN1iH" })
+  @ApiProperty({ example: "SWR1iH" })
   esign_profile_id: string;
 
-  @ApiProperty({ example: "Tayib" })
+  @ApiProperty({ example: "John" })
   file_name: string;
 
   @ValidateIf((o) => !o.order_id) // esign_file is required only if order_id is missing
@@ -62,13 +62,13 @@ class AadhaarEsignVerificationDto {
 }
 
 class EsignInviteeDto {
-  @ApiProperty({ example: "Mohammed Tayibulla" })
+  @ApiProperty({ example: "John" })
   esigner_name: string;
 
-  @ApiProperty({ example: "contact2tayib@gmail.com" })
+  @ApiProperty({ example: "john@gmail.com" })
   esigner_email: string;
 
-  @ApiProperty({ example: "8550895486" })
+  @ApiProperty({ example: "8123456789" })
   esigner_phone: string;
 
   @ApiProperty({ type: AadhaarEsignVerificationDto })
@@ -79,7 +79,7 @@ class EkycDataDto {
   @ApiProperty({ example: "PDF" })
   flow_type: string;
 
-  @ApiProperty({ example: "N0N0M8nTyzD3UghN6qehC9HTfwneEZJv" })
+  @ApiProperty({ example: "NN6qehC9HTfwneEZJv" })
   user_key: string;
 
   @ApiProperty({ example: false })
@@ -112,7 +112,7 @@ export class EkycRequestDto {
 
 export class EkycRetrieveDataDto {
   @ApiProperty({
-    example: 'N0N0M8nTyzD3UghN6qehC9HTfwneEZJv',
+    example: 'UghN6qehC9HTfwneEZJv',
     description: 'User key for authentication',
   })
   @IsString()
@@ -120,7 +120,7 @@ export class EkycRetrieveDataDto {
   user_key: string;
 
   @ApiProperty({
-    example: 'MMtdWgP',
+    example: 'MMWgP',
     description: 'eSign document ID (optional, fetched dynamically if not provided)',
   })
   @IsString()
@@ -129,7 +129,7 @@ export class EkycRetrieveDataDto {
 }
 
 export class EkycRetrieveRequestDto {
-  @ApiProperty({ example: 'TAYIB1', description: 'Task ID for the e-KYC request' })
+  @ApiProperty({ example: 'JOHN1', description: 'Task ID for the e-KYC request' })
   @IsString()
   @IsNotEmpty()
   task_id: string;
@@ -144,8 +144,8 @@ export class EkycRetrieveRequestDto {
 
   @ApiProperty({
     example: {
-      user_key: 'N0N0M8nTyzD3UghN6qehC9HTfwneEZJv',
-      esign_doc_id: '01JPN6FMTRB4YQ4BX0T1J4673Y',
+      user_key: 'N0N0MwneEZJv',
+      esign_doc_id: '01J4673Y',
     },
     description: 'Additional data for the request',
   })

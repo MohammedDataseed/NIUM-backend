@@ -60,7 +60,7 @@ export class CreatePartnerDto {
   hashed_key?: string; // Make it optional
   
   @ApiPropertyOptional({
-    example: "apikey-12345",
+    example: "apikey_12345",
     description: "API Key for authentication",
   })
   @IsString()
@@ -136,7 +136,7 @@ export class UpdatePartnerDto {
   last_name?: string;
 
   @ApiPropertyOptional({
-    example: "hashedpassword123",
+    example: "password@123",
     description: "Partner's hashed password",
   })
   @IsString()

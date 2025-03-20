@@ -60,17 +60,6 @@ export class Products extends Model<Products> {
 
   @BelongsTo(() => User, { foreignKey: "updated_by" })
   updater: User;
-
-  // // Hook to generate hashed_key before creating the product
-  // @BeforeCreate
-  // static generateHashedKey(instance: Products) {
-  //   const hash = crypto
-  //     .createHash("sha256")
-  //     .update(`${instance.name}-${Date.now()}`) // Use name + timestamp for uniqueness
-  //     .digest("hex");
-  //   instance.hashed_key = hash;
-  // }
-
  
   /** Generate `publicKey` before creation */
   @BeforeCreate

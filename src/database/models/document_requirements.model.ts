@@ -36,14 +36,6 @@ export class DocumentRequirements extends Model<DocumentRequirements> {
   @Column({ type: DataType.BOOLEAN, field: "is_required" })
   isRequired: boolean;
 
-  // @Default(DataType.NOW)
-  // @Column({ type: DataType.DATE, field: "created_at" })
-  // created_at: Date;
-
-  // @Default(DataType.NOW)
-  // @Column({ type: DataType.DATE, field: "updated_at" })
-  // updated_at: Date;
-
   @ForeignKey(() => User)
   @Column({ type: DataType.UUID, field: "created_by" })
   created_by: string;

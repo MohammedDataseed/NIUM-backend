@@ -2,9 +2,7 @@ import { Injectable, Inject, ConflictException } from "@nestjs/common";
 import { Branch } from "../../../database/models/branch.model";
 import * as opentracing from "opentracing";
 import {
-  BranchDto,
   CreateBranchDto,
-  UpdateBranchDto,
 } from "../../../dto/branch.dto";
 import * as crypto from "crypto";
 import { WhereOptions } from "sequelize";
@@ -55,13 +53,8 @@ export class BranchService {
         city: createBranchDto.city,
         state: createBranchDto.state,
         business_type: createBranchDto.business_type,
-      //   // created_by: createBranchDto.created_by, // Ensure UUIDs are provided
-      //   // updated_by: createBranchDto.updated_by,
     });
 
-
-
-      
      // 🔹 Fallback in case `@BeforeCreate` hook doesn't trigger
      if (!branch.hashed_key) {
       branch.hashed_key =

@@ -111,18 +111,6 @@ export class OrdersController {
     }
   }
 
-  // @Get(':orderId')
-  // @ApiResponse({ status: 200, description: 'Order details' })
-  // async findOne(@Param('orderId') orderId: string) {
-  //   const span = opentracing
-  //     .globalTracer()
-  //     .startSpan('find-one-order-controller');
-  //   try {
-  //     return await this.ordersService.findOne(span, orderId);
-  //   } finally {
-  //     span.finish();
-  //   }
-  // }
 
   @Delete(':orderId')
   @ApiResponse({ status: 204, description: 'Order deleted successfully' })

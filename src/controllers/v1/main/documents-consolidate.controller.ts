@@ -37,7 +37,7 @@ import { IsString, IsBoolean, IsNotEmpty } from "class-validator";
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
 import { GetObjectCommandOutput } from '@aws-sdk/client-s3';
 import { Readable } from 'stream';
-const s3 = new S3Client({ region: 'ap-south-1' });
+const s3 = new S3Client({ region: process.env.AWS_REGION });
 export class UploadPdfDto {
   @IsString()
   @IsNotEmpty()
@@ -62,11 +62,8 @@ export class PdfController {
   constructor(
     private readonly ordersService: OrdersService,
     private readonly pdfService: PdfService
-  ) {
-    this.s3BaseUrl = 'https://docnest.s3.ap-south-1.amazonaws.com';
-  }
-  private readonly s3BaseUrl: string;
-
+  ) {}
+  
   @Post("upload")
   @ApiOperation({ summary: "Upload a PDF document by Order ID" })
   @ApiConsumes("application/json")
@@ -351,29 +348,14 @@ export class PdfController {
     return await this.pdfService.deleteFile(fileKey);
   }
 
-  // @Get(':folderName/:fileName')
-  // async serveDocument(
-  //   @Param('folderName') folderName: string,
-  //   @Param('fileName') fileName: string,
-  //   @Res() res: Response,
-  // ) {
-  //   const fileStream = await this.pdfService.serveDocument(folderName, fileName);
-  //   res.setHeader('Content-Type', 'application/pdf');
-  //   fileStream.pipe(res);
-  // }
-  // @Get(':folder/:filename')
-  // async getMergedPdf(@Param('folder') folder: string, @Param('filename') filename: string, @Res() res: Response) {
-  //   const fileUrl = `https://docnest.s3.ap-south-1.amazonaws.com/${folder}/${filename}`;
-    
-  //   return res.redirect(fileUrl); // Redirect to S3
-  // }
+
   @Get('esign/:folder/:filename')
   async getMergedPdf(
     @Param('folder') folder: string,
     @Param('filename') filename: string,
     @Res() res: Response
   ) {
-    const bucket = 'docnest';
+    const bucket = process.env.BUCKET_NAME;
     const key = `${folder}/${filename}`;
   
     try {

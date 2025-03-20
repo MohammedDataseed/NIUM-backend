@@ -69,20 +69,6 @@ export class transaction_type extends Model<transaction_type> {
   @BelongsTo(() => User, { foreignKey: "updated_by" })
   updater: User;
 
-  // /** Generate `hashed_key` before creation */
-  // @BeforeCreate
-  // static generatehashed_key(instance: transaction_type) {
-  //   instance.hashed_key = crypto.randomBytes(8).toString("hex"); // Generates a random unique key
-  // }
-
-  /** Generate `publicKey` before creation */
-  // @BeforeCreate
-  // static generatePublicKey(instance: transaction_type) {
-  //   const randomPart = crypto.randomBytes(16).toString("hex"); // 16-character random string
-  //   const timestampPart = Date.now().toString(36); // Convert timestamp to base36 for compactness
-  //   instance.hashed_key = `${randomPart}${timestampPart}`; // 16-char random + timestamp
-  // }
-
    @BeforeValidate
     static generateHashedKey(instance: transaction_type) {
         const randomPart = crypto.randomBytes(16).toString("hex"); // 16-character random string

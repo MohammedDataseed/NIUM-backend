@@ -93,19 +93,6 @@ export class Partner extends Model<Partner> {
   @BelongsToMany(() => Products, () => PartnerProducts)
   products: Products[];
 
-  // // Hook to generate hashed_key before creating the record
-  // @BeforeCreate
-  // static generateHashedKey(instance: Partner) {
-  //   if (!instance.id) {
-  //     throw new Error("ID must be set before generating hashed_key");
-  //   }
-
-  //   const hash = crypto
-  //     .createHash("sha256") // You can use md5, sha256, etc.
-  //     .update(instance.id + Date.now().toString()) // Combine id and timestamp for uniqueness
-  //     .digest("hex"); // Output as hexadecimal string
-  //   instance.hashed_key = hash;
-
   /** Generate `publicKey` before creation */
   @BeforeCreate
   static generatePublicKey(instance: Partner) {
