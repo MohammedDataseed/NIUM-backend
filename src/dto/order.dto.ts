@@ -521,9 +521,28 @@ export class UpdateOrderDetailsDto {
   @IsOptional()
   incident_checker_comments: string;
 
-  @ApiProperty({ example: '1 - Approved', description: 'Incident Status' })
+  @ApiProperty({ example: true, description: 'Incident Status' })
   @IsBoolean()
   @IsOptional()
   incident_status: boolean;
 
+}
+
+
+export class GetOrderDetailsDto {
+  @ApiProperty({
+    type: String,
+    description: 'Order Hash Key',
+    example: 'BMFORDERID4321',
+  })
+  @IsString()
+  orderId: string;
+
+  @ApiProperty({
+    type: String,
+    description: 'Checker ID',
+    example: 'aab26dd990e49d40cf5bc80774ef7e0bm87gffio',
+  })
+  @IsString()
+  checkerId: string;
 }

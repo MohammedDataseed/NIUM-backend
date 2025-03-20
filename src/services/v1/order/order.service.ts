@@ -17,6 +17,7 @@ import {
   UnassignCheckerDto,
   GetCheckerOrdersDto,
   UpdateOrderDetailsDto,
+  GetOrderDetailsDto,
 } from '../../../dto/order.dto';
 // import { CreateOrderDto, UpdateOrderDto,UpdateCheckerDto,UnassignCheckerDto } from "../../../dto/order.dto";
 import * as opentracing from "opentracing";
@@ -690,4 +691,37 @@ order.order_status = (
       updatedOrder: order,
     };
   }
+
+  async getOrderDetails(dto: GetOrderDetailsDto) {
+    const { orderId, checkerId } = dto;
+
+    const checker = await this.userRepository.findOne({
+      where: { hashed_key: checkerId },
+      attributes: ['id'],
+    });
+
+    if (!checker) {
+      throw new NotFoundException(`Checker with ID ${checkerId} not found.`);
+    }
+
+    // 🔹 Validate if order exists
+    const order = await this.orderRepository.findOne({
+      where: { hashed_key: orderId, checker_id: checker.id },
+    });
+
+    if (!order) {
+      throw new NotFoundException(
+        `Order with hash key "${checkerId}" not found.`,
+      );
+    }
+
+    if (order.checker_id !== checker.id) {
+      throw new BadRequestException(
+        `Checker ID "${checkerId}" is not assigned to this order.`,
+      );
+    }
+
+    return order;
+  }
 }
+

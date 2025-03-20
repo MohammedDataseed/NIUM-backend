@@ -7,6 +7,8 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from "@nestjs/common";
+
+import * as pdf from "html-pdf-node";
 import * as fs from "fs";
 import * as path from "path";
 import { promisify } from "util";
@@ -44,6 +46,7 @@ import { DocumentType } from "src/database/models/documentType.model"; // Assumi
 export class PdfService {
   private readonly s3: S3Client;
   private readonly MAX_SIZE_BYTES = 15 * 1024 * 1024; // 1MB limit
+  private readonly TEMP_DIR = path.join(process.cwd(), "src/dev-assets");
 
   constructor(
     @Inject("DOCUMENTS_REPOSITORY")
@@ -489,141 +492,141 @@ async uploadDocumentByOrderId(
     };
   }
 
-  async mergeFilesByFolderWork(
-    folderName: string,
-    newFileBuffer?: Buffer,
-    newFileMimeType?: string
-  ) {
-    const prefix = `${folderName}/`;
-    const MAX_SIZE_BYTES = 4 * 1024 * 1024;
+  // async mergeFilesByFolderWork(
+  //   folderName: string,
+  //   newFileBuffer?: Buffer,
+  //   newFileMimeType?: string
+  // ) {
+  //   const prefix = `${folderName}/`;
+  //   const MAX_SIZE_BYTES = 4 * 1024 * 1024;
 
-    const listParams = {
-      Bucket: process.env.AWS_S3_BUCKET_NAME,
-      Prefix: prefix,
-    };
-    const response = await this.s3.send(new ListObjectsV2Command(listParams));
-    const files = response.Contents || [];
-    if (!files.length && !newFileBuffer)
-      throw new BadRequestException(`No files found in folder: ${folderName}`);
+  //   const listParams = {
+  //     Bucket: process.env.AWS_S3_BUCKET_NAME,
+  //     Prefix: prefix,
+  //   };
+  //   const response = await this.s3.send(new ListObjectsV2Command(listParams));
+  //   const files = response.Contents || [];
+  //   if (!files.length && !newFileBuffer)
+  //     throw new BadRequestException(`No files found in folder: ${folderName}`);
 
-    const mergedPdf = await PDFDocument.create();
+  //   const mergedPdf = await PDFDocument.create();
 
-    // Add existing files (PDF, JPEG, PNG)
-    for (const file of files.filter(
-      (f) => !f.Key.includes("merge_document_")
-    )) {
-      const signedUrl = await getSignedUrl(
-        this.s3,
-        new GetObjectCommand({
-          Bucket: process.env.AWS_S3_BUCKET_NAME,
-          Key: file.Key,
-        }),
-        { expiresIn: 3600 }
-      );
-      const response = await axios.get(signedUrl, {
-        responseType: "arraybuffer",
-        headers: { "User-Agent": "Mozilla/5.0" },
-      });
-      const fileData = Buffer.from(response.data);
+  //   // Add existing files (PDF, JPEG, PNG)
+  //   for (const file of files.filter(
+  //     (f) => !f.Key.includes("merge_document_")
+  //   )) {
+  //     const signedUrl = await getSignedUrl(
+  //       this.s3,
+  //       new GetObjectCommand({
+  //         Bucket: process.env.AWS_S3_BUCKET_NAME,
+  //         Key: file.Key,
+  //       }),
+  //       { expiresIn: 3600 }
+  //     );
+  //     const response = await axios.get(signedUrl, {
+  //       responseType: "arraybuffer",
+  //       headers: { "User-Agent": "Mozilla/5.0" },
+  //     });
+  //     const fileData = Buffer.from(response.data);
 
-      if (file.Key.endsWith(".pdf")) {
-        const subPdf = await PDFDocument.load(fileData);
-        const copiedPages = await mergedPdf.copyPages(
-          subPdf,
-          subPdf.getPageIndices()
-        );
-        copiedPages.forEach((page) => mergedPdf.addPage(page));
-      } else if (
-        file.Key.endsWith(".jpeg") ||
-        file.Key.endsWith(".jpg") ||
-        file.Key.endsWith(".png")
-      ) {
-        const imagePdf = await PDFDocument.create();
-        const image = file.Key.endsWith(".png")
-          ? await imagePdf.embedPng(fileData)
-          : await imagePdf.embedJpg(fileData);
-        imagePdf.addPage([image.width, image.height]).drawImage(image);
-        const copiedPages = await mergedPdf.copyPages(
-          imagePdf,
-          imagePdf.getPageIndices()
-        );
-        copiedPages.forEach((page) => mergedPdf.addPage(page));
-      }
-    }
+  //     if (file.Key.endsWith(".pdf")) {
+  //       const subPdf = await PDFDocument.load(fileData);
+  //       const copiedPages = await mergedPdf.copyPages(
+  //         subPdf,
+  //         subPdf.getPageIndices()
+  //       );
+  //       copiedPages.forEach((page) => mergedPdf.addPage(page));
+  //     } else if (
+  //       file.Key.endsWith(".jpeg") ||
+  //       file.Key.endsWith(".jpg") ||
+  //       file.Key.endsWith(".png")
+  //     ) {
+  //       const imagePdf = await PDFDocument.create();
+  //       const image = file.Key.endsWith(".png")
+  //         ? await imagePdf.embedPng(fileData)
+  //         : await imagePdf.embedJpg(fileData);
+  //       imagePdf.addPage([image.width, image.height]).drawImage(image);
+  //       const copiedPages = await mergedPdf.copyPages(
+  //         imagePdf,
+  //         imagePdf.getPageIndices()
+  //       );
+  //       copiedPages.forEach((page) => mergedPdf.addPage(page));
+  //     }
+  //   }
 
-    // Add new file if provided
-    if (newFileBuffer && newFileMimeType) {
-      if (newFileMimeType === "application/pdf") {
-        const subPdf = await PDFDocument.load(newFileBuffer);
-        const copiedPages = await mergedPdf.copyPages(
-          subPdf,
-          subPdf.getPageIndices()
-        );
-        copiedPages.forEach((page) => mergedPdf.addPage(page));
-      } else {
-        const imagePdf = await PDFDocument.create();
-        const image =
-          newFileMimeType === "image/png"
-            ? await imagePdf.embedPng(newFileBuffer)
-            : await imagePdf.embedJpg(newFileBuffer);
-        imagePdf.addPage([image.width, image.height]).drawImage(image);
-        const copiedPages = await mergedPdf.copyPages(
-          imagePdf,
-          imagePdf.getPageIndices()
-        );
-        copiedPages.forEach((page) => mergedPdf.addPage(page));
-      }
-    }
+  //   // Add new file if provided
+  //   if (newFileBuffer && newFileMimeType) {
+  //     if (newFileMimeType === "application/pdf") {
+  //       const subPdf = await PDFDocument.load(newFileBuffer);
+  //       const copiedPages = await mergedPdf.copyPages(
+  //         subPdf,
+  //         subPdf.getPageIndices()
+  //       );
+  //       copiedPages.forEach((page) => mergedPdf.addPage(page));
+  //     } else {
+  //       const imagePdf = await PDFDocument.create();
+  //       const image =
+  //         newFileMimeType === "image/png"
+  //           ? await imagePdf.embedPng(newFileBuffer)
+  //           : await imagePdf.embedJpg(newFileBuffer);
+  //       imagePdf.addPage([image.width, image.height]).drawImage(image);
+  //       const copiedPages = await mergedPdf.copyPages(
+  //         imagePdf,
+  //         imagePdf.getPageIndices()
+  //       );
+  //       copiedPages.forEach((page) => mergedPdf.addPage(page));
+  //     }
+  //   }
 
-    if (mergedPdf.getPageCount() === 0)
-      throw new BadRequestException(
-        `No valid files to merge in folder: ${folderName}`
-      );
+  //   if (mergedPdf.getPageCount() === 0)
+  //     throw new BadRequestException(
+  //       `No valid files to merge in folder: ${folderName}`
+  //     );
 
-      let mergedBytes: Buffer = Buffer.from(await mergedPdf.save());
-      console.log(
-        `Merged PDF size before compression: ${mergedBytes.length} bytes`
-      );
-      mergedBytes = await this.compressToSize(mergedBytes, this.MAX_SIZE_BYTES);
-      console.log(
-        `Merged PDF size after compression: ${mergedBytes.length} bytes`
-      );
+  //     let mergedBytes: Buffer = Buffer.from(await mergedPdf.save());
+  //     console.log(
+  //       `Merged PDF size before compression: ${mergedBytes.length} bytes`
+  //     );
+  //     mergedBytes = await this.compressToSize(mergedBytes, this.MAX_SIZE_BYTES);
+  //     console.log(
+  //       `Merged PDF size after compression: ${mergedBytes.length} bytes`
+  //     );
 
-      const mergedKey = `${prefix}merge_document_${folderName}.pdf`;
-      await this.s3.send(
-        new PutObjectCommand({
-          Bucket: process.env.AWS_S3_BUCKET_NAME,
-          Key: mergedKey,
-          Body: mergedBytes,
-          ContentType: "application/pdf",
-        })
-      );
-      console.log(`Uploaded merged PDF to S3 with key: ${mergedKey}`);
+  //     const mergedKey = `${prefix}merge_document_${folderName}.pdf`;
+  //     await this.s3.send(
+  //       new PutObjectCommand({
+  //         Bucket: process.env.AWS_S3_BUCKET_NAME,
+  //         Key: mergedKey,
+  //         Body: mergedBytes,
+  //         ContentType: "application/pdf",
+  //       })
+  //     );
+  //     console.log(`Uploaded merged PDF to S3 with key: ${mergedKey}`);
 
-      const mergedSignedUrl = await getSignedUrl(
-        this.s3,
-        new GetObjectCommand({
-          Bucket: process.env.AWS_S3_BUCKET_NAME,
-          Key: mergedKey,
-        }),
-        { expiresIn: 3600 }
-      );
-      console.log(`Generated signed URL for ${mergedKey}`);
+  //     const mergedSignedUrl = await getSignedUrl(
+  //       this.s3,
+  //       new GetObjectCommand({
+  //         Bucket: process.env.AWS_S3_BUCKET_NAME,
+  //         Key: mergedKey,
+  //       }),
+  //       { expiresIn: 3600 }
+  //     );
+  //     console.log(`Generated signed URL for ${mergedKey}`);
 
-      console.log(`mergeFilesByFolder completed successfully`);
-      return {
-        files: [
-          { buffer: mergedBytes, url: mergedSignedUrl, s3Key: mergedKey },
-        ],
-      };
-    } catch (error) {
-      console.error(`Error in mergeFilesByFolder: ${error.message}`);
-      throw new InternalServerErrorException(`Merge failed: ${error.message}`);
-    } finally {
-      fs.rmSync(tempDir, { recursive: true, force: true });
-      console.log(`Cleaned up temp directory: ${tempDir}`);
-    }
-  }
+  //     console.log(`mergeFilesByFolder completed successfully`);
+  //     return {
+  //       files: [
+  //         { buffer: mergedBytes, url: mergedSignedUrl, s3Key: mergedKey },
+  //       ],
+  //     };
+  //   } catch (error) {
+  //     console.error(`Error in mergeFilesByFolder: ${error.message}`);
+  //     throw new InternalServerErrorException(`Merge failed: ${error.message}`);
+  //   } finally {
+  //     fs.rmSync(tempDir, { recursive: true, force: true });
+  //     console.log(`Cleaned up temp directory: ${tempDir}`);
+  //   }
+  // }
 
   // private async convertImageToPdf(imageBuffer: Buffer, ext: string): Promise<Buffer> {
   //   const tempImgPath = path.join(this.TEMP_DIR, `img_${Date.now()}.${ext}`);
@@ -723,45 +726,101 @@ async uploadDocumentByOrderId(
     }
   }
 
-  private async compressToSize(
-    pdfBuffer: Buffer,
-    maxSize: number
-  ): Promise<Buffer> {
-    const tempInput = path.join(this.TEMP_DIR, `input_${Date.now()}.pdf`);
-    const tempOutput = path.join(this.TEMP_DIR, `output_${Date.now()}.pdf`);
+//   private async compressToSize(
+//     pdfBuffer: Buffer,
+//     maxSize: number
+//   ): Promise<Buffer> {
+//     const tempInput = path.join(this.TEMP_DIR, `input_${Date.now()}.pdf`);
+//     const tempOutput = path.join(this.TEMP_DIR, `output_${Date.now()}.pdf`);
 
-    try {
-      // Save the original PDF buffer to a temporary file
-      await writeFile(tempInput, pdfBuffer);
+//     try {
+//       // Save the original PDF buffer to a temporary file
+//       await writeFile(tempInput, pdfBuffer);
 
-      // Run Ghostscript compression command
-      const gsCommand = `gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/screen -dNOPAUSE -dQUIET -dBATCH -sOutputFile=${tempOutput} ${tempInput}`;
-      const { exec } = require("child_process");
+//       // Run Ghostscript compression command
+//       const gsCommand = `gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/screen -dNOPAUSE -dQUIET -dBATCH -sOutputFile=${tempOutput} ${tempInput}`;
+//       const { exec } = require("child_process");
 
-      await new Promise((resolve, reject) => {
-        exec(gsCommand, (error: any) => {
-          if (error) {
-            reject(
-              new Error(`Ghostscript compression failed: ${error.message}`)
-            );
-          } else {
-            resolve(null);
-          }
-        });
+//       await new Promise((resolve, reject) => {
+//         exec(gsCommand, (error: any) => {
+//           if (error) {
+//             reject(
+//               new Error(`Ghostscript compression failed: ${error.message}`)
+//             );
+//           } else {
+//             resolve(null);
+//           }
+//         });
+//       });
+
+//       // Read the compressed file
+//       const compressedBuffer = await fs.promises.readFile(tempOutput);
+//       console.log(`Compressed PDF size: ${compressedBuffer.length} bytes`);
+
+//       if (compressedBuffer.length > maxSize) {
+//         console.warn(
+//           `Compressed PDF (${compressedBuffer.length} bytes) still exceeds max size (${maxSize} bytes).`
+//         );
+//       }
+
+//     return compressedBuffer;
+//   } catch (error) {
+//     console.error(`Error in convertImageToPdf: ${error.message}`);
+//     throw new InternalServerErrorException(
+//       `Image conversion failed: ${error.message}`
+//     );
+//   }
+// }
+
+private async compressToSize(pdfBuffer: Buffer, maxSize: number): Promise<Buffer> {
+  const tempInput = path.join(this.TEMP_DIR, `input_${Date.now()}.pdf`);
+  const tempOutput = path.join(this.TEMP_DIR, `output_${Date.now()}.pdf`);
+
+  try {
+    // Save the original PDF buffer to a temporary file
+    await writeFile(tempInput, pdfBuffer);
+
+    // Run Ghostscript compression command
+    const gsCommand = `gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/screen -dNOPAUSE -dQUIET -dBATCH -sOutputFile=${tempOutput} ${tempInput}`;
+    const { exec } = require("child_process");
+
+    await new Promise((resolve, reject) => {
+      exec(gsCommand, (error: any) => {
+        if (error) {
+          reject(new Error(`Ghostscript compression failed: ${error.message}`));
+        } else {
+          resolve(null);
+        }
       });
+    });
 
-      // Read the compressed file
-      const compressedBuffer = await fs.promises.readFile(tempOutput);
-      console.log(`Compressed PDF size: ${compressedBuffer.length} bytes`);
+    // Read the compressed file
+    const compressedBuffer = await fs.promises.readFile(tempOutput);
+    console.log(`Compressed PDF size: ${compressedBuffer.length} bytes`);
 
-      if (compressedBuffer.length > maxSize) {
-        console.warn(
-          `Compressed PDF (${compressedBuffer.length} bytes) still exceeds max size (${maxSize} bytes).`
-        );
-      }
+    if (compressedBuffer.length > maxSize) {
+      console.warn(
+        `Compressed PDF (${compressedBuffer.length} bytes) still exceeds max size (${maxSize} bytes).`
+      );
+    }
 
     return compressedBuffer;
+  } catch (error) {
+    console.error(`Error in compressToSize: ${error.message}`);
+    throw new InternalServerErrorException(
+      `PDF compression failed: ${error.message}`
+    );
+  } finally {
+    // Cleanup temporary files
+    try {
+      await fs.promises.unlink(tempInput);
+      await fs.promises.unlink(tempOutput);
+    } catch (cleanupError) {
+      console.warn(`Failed to delete temp files: ${cleanupError.message}`);
+    }
   }
+}
+
 
   async mergeFilesByFolder(
     folderName: string,
@@ -901,5 +960,5 @@ async uploadDocumentByOrderId(
         },
       ],
     };
-  }
+}
 }

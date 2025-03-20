@@ -10,6 +10,7 @@ import {
   Headers,
   BadRequestException,
   ValidationPipe,
+  Query,
 } from '@nestjs/common';
 import { Op } from 'sequelize';
 import { validate as isUUID } from 'uuid';
@@ -22,6 +23,7 @@ import {
   UnassignCheckerDto,
   GetCheckerOrdersDto,
   UpdateOrderDetailsDto,
+  GetOrderDetailsDto,
 } from '../../../dto/order.dto';
 import { ApiTags, ApiResponse, ApiHeader } from '@nestjs/swagger';
 import * as opentracing from 'opentracing';
@@ -189,4 +191,19 @@ async findOneByOrderId(
   ) {
     return this.ordersService.updateOrderDetails(updateInvoiceStatusDto);
   }
+
+  @Post('fetch-order-details')
+   @ApiResponse({
+     status: 200,
+     description: 'Order details fetched successfully',
+   })
+   @ApiResponse({ status: 400, description: 'Invalid request parameters' })
+   @ApiResponse({ status: 404, description: 'Order or Checker ID not found' })
+   async fetchOrderDetails(
+     @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: false }))
+     getOrderDetailsDto: GetOrderDetailsDto,
+   ) {
+     return this.ordersService.getOrderDetails(getOrderDetailsDto);
+   }
+   
 }
