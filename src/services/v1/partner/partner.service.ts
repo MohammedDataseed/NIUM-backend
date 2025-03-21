@@ -9,7 +9,12 @@ import { v4 as uuidv4 } from 'uuid';
 import { Partner } from '../../../database/models/partner.model';
 import { Products } from '../../../database/models/products.model';
 import * as opentracing from 'opentracing';
-import { CreatePartnerDto, UpdatePartnerDto, PartnerResponseDto, business_type } from '../../../dto/partner.dto';
+import {
+  CreatePartnerDto,
+  UpdatePartnerDto,
+  PartnerResponseDto,
+  business_type,
+} from '../../../dto/partner.dto';
 import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import * as crypto from 'crypto';
@@ -19,9 +24,8 @@ export class PartnerService {
   constructor(
     @Inject('PARTNER_REPOSITORY')
     private readonly partnerRepository: typeof Partner,
-    private readonly jwtService: JwtService
+    private readonly jwtService: JwtService,
   ) {}
-
 
   async findAllPartners(span: opentracing.Span): Promise<PartnerResponseDto[]> {
     const childSpan = span.tracer().startSpan('db-query', { childOf: span });
@@ -44,7 +48,10 @@ export class PartnerService {
     }
   }
 
-  async findPartnerById(span: opentracing.Span, id: number): Promise<PartnerResponseDto> {
+  async findPartnerById(
+    span: opentracing.Span,
+    id: number,
+  ): Promise<PartnerResponseDto> {
     const childSpan = span.tracer().startSpan('db-query', { childOf: span });
 
     try {
@@ -59,7 +66,10 @@ export class PartnerService {
     }
   }
 
-  async findPartnerByHashedKey(span: opentracing.Span, hashed_key: string): Promise<PartnerResponseDto> {
+  async findPartnerByHashedKey(
+    span: opentracing.Span,
+    hashed_key: string,
+  ): Promise<PartnerResponseDto> {
     const childSpan = span.tracer().startSpan('db-query', { childOf: span });
 
     try {
@@ -95,21 +105,23 @@ export class PartnerService {
     return crypto.randomBytes(32).toString('hex'); // Secure 256-bit hashed key
   }
 
-  
-  async createPartner(span: opentracing.Span, createPartnerDto: CreatePartnerDto): Promise<PartnerResponseDto> {
+  async createPartner(
+    span: opentracing.Span,
+    createPartnerDto: CreatePartnerDto,
+  ): Promise<PartnerResponseDto> {
     const childSpan = span.tracer().startSpan('db-query', { childOf: span });
-    
+
     const transaction = await this.partnerRepository.sequelize.transaction();
     try {
       // Ensure password is hashed
       const hashedPassword = await bcrypt.hash(createPartnerDto.password, 10);
-    
+
       // Generate unique API key
       const apiKey = await this.generateUniqueApiKey(transaction);
-    
+
       // Generate hashed key
       const hashedKey = this.generateHashedKey();
-    
+
       // Create the partner without products initially
       const partner = await this.partnerRepository.create(
         {
@@ -118,25 +130,28 @@ export class PartnerService {
           api_key: apiKey,
           hashed_key: hashedKey,
         },
-        { transaction }
+        { transaction },
       );
-  
+
       // If product_ids are provided, associate products with the partner
-      if (createPartnerDto.product_ids && createPartnerDto.product_ids.length > 0) {
+      if (
+        createPartnerDto.product_ids &&
+        createPartnerDto.product_ids.length > 0
+      ) {
         const products = await Products.findAll({
           where: {
             id: createPartnerDto.product_ids,
           },
           transaction, // Ensures products are associated within the same transaction
         });
-        
+
         // Associate the products with the partner
         await partner.$set('products', products, { transaction });
       }
-    
+
       // Commit the transaction
       await transaction.commit();
-    
+
       // Return the response DTO
       return this.toResponseDto(partner);
     } catch (error) {
@@ -161,7 +176,7 @@ export class PartnerService {
   async updatePartnerByHashedKey(
     span: opentracing.Span,
     hashed_key: string,
-    updatePartnerDto: UpdatePartnerDto
+    updatePartnerDto: UpdatePartnerDto,
   ): Promise<PartnerResponseDto> {
     const childSpan = span.tracer().startSpan('db-query', { childOf: span });
     const transaction = await this.partnerRepository.sequelize.transaction();
@@ -180,17 +195,23 @@ export class PartnerService {
           where: { email: updatePartnerDto.email },
           transaction,
         });
-        if (existingPartner) throw new ConflictException('Email is already in use');
+        if (existingPartner)
+          throw new ConflictException('Email is already in use');
       }
 
       if (updatePartnerDto.password) {
-        updatePartnerDto.password = await bcrypt.hash(updatePartnerDto.password, 10);
+        updatePartnerDto.password = await bcrypt.hash(
+          updatePartnerDto.password,
+          10,
+        );
       }
 
       await partner.update(updatePartnerDto, { transaction });
 
       if (updatePartnerDto.product_ids) {
-        await partner.$set('products', updatePartnerDto.product_ids, { transaction });
+        await partner.$set('products', updatePartnerDto.product_ids, {
+          transaction,
+        });
       }
 
       await transaction.commit();
@@ -203,11 +224,16 @@ export class PartnerService {
     }
   }
 
-  async deletePartnerByHashedKey(span: opentracing.Span, hashed_key: string): Promise<void> {
+  async deletePartnerByHashedKey(
+    span: opentracing.Span,
+    hashed_key: string,
+  ): Promise<void> {
     const childSpan = span.tracer().startSpan('db-query', { childOf: span });
 
     try {
-      const partner = await this.partnerRepository.findOne({ where: { hashed_key } });
+      const partner = await this.partnerRepository.findOne({
+        where: { hashed_key },
+      });
       if (!partner) throw new NotFoundException('Partner not found');
 
       await partner.destroy();
@@ -232,10 +258,16 @@ export class PartnerService {
   }
 
   private toResponseDto(partner: Partner): PartnerResponseDto {
-    if (!Object.values(business_type).includes(partner.business_type as business_type)) {
-      throw new InternalServerErrorException(`Invalid business_type value: ${partner.business_type}`);
+    if (
+      !Object.values(business_type).includes(
+        partner.business_type as business_type,
+      )
+    ) {
+      throw new InternalServerErrorException(
+        `Invalid business_type value: ${partner.business_type}`,
+      );
     }
-  
+
     return {
       partner_id: partner.id,
       hashed_key: partner.hashed_key,
@@ -248,11 +280,11 @@ export class PartnerService {
       business_type: partner.business_type as business_type,
       created_by: partner.created_by,
       updated_by: partner.updated_by,
-      products: partner.products?.map((product) => ({
-        id: product.id,
-        name: product.name,
-      })) || [],
+      products:
+        partner.products?.map((product) => ({
+          id: product.id,
+          name: product.name,
+        })) || [],
     };
   }
-  
 }

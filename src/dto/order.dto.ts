@@ -35,8 +35,6 @@ export class CreateOrderDto {
   @IsString()
   transaction_type_id: string;
 
-
-
   @ApiProperty({
     type: Boolean,
     description: 'Indicates if e-signature is required',
@@ -45,7 +43,6 @@ export class CreateOrderDto {
   @IsNotEmpty()
   @IsBoolean()
   is_e_sign_required: boolean;
-
 
   @ApiProperty({
     type: Boolean,
@@ -61,7 +58,7 @@ export class CreateOrderDto {
   @IsNotEmpty()
   @IsString()
   purpose_type_id: string;
-  
+
   @ApiProperty({
     type: String,
     description: 'Customer Name',
@@ -99,8 +96,6 @@ export class CreateOrderDto {
     message: 'Invalid PAN format',
   })
   customer_pan: string;
-
-  
 }
 
 export class UpdateOrderDto {
@@ -169,7 +164,6 @@ export class UpdateOrderDto {
   @IsOptional()
   e_sign_link_doc_id?: string;
   @ApiProperty({ example: '2025-03-30T12:00:00.000Z' })
-
   @IsDateString()
   @IsOptional()
   e_sign_link_expires?: string;
@@ -212,7 +206,6 @@ export class UpdateOrderDto {
   v_kyc_link_status?: string;
   @ApiProperty({ example: '2025-03-30T12:00:00.000Z' })
   @IsDateString()
-
   @IsOptional()
   v_kyc_link_expires?: string;
   @ApiProperty({ example: false })
@@ -299,7 +292,6 @@ export class UnassignCheckerDto {
   checkerId: string;
 }
 
-
 export class GetCheckerOrdersDto {
   @ApiProperty({
     type: String,
@@ -353,9 +345,7 @@ export class UpdateOrderDetailsDto {
   @IsBoolean()
   @IsOptional()
   incident_status: boolean;
-
 }
-
 
 export class GetOrderDetailsDto {
   @ApiProperty({

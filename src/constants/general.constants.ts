@@ -6,7 +6,6 @@ export const NODE_ENV_VALUES = {
   TEST: 'test',
 };
 
-
 export const RMQ_PATTERNS = {
   SERVICE_AUDIT_LOGS: 'service-audit-log-entry',
 };

@@ -6,11 +6,7 @@ import { SharedModule } from '../shared/shared.module';
 
 @Module({
   imports: [SharedModule],
-  providers: [
-    ...databaseProviders,
-    ...repositoryProviders,
-    ConfigService,
-  ],
+  providers: [...databaseProviders, ...repositoryProviders, ConfigService],
   exports: [...databaseProviders, ...repositoryProviders],
 })
 export class DatabaseModule {}

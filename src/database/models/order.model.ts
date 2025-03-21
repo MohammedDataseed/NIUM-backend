@@ -11,16 +11,16 @@ import {
   Unique,
   AllowNull,
   BeforeCreate,
-} from "sequelize-typescript";
-import { User } from "./user.model";
-import { Partner } from "./partner.model";
-import { ESign } from "./esign.model";
-import { Vkyc } from "./vkyc.model";
-import { Optional } from "@nestjs/common";
-import * as crypto from "crypto";
+} from 'sequelize-typescript';
+import { User } from './user.model';
+import { Partner } from './partner.model';
+import { ESign } from './esign.model';
+import { Vkyc } from './vkyc.model';
+import { Optional } from '@nestjs/common';
+import * as crypto from 'crypto';
 
 @Table({
-  tableName: "orders",
+  tableName: 'orders',
   timestamps: true,
 })
 export class Order extends Model<Order> {
@@ -32,12 +32,10 @@ export class Order extends Model<Order> {
   })
   id: string;
 
-
   @Unique
   @AllowNull(false)
-  @Column({ type: DataType.STRING, field: "hashed_key", defaultValue: "" })
+  @Column({ type: DataType.STRING, field: 'hashed_key', defaultValue: '' })
   hashed_key: string;
-
 
   @Column({ type: DataType.STRING, allowNull: false })
   partner_id: string;
@@ -149,7 +147,7 @@ export class Order extends Model<Order> {
   @Optional()
   v_kyc_comments: string;
 
-  // Incident 
+  // Incident
   @Column({ type: DataType.BOOLEAN, allowNull: true })
   @Optional()
   incident_status: boolean;
@@ -194,25 +192,25 @@ export class Order extends Model<Order> {
 
   // User Tracking (created_by and updated_by)
   @ForeignKey(() => Partner)
-  @Column({ type: DataType.UUID, field: "created_by" })
+  @Column({ type: DataType.UUID, field: 'created_by' })
   created_by: string;
 
   @ForeignKey(() => Partner)
-  @Column({ type: DataType.UUID, field: "updated_by" })
+  @Column({ type: DataType.UUID, field: 'updated_by' })
   updated_by: string;
 
   @ForeignKey(() => User)
-  @Column({ type: DataType.UUID, field: "checker_id" })
+  @Column({ type: DataType.UUID, field: 'checker_id' })
   checker_id: string; // Added for checker (user) details
 
   // Associations
-  @BelongsTo(() => Partner, { foreignKey: "created_by" })
+  @BelongsTo(() => Partner, { foreignKey: 'created_by' })
   creator: Partner;
 
-  @BelongsTo(() => Partner, { foreignKey: "updated_by" })
+  @BelongsTo(() => Partner, { foreignKey: 'updated_by' })
   updater: Partner;
 
-  @BelongsTo(() => User, { foreignKey: "checker_id" })
+  @BelongsTo(() => User, { foreignKey: 'checker_id' })
   checker: User;
 
   @Column({ type: DataType.JSONB, allowNull: true }) // Store structured data
@@ -226,21 +224,20 @@ export class Order extends Model<Order> {
   };
 
   // Corrected Relationship (One Order -> Many ESigns)
-  @HasMany(() => ESign, { foreignKey: "order_id", sourceKey: "id" })
+  @HasMany(() => ESign, { foreignKey: 'order_id', sourceKey: 'id' })
   esigns: ESign[];
 
   // Corrected Relationship (One Order -> Many ESigns)
-  @HasMany(() => Vkyc, { foreignKey: "order_id", sourceKey: "id" })
+  @HasMany(() => Vkyc, { foreignKey: 'order_id', sourceKey: 'id' })
   vkycs: Vkyc[];
 
   /** Generate `hashed_key` before creation */
   @BeforeCreate
   static generateHashedKey(instance: Order) {
-    console.log("Generating hashed_key..."); // Debugging
-    const randomPart = crypto.randomBytes(16).toString("hex");
+    console.log('Generating hashed_key...'); // Debugging
+    const randomPart = crypto.randomBytes(16).toString('hex');
     const timestampPart = Date.now().toString(36);
     instance.hashed_key = `${randomPart}${timestampPart}`;
-    console.log("Generated hashed_key:", instance.hashed_key); // Debugging
+    console.log('Generated hashed_key:', instance.hashed_key); // Debugging
   }
- 
 }

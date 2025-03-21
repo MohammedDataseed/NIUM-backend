@@ -1,30 +1,30 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty } from '@nestjs/swagger';
 import {
   IsString,
   IsEnum,
   IsUUID,
   IsOptional,
   IsBoolean,
-} from "class-validator";
+} from 'class-validator';
 
 export class Createtransaction_typeDto {
   @ApiProperty({
-    description: "Name of the transaction type",
-    example: "CARD LOAD",
+    description: 'Name of the transaction type',
+    example: 'CARD LOAD',
   })
   @IsString()
   transaction_name: string;
 
   @ApiProperty({
-    description: "User ID of the creator of the transaction type",
-    example: "123e4567-e89b-12d3-a456-426614174000",
+    description: 'User ID of the creator of the transaction type',
+    example: '123e4567-e89b-12d3-a456-426614174000',
   })
   @IsUUID()
   created_by: string;
 
   @ApiProperty({
-    description: "User ID of the last user who updated the transaction type",
-    example: "123e4567-e89b-12d3-a456-426614174001",
+    description: 'User ID of the last user who updated the transaction type',
+    example: '123e4567-e89b-12d3-a456-426614174001',
   })
   @IsUUID()
   updated_by: string;
@@ -32,8 +32,8 @@ export class Createtransaction_typeDto {
 
 export class Updatetransaction_typeDto {
   @ApiProperty({
-    description: "Name of the Transaction Type",
-    example: "CARD LOAD",
+    description: 'Name of the Transaction Type',
+    example: 'CARD LOAD',
     required: false,
   })
   @IsString()
@@ -41,7 +41,7 @@ export class Updatetransaction_typeDto {
   transaction_name?: string;
 
   @ApiProperty({
-    description: "Status of the transaction type (active/inactive)",
+    description: 'Status of the transaction type (active/inactive)',
     example: true,
     required: false,
   })
@@ -50,8 +50,8 @@ export class Updatetransaction_typeDto {
   is_active?: boolean;
 
   @ApiProperty({
-    description: "User ID of the last user who updated the transaction type",
-    example: "123e4567-e89b-12d3-a456-426614174001",
+    description: 'User ID of the last user who updated the transaction type',
+    example: '123e4567-e89b-12d3-a456-426614174001',
   })
   @IsUUID()
   updated_by: string;
@@ -59,40 +59,40 @@ export class Updatetransaction_typeDto {
 
 export class transaction_typeDto {
   @ApiProperty({
-    description: "Unique identifier of the transaction type",
-    example: "123e4567-e89b-12d3-a456-426614174000",
+    description: 'Unique identifier of the transaction type',
+    example: '123e4567-e89b-12d3-a456-426614174000',
   })
   @IsUUID()
   id: string;
 
   @ApiProperty({
-    description: "Name of the transaction Type",
-    example: "CARD LOAD",
+    description: 'Name of the transaction Type',
+    example: 'CARD LOAD',
   })
   transaction_name: string;
 
   @ApiProperty({
-    description: "Timestamp of when the transaction type was created",
-    example: "2025-02-17T12:34:56Z",
+    description: 'Timestamp of when the transaction type was created',
+    example: '2025-02-17T12:34:56Z',
   })
   createdAt: Date;
 
   @ApiProperty({
-    description: "Timestamp of when the transaction type was last updated",
-    example: "2025-02-17T12:34:56Z",
+    description: 'Timestamp of when the transaction type was last updated',
+    example: '2025-02-17T12:34:56Z',
   })
   updatedAt: Date;
 
   @ApiProperty({
-    description: "User ID of the creator of the transaction type",
-    example: "123e4567-e89b-12d3-a456-426614174000",
+    description: 'User ID of the creator of the transaction type',
+    example: '123e4567-e89b-12d3-a456-426614174000',
   })
   @IsUUID()
   created_by: string;
 
   @ApiProperty({
-    description: "User ID of the last user who updated the document type",
-    example: "123e4567-e89b-12d3-a456-426614174001",
+    description: 'User ID of the last user who updated the document type',
+    example: '123e4567-e89b-12d3-a456-426614174001',
   })
   @IsUUID()
   updated_by: string;

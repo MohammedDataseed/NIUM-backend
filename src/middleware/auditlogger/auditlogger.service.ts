@@ -32,7 +32,7 @@ export class AuditLoggerService<T> implements NestInterceptor<T, Response<T>> {
     );
 
     return next.handle().pipe(
-      tap(data => {
+      tap((data) => {
         const loggingPayload: AuditLogPayload = {
           request: {
             path: req.path,
@@ -50,7 +50,7 @@ export class AuditLoggerService<T> implements NestInterceptor<T, Response<T>> {
         this.tracerService.finishSpanWithResult(span, 200, false);
         this.tracerService.finishSpanWithResult(controllerSpan, 200, false);
       }),
-      catchError(err => {
+      catchError((err) => {
         const loggingPayload: AuditLogPayload = {
           request: {
             path: req.path,

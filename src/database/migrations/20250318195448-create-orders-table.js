@@ -1,8 +1,8 @@
-"use strict";
+'use strict';
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable("orders", {
+    await queryInterface.createTable('orders', {
       id: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
@@ -179,31 +179,31 @@ module.exports = {
         type: Sequelize.UUID,
         allowNull: true,
         references: {
-          model: "partners",
-          key: "id",
+          model: 'partners',
+          key: 'id',
         },
-        onUpdate: "CASCADE",
-        onDelete: "SET NULL",
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL',
       },
       updated_by: {
         type: Sequelize.UUID,
         allowNull: true,
         references: {
-          model: "partners",
-          key: "id",
+          model: 'partners',
+          key: 'id',
         },
-        onUpdate: "CASCADE",
-        onDelete: "SET NULL",
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL',
       },
       checker_id: {
         type: Sequelize.UUID,
         allowNull: true,
         references: {
-          model: "users",
-          key: "id",
+          model: 'users',
+          key: 'id',
         },
-        onUpdate: "CASCADE",
-        onDelete: "SET NULL",
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL',
       },
       merged_document: {
         type: Sequelize.JSONB,
@@ -212,53 +212,53 @@ module.exports = {
       createdAt: {
         type: Sequelize.DATE,
         allowNull: false,
-        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
       },
       updatedAt: {
         type: Sequelize.DATE,
         allowNull: false,
-        defaultValue: Sequelize.literal("CURRENT_TIMESTAMP"),
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP'),
       },
     });
 
     // Add unique index for hashed_key
-    await queryInterface.addIndex("orders", ["hashed_key"], {
+    await queryInterface.addIndex('orders', ['hashed_key'], {
       unique: true,
-      name: "unique_order_hashed_key",
+      name: 'unique_order_hashed_key',
     });
 
     // ✅ Create Foreign Key Relationships with eSigns and Vkycs
-    await queryInterface.addConstraint("esigns", {
-      fields: ["order_id"],
-      type: "foreign key",
-      name: "fk_esigns_orders",
+    await queryInterface.addConstraint('esigns', {
+      fields: ['order_id'],
+      type: 'foreign key',
+      name: 'fk_esigns_orders',
       references: {
-        table: "orders",
-        field: "id",
+        table: 'orders',
+        field: 'id',
       },
-      onUpdate: "CASCADE",
-      onDelete: "CASCADE",
+      onUpdate: 'CASCADE',
+      onDelete: 'CASCADE',
     });
 
-    await queryInterface.addConstraint("vkycs", {
-      fields: ["order_id"],
-      type: "foreign key",
-      name: "fk_vkycs_orders",
+    await queryInterface.addConstraint('vkycs', {
+      fields: ['order_id'],
+      type: 'foreign key',
+      name: 'fk_vkycs_orders',
       references: {
-        table: "orders",
-        field: "id",
+        table: 'orders',
+        field: 'id',
       },
-      onUpdate: "CASCADE",
-      onDelete: "CASCADE",
+      onUpdate: 'CASCADE',
+      onDelete: 'CASCADE',
     });
   },
 
   down: async (queryInterface, Sequelize) => {
     // Remove foreign key constraints
-    await queryInterface.removeConstraint("esigns", "fk_esigns_orders");
-    await queryInterface.removeConstraint("vkycs", "fk_vkycs_orders");
+    await queryInterface.removeConstraint('esigns', 'fk_esigns_orders');
+    await queryInterface.removeConstraint('vkycs', 'fk_vkycs_orders');
 
     // Drop orders table
-    await queryInterface.dropTable("orders");
+    await queryInterface.dropTable('orders');
   },
 };

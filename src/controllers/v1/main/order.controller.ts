@@ -111,7 +111,6 @@ export class OrdersController {
     }
   }
 
-
   @Delete(':orderId')
   @ApiResponse({ status: 204, description: 'Order deleted successfully' })
   async deleteOrder(@Param('orderId') orderId: string) {
