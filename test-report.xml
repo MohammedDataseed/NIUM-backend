@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testExecutions version="1">
+  <file path="/Users/azhar/Desktop/Project-Retail/nestjs-boilerplate/src/shared/services/http-wrapper/http-wrapper.service.spec.ts">
+    <testCase name="HttpWrapperService should be defined" duration="104"/>
+  </file>
+  <file path="/Users/azhar/Desktop/Project-Retail/nestjs-boilerplate/src/database/services/partner/partner.service.spec.ts">
+    <testCase name="PartnerService should be defined" duration="336"/>
+  </file>
+  <file path="/Users/azhar/Desktop/Project-Retail/nestjs-boilerplate/src/graceful-shutdown/services/shutdown/shutdown.service.spec.ts">
+    <testCase name="ShutdownService should be defined" duration="204"/>
+  </file>
+  <file path="/Users/azhar/Desktop/Project-Retail/nestjs-boilerplate/src/shared/services/redis/redis.service.spec.ts">
+    <testCase name="RedisService should be defined" duration="18"/>
+  </file>
+  <file path="/Users/azhar/Desktop/Project-Retail/nestjs-boilerplate/src/shared/services/rabbit-producer/rabbit-producer.service.spec.ts">
+    <testCase name="RabbitProducerService should be defined" duration="19"/>
+  </file>
+  <file path="/Users/azhar/Desktop/Project-Retail/nestjs-boilerplate/src/shared/services/logger/logger.service.spec.ts">
+    <testCase name="LoggerService should be defined" duration="16"/>
+  </file>
+  <file path="/Users/azhar/Desktop/Project-Retail/nestjs-boilerplate/src/shared/services/tracer/tracer.service.spec.ts">
+    <testCase name="TracerService should be defined" duration="45"/>
+  </file>
+  <file path="/Users/azhar/Desktop/Project-Retail/nestjs-boilerplate/src/shared/services/request-storage/request-storage.service.spec.ts">
+    <testCase name="RequestStorageService should be defined" duration="8"/>
+  </file>
+  <file path="/Users/azhar/Desktop/Project-Retail/nestjs-boilerplate/src/controllers/v1/main/app.controller.spec.ts">
+    <testCase name="AppController root should return &quot;Hello World!&quot;" duration="7"/>
+  </file>
+  <file path="/Users/azhar/Desktop/Project-Retail/nestjs-boilerplate/test/app.e2e-spec.ts">
+    <testCase name="AppController (e2e) Health-Check (GET)" duration="375"/>
+  </file>
+</testExecutions>

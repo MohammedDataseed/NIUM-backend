@@ -1,0 +1,11 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Run Docker Compose",
+      "type": "shell",
+      "command": "docker-compose -f \"docker-compose.debug.yml\" down && docker-compose -f \"docker-compose.debug.yml\" build --no-cache && docker-compose -f \"docker-compose.debug.yml\" up",
+      "group": "build"
+    }
+  ]
+}
