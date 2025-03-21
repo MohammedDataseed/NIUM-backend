@@ -25,7 +25,7 @@ import {
   UpdateOrderDetailsDto,
   GetOrderDetailsDto,
 } from '../../../dto/order.dto';
-import { ApiTags, ApiResponse, ApiHeader } from '@nestjs/swagger';
+import { ApiTags, ApiResponse, ApiHeader, ApiQuery } from '@nestjs/swagger';
 import * as opentracing from 'opentracing';
 
 @ApiTags('orders')

@@ -605,7 +605,7 @@ export class OrdersService {
 
     const checker = await this.userRepository.findOne({
       where: { hashed_key: checkerId },
-      attributes: ['id'], // ✅ Get actual UUID
+      attributes: ['id'],
     });
 
     if (!checker) {
@@ -726,14 +726,13 @@ export class OrdersService {
       throw new NotFoundException(`Checker with ID ${checkerId} not found.`);
     }
 
-    // 🔹 Validate if order exists
     const order = await this.orderRepository.findOne({
-      where: { hashed_key: orderId, checker_id: checker.id },
+      where: { partner_order_id: orderId },
     });
 
     if (!order) {
       throw new NotFoundException(
-        `Order with hash key "${checkerId}" not found.`,
+        `Order with hash key "${orderId}" not found.`,
       );
     }
 
@@ -742,15 +741,6 @@ export class OrdersService {
         `Checker ID "${checkerId}" is not assigned to this order.`,
       );
     }
-
-    return order;
-  }
-
-  async getUnassignedOrders(): Promise<Order[]> {
-    const orders = await this.orderRepository.findAll({
-      where: { checker_id: { [Op.or]: [null, ''] } },
-      raw: true,
-    });
 
     const transactionTypes = await this.transactionTypeRepository.findAll({
       attributes: ['hashed_key', 'name'],
@@ -778,12 +768,54 @@ export class OrdersService {
       {} as Record<string, string>,
     );
 
+    const sequelizeOrderInstance = this.orderRepository.build(order);
+    sequelizeOrderInstance.transaction_type =
+      transactionTypeMap[order.transaction_type] || null;
+    sequelizeOrderInstance.purpose_type =
+      purposeTypeMap[order.purpose_type] || null;
+
+    return sequelizeOrderInstance;
+  }
+
+  async getUnassignedOrders(): Promise<Order[]> {
+    const orders = await this.orderRepository.findAll({
+      where: { checker_id: { [Op.is]: null } },
+      raw: true,
+    });
+
+    const transactionTypes = await this.transactionTypeRepository.findAll({
+      attributes: ['hashed_key', 'name'],
+      raw: true,
+    });
+
+    const transactionTypeMap = transactionTypes.reduce(
+      (acc, type) => {
+        acc[type.hashed_key] = type.name;
+        return acc;
+      },
+      {} as Record<string, string>,
+    );
+
+    const purposeTypes = await this.purposeTypeRepository.findAll({
+      attributes: ['hashed_key', 'purposeName'],
+      raw: true,
+    });
+
+    const purposeTypeMap = purposeTypes.reduce(
+      (acc, type) => {
+        acc[type.hashed_key] = type.purposeName;
+        return acc;
+      },
+      {} as Record<string, string>,
+    );
+
     return orders.map((order) => {
-      const sequelizeOrderInstance = this.orderRepository.build(order); // Convert plain object to Sequelize instance
+      const sequelizeOrderInstance = this.orderRepository.build(order);
       sequelizeOrderInstance.transaction_type =
         transactionTypeMap[order.transaction_type] || null;
       sequelizeOrderInstance.purpose_type =
         purposeTypeMap[order.purpose_type] || null;
+
       return sequelizeOrderInstance;
     });
   }
