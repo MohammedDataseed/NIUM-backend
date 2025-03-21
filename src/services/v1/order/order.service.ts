@@ -6,6 +6,7 @@ import {
   BadRequestException,
   NotFoundException,
   UnauthorizedException,
+  InternalServerErrorException
 } from '@nestjs/common';
 import { Sequelize } from 'sequelize';
 import { Order } from '../../../database/models/order.model';
@@ -55,6 +56,7 @@ export interface FilteredOrder {
   v_kyc_status: string;
   is_v_kyc_link_regenerated: boolean;
   v_kyc_regenerated_count: number;
+  merged_document:string;
 }
 
 @Injectable()
@@ -347,6 +349,9 @@ export class OrdersService {
       // const regeneratedEsignCount = order.esigns?.length || 0;
       const regeneratedEsignCount =
         order.esigns?.length > 1 ? order.esigns.length - 1 : 0;
+        const extractBaseUrl = (url: string): string | null => {
+          return url ? url.split('?')[0] : null;
+        };
 
       const result: FilteredOrder = {
         partner_order_id: order.partner_order_id,
@@ -380,6 +385,9 @@ export class OrdersService {
         v_kyc_comments: order.v_kyc_comments,
         is_v_kyc_link_regenerated: order.is_video_kyc_link_regenerated,
         v_kyc_regenerated_count: regeneratedVkycCount,
+        ...(order?.merged_document && {
+          merged_document: extractBaseUrl(order.merged_document?.url),
+        }),
       };
 
       return result;
@@ -778,151 +786,219 @@ export class OrdersService {
     return sequelizeOrderInstance;
   }
 
-  async getUnassignedOrders(): Promise<Order[]> {
+  // async getUnassignedOrders(): Promise<Order[]> {
+  //   const orders = await this.orderRepository.findAll({
+  //     where: { checker_id: { [Op.is]: null } },
+  //     raw: true,
+  //   });
+
+  //   const transactionTypes = await this.transactionTypeRepository.findAll({
+  //     attributes: ['hashed_key', 'name'],
+  //     raw: true,
+  //   });
+
+  //   const transactionTypeMap = transactionTypes.reduce(
+  //     (acc, type) => {
+  //       acc[type.hashed_key] = type.name;
+  //       return acc;
+  //     },
+  //     {} as Record<string, string>,
+  //   );
+
+  //   const purposeTypes = await this.purposeTypeRepository.findAll({
+  //     attributes: ['hashed_key', 'purposeName'],
+  //     raw: true,
+  //   });
+
+  //   const purposeTypeMap = purposeTypes.reduce(
+  //     (acc, type) => {
+  //       acc[type.hashed_key] = type.purposeName;
+  //       return acc;
+  //     },
+  //     {} as Record<string, string>,
+  //   );
+
+  //   return orders.map((order) => {
+  //     const sequelizeOrderInstance = this.orderRepository.build(order);
+  //     sequelizeOrderInstance.transaction_type =
+  //       transactionTypeMap[order.transaction_type] || null;
+  //     sequelizeOrderInstance.purpose_type =
+  //       purposeTypeMap[order.purpose_type] || null;
+
+  //     return sequelizeOrderInstance;
+  //   });
+  // }
+
+  async getUnassignedOrders(): Promise<Partial<Order>[]> {
     const orders = await this.orderRepository.findAll({
       where: { checker_id: { [Op.is]: null } },
       raw: true,
     });
-
+  
     const transactionTypes = await this.transactionTypeRepository.findAll({
       attributes: ['hashed_key', 'name'],
       raw: true,
     });
-
-    const transactionTypeMap = transactionTypes.reduce(
-      (acc, type) => {
-        acc[type.hashed_key] = type.name;
-        return acc;
-      },
-      {} as Record<string, string>,
-    );
-
+    
     const purposeTypes = await this.purposeTypeRepository.findAll({
       attributes: ['hashed_key', 'purposeName'],
       raw: true,
     });
-
-    const purposeTypeMap = purposeTypes.reduce(
-      (acc, type) => {
-        acc[type.hashed_key] = type.purposeName;
-        return acc;
-      },
-      {} as Record<string, string>,
+    
+    console.log('Transaction Types:', JSON.stringify(transactionTypes, null, 2));
+    console.log('Purpose Types:', JSON.stringify(purposeTypes, null, 2));
+    
+  
+    const transactionTypeMap = Object.fromEntries(
+      transactionTypes
+        .filter(({ hashed_key }) => hashed_key) // Ensures no undefined/null values
+        .map(({ hashed_key, name }) => [hashed_key, name])
     );
-
-    return orders.map((order) => {
-      const sequelizeOrderInstance = this.orderRepository.build(order);
-      sequelizeOrderInstance.transaction_type =
-        transactionTypeMap[order.transaction_type] || null;
-      sequelizeOrderInstance.purpose_type =
-        purposeTypeMap[order.purpose_type] || null;
-
-      return sequelizeOrderInstance;
-    });
+    
+    const purposeTypeMap = Object.fromEntries(
+      purposeTypes
+        .filter(({ hashed_key }) => hashed_key) // Ensures no undefined/null values
+        .map(({ hashed_key, purposeName }) => [hashed_key, purposeName])
+    );
+    
+  
+    return orders.map(order => ({
+      ...order,
+      transaction_type: order.transaction_type ? transactionTypeMap[order.transaction_type] || null : null,
+      purpose_type: order.purpose_type ? purposeTypeMap[order.purpose_type] || null : null,
+    }));
   }
+  
 
   async getOrderStatusCounts() {
     try {
       const orderCounts = await this.orderRepository.findAll({
         attributes: [
-          [
-            this.orderRepository.sequelize.fn(
-              'COUNT',
-              this.orderRepository.sequelize.col('id'),
-            ),
-            'transactionReceived',
-          ],
-          [
-            this.orderRepository.sequelize.fn(
-              'COUNT',
-              this.orderRepository.sequelize.literal(
-                'CASE WHEN incident_status = true THEN 1 END',
-              ),
-            ),
-            'transactionApproved',
-          ],
-          [
-            this.orderRepository.sequelize.fn(
-              'COUNT',
-              this.orderRepository.sequelize.literal(
-                'CASE WHEN incident_status = false THEN 1 END',
-              ),
-            ),
-            'transactionRejected',
-          ],
-          [
-            this.orderRepository.sequelize.fn(
-              'COUNT',
-              this.orderRepository.sequelize.literal(
-                'CASE WHEN incident_status IS NULL THEN 1 END',
-              ),
-            ),
-            'transactionPending',
-          ],
-          [
-            this.orderRepository.sequelize.fn(
-              'COUNT',
-              this.orderRepository.sequelize.literal(
-                "CASE WHEN v_kyc_status = 'completed' THEN 1 END",
-              ),
-            ),
-            'vkycCompleted',
-          ],
-          [
-            this.orderRepository.sequelize.fn(
-              'COUNT',
-              this.orderRepository.sequelize.literal(
-                "CASE WHEN v_kyc_status = 'pending' THEN 1 END",
-              ),
-            ),
-            'vkycPending',
-          ],
-          [
-            this.orderRepository.sequelize.fn(
-              'COUNT',
-              this.orderRepository.sequelize.literal(
-                "CASE WHEN v_kyc_status = 'rejected' THEN 1 END",
-              ),
-            ),
-            'vkycRejected',
-          ],
-          [
-            this.orderRepository.sequelize.fn(
-              'COUNT',
-              this.orderRepository.sequelize.literal(
-                "CASE WHEN e_sign_status = 'completed' THEN 1 END",
-              ),
-            ),
-            'esignCompleted',
-          ],
-          [
-            this.orderRepository.sequelize.fn(
-              'COUNT',
-              this.orderRepository.sequelize.literal(
-                "CASE WHEN e_sign_status = 'pending' THEN 1 END",
-              ),
-            ),
-            'esignPending',
-          ],
-          [
-            this.orderRepository.sequelize.fn(
-              'COUNT',
-              this.orderRepository.sequelize.literal(
-                "CASE WHEN e_sign_status = 'rejected' THEN 1 END",
-              ),
-            ),
-            'esignRejected',
-          ],
+          [this.orderRepository.sequelize.fn('COUNT', this.orderRepository.sequelize.col('id')), 'transactionReceived'],
+          [this.orderRepository.sequelize.fn('SUM', this.orderRepository.sequelize.literal("CASE WHEN incident_status = true THEN 1 ELSE 0 END")), 'transactionApproved'],
+          [this.orderRepository.sequelize.fn('SUM', this.orderRepository.sequelize.literal("CASE WHEN incident_status = false THEN 1 ELSE 0 END")), 'transactionRejected'],
+          [this.orderRepository.sequelize.fn('SUM', this.orderRepository.sequelize.literal("CASE WHEN incident_status IS NULL THEN 1 ELSE 0 END")), 'transactionPending'],
+          [this.orderRepository.sequelize.fn('SUM', this.orderRepository.sequelize.literal("CASE WHEN v_kyc_status = 'completed' THEN 1 ELSE 0 END")), 'vkycCompleted'],
+          [this.orderRepository.sequelize.fn('SUM', this.orderRepository.sequelize.literal("CASE WHEN v_kyc_status = 'pending' THEN 1 ELSE 0 END")), 'vkycPending'],
+          [this.orderRepository.sequelize.fn('SUM', this.orderRepository.sequelize.literal("CASE WHEN v_kyc_status = 'rejected' THEN 1 ELSE 0 END")), 'vkycRejected'],
+          [this.orderRepository.sequelize.fn('SUM', this.orderRepository.sequelize.literal("CASE WHEN e_sign_status = 'completed' THEN 1 ELSE 0 END")), 'esignCompleted'],
+          [this.orderRepository.sequelize.fn('SUM', this.orderRepository.sequelize.literal("CASE WHEN e_sign_status = 'pending' THEN 1 ELSE 0 END")), 'esignPending'],
+          [this.orderRepository.sequelize.fn('SUM', this.orderRepository.sequelize.literal("CASE WHEN e_sign_status = 'rejected' THEN 1 ELSE 0 END")), 'esignRejected'],
         ],
         raw: true,
       });
-
+  
       return orderCounts[0] || {};
     } catch (error) {
       console.error('Error fetching dashboard details:', error);
-      throw new Error('Failed to fetch dashboard data.');
+      throw new InternalServerErrorException('Failed to fetch dashboard data.');
     }
   }
+  
+  
+
+  // async getOrderStatusCounts() {
+  //   try {
+  //     const orderCounts = await this.orderRepository.findAll({
+  //       attributes: [
+  //         [
+  //           this.orderRepository.sequelize.fn(
+  //             'COUNT',
+  //             this.orderRepository.sequelize.col('id'),
+  //           ),
+  //           'transactionReceived',
+  //         ],
+  //         [
+  //           this.orderRepository.sequelize.fn(
+  //             'COUNT',
+  //             this.orderRepository.sequelize.literal(
+  //               'CASE WHEN incident_status = true THEN 1 END',
+  //             ),
+  //           ),
+  //           'transactionApproved',
+  //         ],
+  //         [
+  //           this.orderRepository.sequelize.fn(
+  //             'COUNT',
+  //             this.orderRepository.sequelize.literal(
+  //               'CASE WHEN incident_status = false THEN 1 END',
+  //             ),
+  //           ),
+  //           'transactionRejected',
+  //         ],
+  //         [
+  //           this.orderRepository.sequelize.fn(
+  //             'COUNT',
+  //             this.orderRepository.sequelize.literal(
+  //               'CASE WHEN incident_status IS NULL THEN 1 END',
+  //             ),
+  //           ),
+  //           'transactionPending',
+  //         ],
+  //         [
+  //           this.orderRepository.sequelize.fn(
+  //             'COUNT',
+  //             this.orderRepository.sequelize.literal(
+  //               "CASE WHEN v_kyc_status = 'completed' THEN 1 END",
+  //             ),
+  //           ),
+  //           'vkycCompleted',
+  //         ],
+  //         [
+  //           this.orderRepository.sequelize.fn(
+  //             'COUNT',
+  //             this.orderRepository.sequelize.literal(
+  //               "CASE WHEN v_kyc_status = 'pending' THEN 1 END",
+  //             ),
+  //           ),
+  //           'vkycPending',
+  //         ],
+  //         [
+  //           this.orderRepository.sequelize.fn(
+  //             'COUNT',
+  //             this.orderRepository.sequelize.literal(
+  //               "CASE WHEN v_kyc_status = 'rejected' THEN 1 END",
+  //             ),
+  //           ),
+  //           'vkycRejected',
+  //         ],
+  //         [
+  //           this.orderRepository.sequelize.fn(
+  //             'COUNT',
+  //             this.orderRepository.sequelize.literal(
+  //               "CASE WHEN e_sign_status = 'completed' THEN 1 END",
+  //             ),
+  //           ),
+  //           'esignCompleted',
+  //         ],
+  //         [
+  //           this.orderRepository.sequelize.fn(
+  //             'COUNT',
+  //             this.orderRepository.sequelize.literal(
+  //               "CASE WHEN e_sign_status = 'pending' THEN 1 END",
+  //             ),
+  //           ),
+  //           'esignPending',
+  //         ],
+  //         [
+  //           this.orderRepository.sequelize.fn(
+  //             'COUNT',
+  //             this.orderRepository.sequelize.literal(
+  //               "CASE WHEN e_sign_status = 'rejected' THEN 1 END",
+  //             ),
+  //           ),
+  //           'esignRejected',
+  //         ],
+  //       ],
+  //       raw: true,
+  //     });
+
+  //     return orderCounts[0] || {};
+  //   } catch (error) {
+  //     console.error('Error fetching dashboard details:', error);
+  //     throw new Error('Failed to fetch dashboard data.');
+  //   }
+  // }
 
   async getFilteredOrders(filterDto: FilterOrdersDto): Promise<Order[]> {
     const { checkerId, transaction_type, purpose_type, from, to } = filterDto;
