@@ -1,5 +1,5 @@
 // create-order.dto.ts
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 import {
   IsNotEmpty,
@@ -35,8 +35,6 @@ export class CreateOrderDto {
   @IsString()
   transaction_type_id: string;
 
-
-
   @ApiProperty({
     type: Boolean,
     description: 'Indicates if e-signature is required',
@@ -45,7 +43,6 @@ export class CreateOrderDto {
   @IsNotEmpty()
   @IsBoolean()
   is_e_sign_required: boolean;
-
 
   @ApiProperty({
     type: Boolean,
@@ -61,7 +58,7 @@ export class CreateOrderDto {
   @IsNotEmpty()
   @IsString()
   purpose_type_id: string;
-  
+
   @ApiProperty({
     type: String,
     description: 'Customer Name',
@@ -99,7 +96,6 @@ export class CreateOrderDto {
     message: 'Invalid PAN format',
   })
   customer_pan: string;
-
 
   // @ApiProperty({
   //   type: String,
@@ -172,7 +168,6 @@ export class CreateOrderDto {
   //   isDocBackImage?: boolean;
   //   isUploaded?: boolean;
   // }[];
-
 }
 
 export class UpdateOrderDto {
@@ -241,7 +236,6 @@ export class UpdateOrderDto {
   @IsOptional()
   e_sign_link_doc_id?: string;
   @ApiProperty({ example: '2025-03-30T12:00:00.000Z' })
-
   @IsDateString()
   @IsOptional()
   e_sign_link_expires?: string;
@@ -284,7 +278,6 @@ export class UpdateOrderDto {
   v_kyc_link_status?: string;
   @ApiProperty({ example: '2025-03-30T12:00:00.000Z' })
   @IsDateString()
-
   @IsOptional()
   v_kyc_link_expires?: string;
   @ApiProperty({ example: false })
@@ -471,7 +464,6 @@ export class UnassignCheckerDto {
   checkerId: string;
 }
 
-
 export class GetCheckerOrdersDto {
   @ApiProperty({
     type: String,
@@ -525,9 +517,7 @@ export class UpdateOrderDetailsDto {
   @IsBoolean()
   @IsOptional()
   incident_status: boolean;
-
 }
-
 
 export class GetOrderDetailsDto {
   @ApiProperty({
@@ -545,4 +535,50 @@ export class GetOrderDetailsDto {
   })
   @IsString()
   checkerId: string;
+}
+
+export class FilterOrdersDto {
+  @ApiProperty({
+    type: String,
+    description: 'Checker ID',
+    example: 'aab26dd990e49d40cf5bc80774ef7e0bm87gffio',
+  })
+  @IsString()
+  checkerId: string;
+
+  @ApiPropertyOptional({
+    type: String,
+    description: 'Transaction Type ID',
+    example: 'c1df6ce6482c14031bf438801c973229m87au2un',
+  })
+  @ApiPropertyOptional()
+  @IsString()
+  transaction_type?: string;
+
+  @ApiPropertyOptional({
+    type: String,
+    description: 'Purpose Type ID',
+    example: 'e93925ccc85eabc70827bca643802572m87aut5j',
+  })
+  @ApiPropertyOptional()
+  @IsString()
+  purpose_type?: string;
+
+  @ApiPropertyOptional({
+    type: String,
+    description: 'From Date YYYY-MM-DD',
+    example: '2025-01-01',
+  })
+  @IsOptional()
+  @IsDateString()
+  from?: string; // YYYY-MM-DD format
+
+  @ApiPropertyOptional({
+    type: String,
+    description: 'To Date YYYY-MM-DD',
+    example: '2025-03-01',
+  })
+  @IsOptional()
+  @IsDateString()
+  to?: string; // YYYY-MM-DD format
 }
