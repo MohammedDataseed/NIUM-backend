@@ -640,8 +640,9 @@ export class OrdersService {
   }
 
   async getOrdersByChecker(dto: GetCheckerOrdersDto) {
-    const { checkerId, transaction_type } = dto;
+    const { checkerId, transaction_type, page = 1, limit = 10 } = dto;
 
+    // 🔹 Validate Checker ID
     const checker = await this.userRepository.findOne({
       where: { hashed_key: checkerId },
       attributes: ['id'],
@@ -651,27 +652,36 @@ export class OrdersService {
       throw new NotFoundException(`Checker with ID ${checkerId} not found.`);
     }
 
+    // 🔹 Build Filter Conditions
     const whereCondition: any = { checker_id: checker.id };
 
     if (transaction_type === 'all') {
-      whereCondition.order_status != 'Completed';
+      whereCondition.order_status = { [Op.ne]: 'Completed' }; // Not Completed
     } else if (transaction_type === 'completed') {
       whereCondition.order_status = 'Completed';
     } else {
-      whereCondition.order_status = {
-        [Op.or]: ['Pending', null],
-      };
+      whereCondition.order_status = { [Op.or]: ['Pending', null] };
     }
 
+    // 🔹 Get total order count before pagination
+    const totalOrders = await this.orderRepository.count({
+      where: whereCondition,
+    });
+
+    // 🔹 Fetch Orders with Pagination
     const orders = await this.orderRepository.findAll({
       where: whereCondition,
-      order: [['createdAt', 'DESC']],
+      order: [['createdAt', 'DESC']], // Sort by latest created orders
+      limit,
+      offset: (page - 1) * limit, // Pagination logic
     });
 
     return {
       message: `Orders assigned to checker ${checkerId}`,
-      totalOrders: orders.length,
-      filterApplied: transaction_type || 'all',
+      totalOrders,
+      page,
+      limit,
+      transaction_type: transaction_type || 'all',
       orders,
     };
   }
@@ -757,7 +767,7 @@ export class OrdersService {
     );
 
     const purposeTypes = await this.purposeTypeRepository.findAll({
-      attributes: ['hashed_key', 'purpose_name'],
+      attributes: ['hashed_key', 'purposeName'],
       raw: true,
     });
 
@@ -769,19 +779,28 @@ export class OrdersService {
       {} as Record<string, string>,
     );
 
-    const sequelizeOrderInstance = this.orderRepository.build(order);
-    sequelizeOrderInstance.transaction_type =
-      transactionTypeMap[order.transaction_type] || null;
-    sequelizeOrderInstance.purpose_type =
-      purposeTypeMap[order.purpose_type] || null;
+    const orderData = order.toJSON();
 
-    return sequelizeOrderInstance;
+    return {
+      ...orderData,
+      transaction_type: transactionTypeMap[order.transaction_type] || null,
+      purpose_type: purposeTypeMap[order.purpose_type] || null,
+    };
   }
 
-  async getUnassignedOrders(): Promise<Order[]> {
+  async getUnassignedOrders(
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<{ data: Order[]; total: number; page: number; limit: number }> {
+    const whereCondition = { checker_id: { [Op.is]: null } };
+
+    const total = await this.orderRepository.count({ where: whereCondition });
+
     const orders = await this.orderRepository.findAll({
-      where: { checker_id: { [Op.is]: null } },
+      where: whereCondition,
       raw: true,
+      limit,
+      offset: (page - 1) * limit,
     });
 
     const transactionTypes = await this.transactionTypeRepository.findAll({
@@ -810,7 +829,8 @@ export class OrdersService {
       {} as Record<string, string>,
     );
 
-    return orders.map((order) => {
+    // 🔹 Map Transaction & Purpose Types
+    const mappedOrders = orders.map((order) => {
       const sequelizeOrderInstance = this.orderRepository.build(order);
       sequelizeOrderInstance.transaction_type =
         transactionTypeMap[order.transaction_type] || null;
@@ -819,6 +839,13 @@ export class OrdersService {
 
       return sequelizeOrderInstance;
     });
+
+    return {
+      data: mappedOrders,
+      total,
+      page,
+      limit,
+    };
   }
 
   async getOrderStatusCounts() {
@@ -924,7 +951,11 @@ export class OrdersService {
     }
   }
 
-  async getFilteredOrders(filterDto: FilterOrdersDto): Promise<Order[]> {
+  async getFilteredOrders(
+    filterDto: FilterOrdersDto,
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<{ data: Order[]; total: number; page: number; limit: number }> {
     const { checkerId, transaction_type, purpose_type, from, to } = filterDto;
 
     const checker = await this.userRepository.findOne({
@@ -973,9 +1004,13 @@ export class OrdersService {
       if (to) whereCondition.createdAt[Op.lte] = new Date(to);
     }
 
+    const total = await this.orderRepository.count({ where: whereCondition });
+
     const orders = await this.orderRepository.findAll({
       where: whereCondition,
       raw: true,
+      limit,
+      offset: (page - 1) * limit,
     });
 
     const transactionTypes = await this.transactionTypeRepository.findAll({
@@ -1004,7 +1039,7 @@ export class OrdersService {
       {} as Record<string, string>,
     );
 
-    return orders.map((order) => {
+    const mappedOrders = orders.map((order) => {
       const sequelizeOrderInstance = this.orderRepository.build(order);
       sequelizeOrderInstance.transaction_type =
         transactionTypeMap[order.transaction_type] || null;
@@ -1013,5 +1048,12 @@ export class OrdersService {
 
       return sequelizeOrderInstance;
     });
+
+    return {
+      data: mappedOrders,
+      total,
+      page,
+      limit,
+    };
   }
 }

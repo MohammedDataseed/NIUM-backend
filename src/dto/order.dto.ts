@@ -14,6 +14,8 @@ import {
   Matches,
   IsPhoneNumber,
   IsIn,
+  IsInt,
+  Min,
 } from 'class-validator';
 
 export class CreateOrderDto {
@@ -475,15 +477,37 @@ export class GetCheckerOrdersDto {
 
   @ApiProperty({
     type: String,
-    description: 'Filter orders by transaction type (all/completed)',
+    description: "Filter orders by transaction type ('all' or 'completed')",
     example: 'all',
     required: false,
   })
   @IsOptional()
   @IsIn(['all', 'completed'], {
-    message: "filter must be either 'all' or 'completed'",
+    message: "transaction_type must be either 'all' or 'completed'",
   })
   transaction_type?: string;
+
+  @ApiProperty({
+    type: Number,
+    description: 'Page number for pagination (default: 1)',
+    example: 1,
+    required: false,
+  })
+  @IsOptional()
+  @IsInt()
+  @Min(1, { message: 'Page number must be at least 1' })
+  page?: number = 1;
+
+  @ApiProperty({
+    type: Number,
+    description: 'Number of orders per page (default: 10)',
+    example: 10,
+    required: false,
+  })
+  @IsOptional()
+  @IsInt()
+  @Min(1, { message: 'Limit must be at least 1' })
+  limit?: number = 10;
 }
 
 export class UpdateOrderDetailsDto {
