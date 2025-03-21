@@ -17,6 +17,7 @@ import {
   GetCheckerOrdersDto,
   UpdateOrderDetailsDto,
   GetOrderDetailsDto,
+  FilterOrdersDto,
 } from '../../../dto/order.dto';
 // import { CreateOrderDto, UpdateOrderDto,UpdateCheckerDto,UnassignCheckerDto } from "../../../dto/order.dto";
 import * as opentracing from 'opentracing';
@@ -921,5 +922,96 @@ export class OrdersService {
       console.error('Error fetching dashboard details:', error);
       throw new Error('Failed to fetch dashboard data.');
     }
+  }
+
+  async getFilteredOrders(filterDto: FilterOrdersDto): Promise<Order[]> {
+    const { checkerId, transaction_type, purpose_type, from, to } = filterDto;
+
+    const checker = await this.userRepository.findOne({
+      where: { hashed_key: checkerId },
+      attributes: ['id'],
+    });
+
+    if (!checker) {
+      throw new NotFoundException(`Checker with ID ${checkerId} not found.`);
+    }
+
+    if (transaction_type) {
+      const transactionExists = await this.transactionTypeRepository.findOne({
+        where: { hashed_key: transaction_type },
+        attributes: ['hashed_key'],
+      });
+
+      if (!transactionExists) {
+        throw new BadRequestException(
+          `Invalid Transaction Type ID: ${transaction_type}`,
+        );
+      }
+    }
+
+    if (purpose_type) {
+      const purposeExists = await this.purposeTypeRepository.findOne({
+        where: { hashed_key: purpose_type },
+        attributes: ['hashed_key'],
+      });
+
+      if (!purposeExists) {
+        throw new BadRequestException(
+          `Invalid Purpose Type ID: ${purpose_type}`,
+        );
+      }
+    }
+
+    const whereCondition: any = { checker_id: checker.id };
+
+    if (transaction_type) whereCondition.transaction_type = transaction_type;
+    if (purpose_type) whereCondition.purpose_type = purpose_type;
+
+    if (from || to) {
+      whereCondition.createdAt = {};
+      if (from) whereCondition.createdAt[Op.gte] = new Date(from);
+      if (to) whereCondition.createdAt[Op.lte] = new Date(to);
+    }
+
+    const orders = await this.orderRepository.findAll({
+      where: whereCondition,
+      raw: true,
+    });
+
+    const transactionTypes = await this.transactionTypeRepository.findAll({
+      attributes: ['hashed_key', 'name'],
+      raw: true,
+    });
+
+    const transactionTypeMap = transactionTypes.reduce(
+      (acc, type) => {
+        acc[type.hashed_key] = type.name;
+        return acc;
+      },
+      {} as Record<string, string>,
+    );
+
+    const purposeTypes = await this.purposeTypeRepository.findAll({
+      attributes: ['hashed_key', 'purposeName'],
+      raw: true,
+    });
+
+    const purposeTypeMap = purposeTypes.reduce(
+      (acc, type) => {
+        acc[type.hashed_key] = type.purposeName;
+        return acc;
+      },
+      {} as Record<string, string>,
+    );
+
+    return orders.map((order) => {
+      const sequelizeOrderInstance = this.orderRepository.build(order);
+      sequelizeOrderInstance.transaction_type =
+        transactionTypeMap[order.transaction_type] || null;
+      sequelizeOrderInstance.purpose_type =
+        purposeTypeMap[order.purpose_type] || null;
+
+      return sequelizeOrderInstance;
+    });
   }
 }

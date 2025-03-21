@@ -24,6 +24,7 @@ import {
   GetCheckerOrdersDto,
   UpdateOrderDetailsDto,
   GetOrderDetailsDto,
+  FilterOrdersDto,
 } from '../../../dto/order.dto';
 import { ApiTags, ApiResponse, ApiHeader, ApiQuery } from '@nestjs/swagger';
 import * as opentracing from 'opentracing';
@@ -211,5 +212,10 @@ export class OrdersController {
   @Get('order-status-counts')
   async getOrderStatusCounts() {
     return await this.ordersService.getOrderStatusCounts();
+  }
+
+  @Get('filter')
+  async getFilteredOrders(@Query() filterDto: FilterOrdersDto) {
+    return this.ordersService.getFilteredOrders(filterDto);
   }
 }
