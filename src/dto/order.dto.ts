@@ -553,7 +553,7 @@ export class FilterOrdersDto {
   })
   @ApiPropertyOptional()
   @IsString()
-  transaction_type?: string;
+  transaction_type_hashed_key?: string;
 
   @ApiPropertyOptional({
     type: String,
@@ -562,7 +562,7 @@ export class FilterOrdersDto {
   })
   @ApiPropertyOptional()
   @IsString()
-  purpose_type?: string;
+  purpose_type_hashed_key?: string;
 
   @ApiPropertyOptional({
     type: String,

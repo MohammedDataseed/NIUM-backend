@@ -388,90 +388,7 @@ export class OrdersService {
     }
   }
 
-  // async findOneByOrderId(
-  //   span: opentracing.Span,
-  //   orderId: string
-  // ): Promise<FilteredOrder> {
-  //   const childSpan = span
-  //     .tracer()
-  //     .startSpan("find-one-order", { childOf: span });
-
-  //   try {
-  //     const order = await this.orderRepository.findOne({
-  //       where: { partner_order_id: orderId },
-  //       include: [{ association: "esigns" }, { association: "vkycs" }],
-  //     });
-
-  //     if (!order) {
-  //       throw new NotFoundException(`Order with ID ${orderId} not found`);
-  //     }
-
-  //     // Determine the latest eSign attempt (highest attempt_number)
-  //     const latestEsign =
-  //       order.esigns?.sort(
-  //         (a, b) => b.attempt_number - a.attempt_number
-  //       )?.[0] || null;
-  //     console.log(latestEsign);
-  //     // Determine the latest vKYC attempt (highest attempt_number)
-  //     const latestVkyc =
-  //       order.vkycs?.sort((a, b) => b.attempt_number - a.attempt_number)?.[0] ||
-  //       null;
-
-  //     const regeneratedVkycCount = order.is_video_kyc_link_regenerated_details
-  //       ? order.is_video_kyc_link_regenerated_details.length
-  //       : 0;
-  //     // const regeneratedEsignCount = order.esigns?.length || 0;
-  //     const regeneratedEsignCount =
-  //       order.esigns?.length > 1 ? order.esigns.length - 1 : 0;
-  //     const extractBaseUrl = (url: string): string | null => {
-  //       return url ? url.split("?")[0] : null;
-  //     };
-
-  //     const result: FilteredOrder = {
-  //       partner_order_id: order.partner_order_id,
-  //       nium_order_id: order.nium_order_id,
-  //       order_status: order.order_status,
-  //       is_esign_required: order.is_esign_required,
-  //       is_v_kyc_required: order.is_v_kyc_required,
-  //       // eSign details
-  //       e_sign_status:
-  //         latestEsign?.status == "completed" ? "completed" : "pending",
-  //       e_sign_link:
-  //         latestEsign?.esign_details?.[0]?.esign_url || order.e_sign_link,
-  //       e_sign_link_status: latestEsign?.esign_details?.[0]?.url_status,
-  //       e_sign_link_expires:
-  //         latestEsign?.esign_details?.[0]?.esign_expiry ||
-  //         order.e_sign_link_expires,
-  //       e_sign_completed_by_customer: latestEsign?.is_signed,
-  //       e_sign_customer_completion_date: order.e_sign_customer_completion_date,
-  //       e_sign_doc_comments: order.e_sign_doc_comments,
-  //       is_e_sign_regenerated: regeneratedEsignCount > 1,
-  //       e_sign_regenerated_count: regeneratedEsignCount,
-  //       // vKYC details
-  //       v_kyc_status: latestVkyc?.status || order.v_kyc_status,
-  //       v_kyc_link: latestVkyc?.v_kyc_link || order.v_kyc_link,
-  //       v_kyc_link_status:
-  //         latestVkyc?.v_kyc_link_status || order.v_kyc_link_status,
-  //       v_kyc_link_expires:
-  //         latestVkyc?.v_kyc_link_expires || order.v_kyc_link_expires,
-  //       v_kyc_completed_by_customer: order.v_kyc_completed_by_customer,
-  //       v_kyc_customer_completion_date: order.v_kyc_customer_completion_date,
-  //       v_kyc_comments: order.v_kyc_comments,
-  //       is_v_kyc_link_regenerated: order.is_video_kyc_link_regenerated,
-  //       v_kyc_regenerated_count: regeneratedVkycCount,
-  //       ...(order?.merged_document && {
-  //         merged_document: extractBaseUrl(order.merged_document?.url),
-  //       }),
-  //     };
-
-  //     return result;
-  //   } catch (error) {
-  //     throw error;
-  //   } finally {
-  //     childSpan.finish();
-  //   }
-  // }
-
+  
   async findOneByOrderId(
     span: opentracing.Span,
     orderId: string
@@ -586,6 +503,7 @@ export class OrdersService {
       childSpan.finish();
     }
   }
+
   async updateOrder(
     span: opentracing.Span,
     orderId: string,
@@ -927,40 +845,80 @@ export class OrdersService {
     return sequelizeOrderInstance;
   }
 
-  async getUnassignedOrders(): Promise<Partial<Order>[]> {
+  // async getUnassignedOrders(): Promise<Partial<Order>[]> {
+  //   const orders = await this.orderRepository.findAll({
+  //     raw: true,
+  //   });
+  //   const transactionTypes = await this.transactionTypeRepository.findAll({
+  //     attributes: ["hashed_key", "name"],
+  //     raw: true,
+  //   });
+  //   const purposeTypes = await this.purposeTypeRepository.findAll({
+  //     attributes: ["hashed_key", "purposeName"],
+  //     raw: true,
+  //   });
+  //   const transactionTypeMap = Object.fromEntries(
+  //     transactionTypes
+  //       .filter(
+  //         ({ hashed_key }) => hashed_key !== undefined && hashed_key !== null
+  //       )
+  //       .map(({ hashed_key, name }) => [hashed_key, name])
+  //   );
+  //   const purposeTypeMap = Object.fromEntries(
+  //     purposeTypes
+  //       .filter(
+  //         ({ hashed_key }) => hashed_key !== undefined && hashed_key !== null
+  //       )
+  //       .map(({ hashed_key, purposeName }) => [hashed_key, purposeName])
+  //   );
+  //   return orders.map((order) => ({
+  //     ...order,
+  //     transaction_type: order.transaction_type
+  //       ? transactionTypeMap[order.transaction_type] || null
+  //       : null,
+  //     purpose_type: order.purpose_type
+  //       ? purposeTypeMap[order.purpose_type] || null
+  //       : null,
+  //   }));
+  // }
+
+  async getUnassignedOrders(): Promise<Array<{
+    [key: string]: any;
+    transaction_type: { id: string | null; text: string };
+    purpose_type: { id: string | null; text: string };
+  }>> {
     const orders = await this.orderRepository.findAll({
       raw: true,
     });
+  
     const transactionTypes = await this.transactionTypeRepository.findAll({
-      attributes: ["hashed_key", "name"],
+      attributes: ["id", "hashed_key", "name"],
       raw: true,
     });
     const purposeTypes = await this.purposeTypeRepository.findAll({
-      attributes: ["hashed_key", "purposeName"],
+      attributes: ["id", "hashed_key", "purposeName"],
       raw: true,
     });
+  
     const transactionTypeMap = Object.fromEntries(
       transactionTypes
-        .filter(
-          ({ hashed_key }) => hashed_key !== undefined && hashed_key !== null
-        )
-        .map(({ hashed_key, name }) => [hashed_key, name])
+        .filter(({ hashed_key }) => hashed_key !== undefined && hashed_key !== null)
+        .map(({ id, hashed_key, name }) => [hashed_key, { id, text: name }])
     );
     const purposeTypeMap = Object.fromEntries(
       purposeTypes
-        .filter(
-          ({ hashed_key }) => hashed_key !== undefined && hashed_key !== null
-        )
-        .map(({ hashed_key, purposeName }) => [hashed_key, purposeName])
+        .filter(({ hashed_key }) => hashed_key !== undefined && hashed_key !== null)
+        .map(({ id, hashed_key, purposeName }) => [hashed_key, { id, text: purposeName }])
     );
+  
     return orders.map((order) => ({
       ...order,
       transaction_type: order.transaction_type
-        ? transactionTypeMap[order.transaction_type] || null
-        : null,
+        ? transactionTypeMap[order.transaction_type] || { id: null, text: order.transaction_type }
+        : { id: null, text: null },
       purpose_type: order.purpose_type
-        ? purposeTypeMap[order.purpose_type] || null
-        : null,
+        ? purposeTypeMap[order.purpose_type] || { id: null, text: order.purpose_type }
+        : { id: null, text: null },
     }));
   }
 
@@ -1067,88 +1025,181 @@ export class OrdersService {
     }
   }
 
-  async getFilteredOrders(filterDto: FilterOrdersDto): Promise<Order[]> {
-    const { checkerId, transaction_type, purpose_type, from, to } = filterDto;
+  // async getFilteredOrders(filterDto: FilterOrdersDto): Promise<Order[]> {
+  //   const { checkerId, transaction_type_hashed_key, purpose_type_hashed_key, from, to } = filterDto;
 
-    const checker = await this.userRepository.findOne({
-      where: { hashed_key: checkerId },
-      attributes: ["id"],
-    });
+  //   const checker = await this.userRepository.findOne({
+  //     where: { hashed_key: checkerId },
+  //     attributes: ["id"],
+  //   });
 
-    if (!checker) {
-      throw new NotFoundException(`Checker with ID ${checkerId} not found.`);
-    }
+  //   if (!checker) {
+  //     throw new NotFoundException(`Checker with ID ${checkerId} not found.`);
+  //   }
 
-    if (transaction_type) {
-      const transactionExists = await this.transactionTypeRepository.findOne({
-        where: { hashed_key: transaction_type },
-        attributes: ["hashed_key"],
-      });
+  //   if (transaction_type_hashed_key) {
+  //     const transactionExists = await this.transactionTypeRepository.findOne({
+  //       where: { hashed_key: transaction_type_hashed_key },
+  //       attributes: ["hashed_key"],
+  //     });
 
-      if (!transactionExists) {
-        throw new BadRequestException(
-          `Invalid Transaction Type ID: ${transaction_type}`
-        );
-      }
-    }
+  //     if (!transactionExists) {
+  //       throw new BadRequestException(
+  //         `Invalid Transaction Type ID: ${transaction_type_hashed_key}`
+  //       );
+  //     }
+  //   }
 
-    if (purpose_type) {
-      const purposeExists = await this.purposeTypeRepository.findOne({
-        where: { hashed_key: purpose_type },
-        attributes: ["hashed_key"],
-      });
+  //   if (purpose_type_hashed_key) {
+  //     const purposeExists = await this.purposeTypeRepository.findOne({
+  //       where: { hashed_key: purpose_type_hashed_key },
+  //       attributes: ["hashed_key"],
+  //     });
 
-      if (!purposeExists) {
-        throw new BadRequestException(
-          `Invalid Purpose Type ID: ${purpose_type}`
-        );
-      }
-    }
+  //     if (!purposeExists) {
+  //       throw new BadRequestException(
+  //         `Invalid Purpose Type ID: ${purpose_type_hashed_key}`
+  //       );
+  //     }
+  //   }
 
-    const whereCondition: any = { checker_id: checker.id };
+  //   const whereCondition: any = { checker_id: checker.id };
 
-    if (transaction_type) whereCondition.transaction_type = transaction_type;
-    if (purpose_type) whereCondition.purpose_type = purpose_type;
+  //   if (transaction_type_hashed_key) whereCondition.transaction_type = transaction_type;
+  //   if (purpose_type_hashed_key) whereCondition.purpose_type = Purpose;
 
-    if (from || to) {
-      whereCondition.createdAt = {};
-      if (from) whereCondition.createdAt[Op.gte] = new Date(from);
-      if (to) whereCondition.createdAt[Op.lte] = new Date(to);
-    }
+  //   if (from || to) {
+  //     whereCondition.createdAt = {};
+  //     if (from) whereCondition.createdAt[Op.gte] = new Date(from);
+  //     if (to) whereCondition.createdAt[Op.lte] = new Date(to);
+  //   }
 
-    const orders = await this.orderRepository.findAll({
-      where: whereCondition,
-      raw: true,
-    });
+  //   const orders = await this.orderRepository.findAll({
+  //     where: whereCondition,
+  //     raw: true,
+  //   });
 
-    const transactionTypes = await this.transactionTypeRepository.findAll({
-      attributes: ["hashed_key", "name"],
-      raw: true,
-    });
+  //   const transactionTypes = await this.transactionTypeRepository.findAll({
+  //     attributes: ["hashed_key", "name"],
+  //     raw: true,
+  //   });
 
-    const transactionTypeMap = transactionTypes.reduce((acc, type) => {
-      acc[type.hashed_key] = type.name;
-      return acc;
-    }, {} as Record<string, string>);
+  //   const transactionTypeMap = transactionTypes.reduce((acc, type) => {
+  //     acc[type.hashed_key] = type.name;
+  //     return acc;
+  //   }, {} as Record<string, string>);
 
-    const purposeTypes = await this.purposeTypeRepository.findAll({
-      attributes: ["hashed_key", "purposeName"],
-      raw: true,
-    });
+  //   const purposeTypes = await this.purposeTypeRepository.findAll({
+  //     attributes: ["hashed_key", "purposeName"],
+  //     raw: true,
+  //   });
 
-    const purposeTypeMap = purposeTypes.reduce((acc, type) => {
-      acc[type.hashed_key] = type.purposeName;
-      return acc;
-    }, {} as Record<string, string>);
+  //   const purposeTypeMap = purposeTypes.reduce((acc, type) => {
+  //     acc[type.hashed_key] = type.purposeName;
+  //     return acc;
+  //   }, {} as Record<string, string>);
 
-    return orders.map((order) => {
-      const sequelizeOrderInstance = this.orderRepository.build(order);
-      sequelizeOrderInstance.transaction_type =
-        transactionTypeMap[order.transaction_type] || null;
-      sequelizeOrderInstance.purpose_type =
-        purposeTypeMap[order.purpose_type] || null;
+  //   return orders.map((order) => {
+  //     const sequelizeOrderInstance = this.orderRepository.build(order);
+  //     sequelizeOrderInstance.transaction_type =
+  //       transactionTypeMap[order.transaction_type] || null;
+  //     sequelizeOrderInstance.purpose_type =
+  //       purposeTypeMap[order.purpose_type] || null;
 
-      return sequelizeOrderInstance;
-    });
+  //     return sequelizeOrderInstance;
+  //   });
+  // }
+
+  async getFilteredOrders(filterDto: FilterOrdersDto): Promise<Array<{
+  [key: string]: any;
+  transaction_type: { id: string | null; text: string };
+  purpose_type: { id: string | null; text: string };
+}>> {
+  const { checkerId, transaction_type_hashed_key, purpose_type_hashed_key, from, to } = filterDto;
+
+  const checker = await this.userRepository.findOne({
+    where: { hashed_key: checkerId },
+    attributes: ["id"],
+  });
+
+  if (!checker) {
+    throw new NotFoundException(`Checker with ID ${checkerId} not found.`);
   }
+
+  if (transaction_type_hashed_key) {
+    const transactionExists = await this.transactionTypeRepository.findOne({
+      where: { hashed_key: transaction_type_hashed_key },
+      attributes: ["hashed_key"],
+    });
+
+    if (!transactionExists) {
+      throw new BadRequestException(
+        `Invalid Transaction Type ID: ${transaction_type_hashed_key}`
+      );
+    }
+  }
+
+  if (purpose_type_hashed_key) {
+    const purposeExists = await this.purposeTypeRepository.findOne({
+      where: { hashed_key: purpose_type_hashed_key },
+      attributes: ["hashed_key"],
+    });
+
+    if (!purposeExists) {
+      throw new BadRequestException(
+        `Invalid Purpose Type ID: ${purpose_type_hashed_key}`
+      );
+    }
+  }
+
+  const whereCondition: any = { checker_id: checker.id };
+
+  if (transaction_type_hashed_key) whereCondition.transaction_type = transaction_type_hashed_key;
+  if (purpose_type_hashed_key) whereCondition.purpose_type = purpose_type_hashed_key;
+
+  if (from || to) {
+    whereCondition.createdAt = {};
+    if (from) whereCondition.createdAt[Op.gte] = new Date(from);
+    if (to) whereCondition.createdAt[Op.lte] = new Date(to);
+  }
+
+  const orders = await this.orderRepository.findAll({
+    where: whereCondition,
+    raw: true,
+  });
+
+  const transactionTypes = await this.transactionTypeRepository.findAll({
+    attributes: ["id", "hashed_key", "name"],
+    raw: true,
+  });
+
+  const purposeTypes = await this.purposeTypeRepository.findAll({
+    attributes: ["id", "hashed_key", "purposeName"],
+    raw: true,
+  });
+
+  const transactionTypeMap = Object.fromEntries(
+    transactionTypes.map(({ id, hashed_key, name }) => [
+      hashed_key,
+      { id, text: name },
+    ])
+  );
+
+  const purposeTypeMap = Object.fromEntries(
+    purposeTypes.map(({ id, hashed_key, purposeName }) => [
+      hashed_key,
+      { id, text: purposeName },
+    ])
+  );
+
+  return orders.map((order) => ({
+    ...order,
+    transaction_type: order.transaction_type
+      ? transactionTypeMap[order.transaction_type] || { id: null, text: order.transaction_type }
+      : { id: null, text: null },
+    purpose_type: order.purpose_type
+      ? purposeTypeMap[order.purpose_type] || { id: null, text: order.purpose_type }
+      : { id: null, text: null },
+  }));
+}
 }

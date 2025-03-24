@@ -112,7 +112,11 @@ export class OrdersController {
 
   @Get('unassigned-orders')
   @ApiResponse({ status: 200, description: 'List of orders without a checker' })
-  async getUnassignedOrders() {
+  async getUnassignedOrders(): Promise<Array<{
+    [key: string]: any;
+    transaction_type: { id: string | null; text: string };
+    purpose_type: { id: string | null; text: string };
+  }>> {
     return this.ordersService.getUnassignedOrders();
   }
 
@@ -185,10 +189,20 @@ export class OrdersController {
     return await this.ordersService.getOrderStatusCounts();
   }
 
+  // @Get('filter')
+  // async getFilteredOrders(@Query() filterDto: FilterOrdersDto) {
+  //   return this.ordersService.getFilteredOrders(filterDto);
+  // }
   @Get('filter')
-  async getFilteredOrders(@Query() filterDto: FilterOrdersDto) {
-    return this.ordersService.getFilteredOrders(filterDto);
-  }
+async getFilteredOrders(
+  @Query() filterDto: FilterOrdersDto
+): Promise<Array<{
+  [key: string]: any;
+  transaction_type: { id: string | null; text: string };
+  purpose_type: { id: string | null; text: string };
+}>> {
+  return this.ordersService.getFilteredOrders(filterDto);
+}
 
   @Get(':partnerOrderId')
   @ApiResponse({ status: 200, description: 'Order details' })
