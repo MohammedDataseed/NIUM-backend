@@ -73,9 +73,8 @@ export class OrdersService {
     @Inject("PURPOSE_REPOSITORY") // Change to Partner repository
     private readonly purposeTypeRepository: typeof Purpose,
     @Inject("TRANSACTION_TYPE_REPOSITORY")
-    private readonly transactionTypeRepository: typeof transaction_type // @Inject("E_SIGN_REPOSITORY")
-  ) // private readonly esignRepository: typeof ESign,
-  // @Inject("V_KYC_REPOSITORY")
+    private readonly transactionTypeRepository: typeof transaction_type // @Inject("E_SIGN_REPOSITORY") // private readonly esignRepository: typeof ESign,
+  ) // @Inject("V_KYC_REPOSITORY")
   // private readonly vkycRepository: typeof Vkyc
   {}
 
@@ -155,8 +154,8 @@ export class OrdersService {
         customer_pan: createOrderDto.customer_pan,
         nium_order_id: niumOrderId, // Assigning the generated nium_order_id
         order_status: "pending", // Default value
-        e_sign_status: "not generated", // Default value
-        v_kyc_status: "not generated", // Default value
+        e_sign_status: "pending", // Default value
+        v_kyc_status: "pending", // Default value
         created_by: partner?.id,
         updated_by: partner?.id,
       };
@@ -178,18 +177,134 @@ export class OrdersService {
     }
   }
 
-  // async findAll(
-  //   span: opentracing.Span,
-  //   filters: WhereOptions<Order> = {}
-  // ): Promise<Order[] | null> {
-  //   const childSpan = span.tracer().startSpan("find-all-orders", { childOf: span });
+  async findAll(span: opentracing.Span): Promise<FilteredOrder[] | null> {
+    const childSpan = span.tracer().startSpan("find-all-orders", { childOf: span });
+  
+    try {
+      const orders = await this.orderRepository.findAll({
+        include: [
+          {
+            model: ESign,
+            as: "esigns",
+            required: false,
+            where: Sequelize.where(
+              Sequelize.cast(Sequelize.col("esigns.order_id"), "uuid"),
+              Op.eq,
+              Sequelize.col("Order.id")
+            ),
+          },
+          {
+            model: Vkyc,
+            as: "vkycs",
+            required: false,
+            where: Sequelize.where(
+              Sequelize.cast(Sequelize.col("vkycs.order_id"), "uuid"),
+              Op.eq,
+              Sequelize.col("Order.id")
+            ),
+          },
+        ],
+        raw: true,
+      });
+  
+      const transactionTypes = await this.transactionTypeRepository.findAll({
+        attributes: ["id", "hashed_key", "name"],
+        raw: true,
+      });
+      const purposeTypes = await this.purposeTypeRepository.findAll({
+        attributes: ["id", "hashed_key", "purposeName"],
+        raw: true,
+      });
+  
+      const transactionTypeMap = Object.fromEntries(
+        transactionTypes.map(({ id, hashed_key, name }) => [
+          hashed_key,
+          { id, text: name },
+        ])
+      );
+      const purposeTypeMap = Object.fromEntries(
+        purposeTypes.map(({ id, hashed_key, purposeName }) => [
+          hashed_key,
+          { id, text: purposeName },
+        ])
+      );
+  
+      const mappedOrders = orders.map((order) => ({
+        partner_order_id: order.partner_order_id,
+        nium_order_id: order.nium_order_id,
+        order_status: order.order_status,
+        is_esign_required: order.is_esign_required,
+        is_v_kyc_required: order.is_v_kyc_required,
+        transaction_type: transactionTypeMap[order.transaction_type] || {
+          id: null,
+          text: order.transaction_type,
+        },
+        purpose_type: purposeTypeMap[order.purpose_type] || {
+          id: null,
+          text: order.purpose_type,
+        },
+        e_sign_status: order.e_sign_status, // Simplified; expand if needed
+        e_sign_link: order.e_sign_link,
+        e_sign_link_status: order.e_sign_link_status,
+        e_sign_link_expires: order.e_sign_link_expires,
+        e_sign_completed_by_customer: order.e_sign_completed_by_customer,
+        e_sign_customer_completion_date: order.e_sign_customer_completion_date,
+        e_sign_doc_comments: order.e_sign_doc_comments,
+        is_e_sign_regenerated: order.is_esign_regenerated,
+        e_sign_regenerated_count: order.is_esign_regenerated ? 1 : 0, // Simplified
+        v_kyc_status: order.v_kyc_status,
+        v_kyc_link: order.v_kyc_link,
+        v_kyc_link_status: order.v_kyc_link_status,
+        v_kyc_link_expires: order.v_kyc_link_expires,
+        v_kyc_completed_by_customer: order.v_kyc_completed_by_customer,
+        v_kyc_customer_completion_date: order.v_kyc_customer_completion_date,
+        v_kyc_comments: order.v_kyc_comments,
+        is_v_kyc_link_regenerated: order.is_video_kyc_link_regenerated,
+        v_kyc_regenerated_count: order.is_video_kyc_link_regenerated_details
+          ? order.is_video_kyc_link_regenerated_details.length
+          : 0,
+        merged_document: order.merged_document?.url?.split("?")[0] || null,
+      }));
+  
+      return mappedOrders.length > 0 ? mappedOrders : [];
+    } catch (error) {
+      childSpan.log({ event: "error", message: error.message });
+      throw error;
+    } finally {
+      childSpan.finish();
+    }
+  }
+  // async findAll(span: opentracing.Span): Promise<Order[] | null> {
+  //   const childSpan = span
+  //     .tracer()
+  //     .startSpan("find-all-orders", { childOf: span });
 
   //   try {
+  //     // const orders = await this.orderRepository.findAll({
+
+  //     // });
   //     const orders = await this.orderRepository.findAll({
-  //       where: filters,
   //       include: [
-  //         { model: ESign, as: "esigns" },
-  //         { model: Vkyc, as: "vkycs" }
+  //         {
+  //           model: ESign,
+  //           as: "esigns",
+  //           required: false,
+  //           where: Sequelize.where(
+  //             Sequelize.cast(Sequelize.col("esigns.order_id"), "uuid"), // Cast as UUID
+  //             Op.eq,
+  //             Sequelize.col("Order.id")
+  //           ),
+  //         },
+  //         {
+  //           model: Vkyc,
+  //           as: "vkycs",
+  //           required: false,
+  //           where: Sequelize.where(
+  //             Sequelize.cast(Sequelize.col("vkycs.order_id"), "uuid"), // Cast as UUID
+  //             Op.eq,
+  //             Sequelize.col("Order.id")
+  //           ),
+  //         },
   //       ],
   //     });
 
@@ -201,49 +316,6 @@ export class OrdersService {
   //     childSpan.finish();
   //   }
   // }
-
-  async findAll(span: opentracing.Span): Promise<Order[] | null> {
-    const childSpan = span
-      .tracer()
-      .startSpan("find-all-orders", { childOf: span });
-
-    try {
-      // const orders = await this.orderRepository.findAll({
-
-      // });
-      const orders = await this.orderRepository.findAll({
-        include: [
-          {
-            model: ESign,
-            as: "esigns",
-            required: false,
-            where: Sequelize.where(
-              Sequelize.cast(Sequelize.col("esigns.order_id"), "uuid"), // Cast as UUID
-              Op.eq,
-              Sequelize.col("Order.id")
-            ),
-          },
-          {
-            model: Vkyc,
-            as: "vkycs",
-            required: false,
-            where: Sequelize.where(
-              Sequelize.cast(Sequelize.col("vkycs.order_id"), "uuid"), // Cast as UUID
-              Op.eq,
-              Sequelize.col("Order.id")
-            ),
-          },
-        ],
-      });
-
-      return orders.length > 0 ? orders : [];
-    } catch (error) {
-      childSpan.log({ event: "error", message: error.message });
-      throw error;
-    } finally {
-      childSpan.finish();
-    }
-  }
 
   async validatePartnerHeaders(
     partnerId: string,
@@ -400,19 +472,24 @@ export class OrdersService {
   //   }
   // }
 
-  async findOneByOrderId(span: opentracing.Span, orderId: string): Promise<FilteredOrder> {
-    const childSpan = span.tracer().startSpan("find-one-order", { childOf: span });
-  
+  async findOneByOrderId(
+    span: opentracing.Span,
+    orderId: string
+  ): Promise<FilteredOrder> {
+    const childSpan = span
+      .tracer()
+      .startSpan("find-one-order", { childOf: span });
+
     try {
       const order = await this.orderRepository.findOne({
         where: { partner_order_id: orderId },
         include: [{ association: "esigns" }, { association: "vkycs" }],
       });
-  
+
       if (!order) {
         throw new NotFoundException(`Order with ID ${orderId} not found`);
       }
-  
+
       // Fetch transaction and purpose types with IDs
       const transactionTypes = await this.transactionTypeRepository.findAll({
         attributes: ["id", "hashed_key", "name"],
@@ -422,7 +499,7 @@ export class OrdersService {
         attributes: ["id", "hashed_key", "purposeName"],
         raw: true,
       });
-  
+
       // Create lookup maps with ID and text
       const transactionTypeMap = Object.fromEntries(
         transactionTypes.map(({ id, hashed_key, name }) => [
@@ -436,22 +513,26 @@ export class OrdersService {
           { id, text: purposeName },
         ])
       );
-  
+
       // Determine the latest eSign and vKYC attempts
       const latestEsign =
-        order.esigns?.sort((a, b) => b.attempt_number - a.attempt_number)?.[0] || null;
+        order.esigns?.sort(
+          (a, b) => b.attempt_number - a.attempt_number
+        )?.[0] || null;
       const latestVkyc =
-        order.vkycs?.sort((a, b) => b.attempt_number - a.attempt_number)?.[0] || null;
-  
+        order.vkycs?.sort((a, b) => b.attempt_number - a.attempt_number)?.[0] ||
+        null;
+
       const regeneratedVkycCount = order.is_video_kyc_link_regenerated_details
         ? order.is_video_kyc_link_regenerated_details.length
         : 0;
-      const regeneratedEsignCount = order.esigns?.length > 1 ? order.esigns.length - 1 : 0;
-  
+      const regeneratedEsignCount =
+        order.esigns?.length > 1 ? order.esigns.length - 1 : 0;
+
       const extractBaseUrl = (url: string): string | null => {
         return url ? url.split("?")[0] : null;
       };
-  
+
       const result: FilteredOrder = {
         partner_order_id: order.partner_order_id,
         nium_order_id: order.nium_order_id,
@@ -468,11 +549,14 @@ export class OrdersService {
           text: order.purpose_type,
         },
         // eSign details
-        e_sign_status: latestEsign?.status === "completed" ? "completed" : "pending",
-        e_sign_link: latestEsign?.esign_details?.[0]?.esign_url || order.e_sign_link,
+        e_sign_status:
+          latestEsign?.status === "completed" ? "completed" : "pending",
+        e_sign_link:
+          latestEsign?.esign_details?.[0]?.esign_url || order.e_sign_link,
         e_sign_link_status: latestEsign?.esign_details?.[0]?.url_status,
         e_sign_link_expires:
-          latestEsign?.esign_details?.[0]?.esign_expiry || order.e_sign_link_expires,
+          latestEsign?.esign_details?.[0]?.esign_expiry ||
+          order.e_sign_link_expires,
         e_sign_completed_by_customer: latestEsign?.is_signed,
         e_sign_customer_completion_date: order.e_sign_customer_completion_date,
         e_sign_doc_comments: order.e_sign_doc_comments,
@@ -481,8 +565,10 @@ export class OrdersService {
         // vKYC details
         v_kyc_status: latestVkyc?.status || order.v_kyc_status,
         v_kyc_link: latestVkyc?.v_kyc_link || order.v_kyc_link,
-        v_kyc_link_status: latestVkyc?.v_kyc_link_status || order.v_kyc_link_status,
-        v_kyc_link_expires: latestVkyc?.v_kyc_link_expires || order.v_kyc_link_expires,
+        v_kyc_link_status:
+          latestVkyc?.v_kyc_link_status || order.v_kyc_link_status,
+        v_kyc_link_expires:
+          latestVkyc?.v_kyc_link_expires || order.v_kyc_link_expires,
         v_kyc_completed_by_customer: order.v_kyc_completed_by_customer,
         v_kyc_customer_completion_date: order.v_kyc_customer_completion_date,
         v_kyc_comments: order.v_kyc_comments,
@@ -492,7 +578,7 @@ export class OrdersService {
           merged_document: extractBaseUrl(order.merged_document?.url),
         }),
       };
-  
+
       return result;
     } catch (error) {
       throw error;
@@ -674,18 +760,18 @@ export class OrdersService {
 
   async getOrdersByChecker(dto: GetCheckerOrdersDto) {
     const { checkerId, transaction_type } = dto;
-  
+
     const checker = await this.userRepository.findOne({
       where: { hashed_key: checkerId },
       attributes: ["id"],
     });
-  
+
     if (!checker) {
       throw new NotFoundException(`Checker with ID ${checkerId} not found.`);
     }
-  
+
     const whereCondition: any = { checker_id: checker.id };
-  
+
     if (transaction_type === "all") {
       whereCondition.order_status = { [Op.ne]: "Completed" };
     } else if (transaction_type === "completed") {
@@ -693,13 +779,13 @@ export class OrdersService {
     } else {
       whereCondition.order_status = { [Op.or]: ["Pending", null] };
     }
-  
+
     const orders = await this.orderRepository.findAll({
       where: whereCondition,
       order: [["createdAt", "DESC"]],
       raw: true,
     });
-  
+
     // Fetch transaction and purpose types with IDs
     const transactionTypes = await this.transactionTypeRepository.findAll({
       attributes: ["id", "hashed_key", "name"],
@@ -709,7 +795,7 @@ export class OrdersService {
       attributes: ["id", "hashed_key", "purposeName"],
       raw: true,
     });
-  
+
     // Create lookup maps with ID and text
     const transactionTypeMap = Object.fromEntries(
       transactionTypes.map(({ id, hashed_key, name }) => [
@@ -723,7 +809,7 @@ export class OrdersService {
         { id, text: purposeName },
       ])
     );
-  
+
     // Map orders with structured transaction_type and purpose_type
     const mappedOrders = orders.map((order) => ({
       ...order,
@@ -736,7 +822,7 @@ export class OrdersService {
         text: order.purpose_type,
       },
     }));
-  
+
     return {
       message: `Orders assigned to checker ${checkerId}`,
       totalOrders: orders.length,

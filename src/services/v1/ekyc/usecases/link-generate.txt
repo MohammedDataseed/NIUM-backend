@@ -22,7 +22,7 @@
     "e_sign_completed_by_customer": null,
     "e_sign_customer_completion_date": null,
     "e_sign_doc_comments": null,
-    "v_kyc_status": "not generated",
+    "v_kyc_status": "pending",
     "v_kyc_link": null,
     "v_kyc_link_status": null,
     "v_kyc_link_expires": null,
