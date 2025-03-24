@@ -6,7 +6,6 @@ import {
 } from '@nestjs/common';
 import { Observable, throwError } from 'rxjs';
 import { tap, catchError, map } from 'rxjs/operators';
-import { RabbitProducerService } from '../../shared/services/rabbit-producer/rabbit-producer.service';
 import { TracerService } from '../../shared/services/tracer/tracer.service';
 import { AuditLogPayload } from '../../shared/dto/AuditLogPayload';
 
@@ -16,10 +15,7 @@ export interface Response<T> {
 
 @Injectable()
 export class AuditLoggerService<T> implements NestInterceptor<T, Response<T>> {
-  constructor(
-    // private publisher: RabbitProducerService,
-    private tracerService: TracerService,
-  ) {}
+  constructor(private tracerService: TracerService) {}
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const start = Date.now();
 
