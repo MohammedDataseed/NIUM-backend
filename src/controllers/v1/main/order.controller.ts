@@ -94,36 +94,7 @@ export class OrdersController {
     }
   }
 
-  @Get(':partnerOrderId')
-  @ApiResponse({ status: 200, description: 'Order details' })
-  async findOneByOrderId(
-    @Headers('api_key') apiKey: string,
-    @Headers('partner_id') partnerId: string,
-    @Param('partnerOrderId') orderId: string, // ✅ FIXED HERE
-  ) {
-    const span = opentracing
-      .globalTracer()
-      .startSpan('find-one-order-controller');
-    try {
-      await this.ordersService.validatePartnerHeaders(partnerId, apiKey);
-      return await this.ordersService.findOneByOrderId(span, orderId);
-    } finally {
-      span.finish();
-    }
-  }
 
-  // @Get(':orderId')
-  // @ApiResponse({ status: 200, description: 'Order details' })
-  // async findOne(@Param('orderId') orderId: string) {
-  //   const span = opentracing
-  //     .globalTracer()
-  //     .startSpan('find-one-order-controller');
-  //   try {
-  //     return await this.ordersService.findOne(span, orderId);
-  //   } finally {
-  //     span.finish();
-  //   }
-  // }
 
   @Delete(':orderId')
   @ApiResponse({ status: 204, description: 'Order deleted successfully' })
@@ -217,5 +188,23 @@ export class OrdersController {
   @Get('filter')
   async getFilteredOrders(@Query() filterDto: FilterOrdersDto) {
     return this.ordersService.getFilteredOrders(filterDto);
+  }
+
+  @Get(':partnerOrderId')
+  @ApiResponse({ status: 200, description: 'Order details' })
+  async findOneByOrderId(
+    @Headers('api_key') apiKey: string,
+    @Headers('partner_id') partnerId: string,
+    @Param('partnerOrderId') orderId: string, // ✅ FIXED HERE
+  ) {
+    const span = opentracing
+      .globalTracer()
+      .startSpan('find-one-order-controller');
+    try {
+      await this.ordersService.validatePartnerHeaders(partnerId, apiKey);
+      return await this.ordersService.findOneByOrderId(span, orderId);
+    } finally {
+      span.finish();
+    }
   }
 }
