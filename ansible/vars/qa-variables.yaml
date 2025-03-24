@@ -1,0 +1,8 @@
+# VPC Variables
+vpc_id: 'vpc-0a0f7c8a41d5e1b4b'
+cluster_name: 'niumforex-ecs-cluster'
+
+# Application Variables
+app_name: 'qa-nium-forex-agent-portal-backend'
+secret_arn: ''
+node_env: 'qa'

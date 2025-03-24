@@ -1,0 +1,140 @@
+- name: Create AWS resources
+  hosts: localhost
+  connection: local
+  gather_facts: False
+  vars_files:
+    - './vars/common-variables.yaml'
+    - './vars/{{ env }}-variables.yaml'
+  tasks:
+    # Gather facts related to target group
+    - name: Gather facts related to target group
+      tags: read_tg
+      elb_target_group_info:
+        names:
+          - '{{ app_name }}-ecs-tg'
+      register: ecs_tg
+    - debug: var=ecs_tg verbosity=2
+
+    # Create a Target group for the above ALB
+    - name: Create target group for ALB to manage traffic to ECS cluster
+      when: '(ecs_tg.target_groups| length == 0)'
+      elb_target_group:
+        name: '{{ app_name }}-ecs-tg'
+        vpc_id: '{{ vpc_id }}'
+        target_type: instance
+        protocol: HTTP
+        port: '{{ tg_port }}'
+        health_check_path: '{{ tg_health_check_path }}'
+        health_check_port: traffic-port
+        health_check_protocol: http
+        unhealthy_threshold_count: '{{ tg_unhealthy_threshold_count }}'
+        healthy_threshold_count: '{{ tg_healthy_threshold_count }}'
+        health_check_timeout: '{{ tg_health_check_timeout }}'
+        health_check_interval: '{{ tg_health_check_interval }}'
+        successful_response_codes: '200'
+        state: present
+        tags:
+          name: '{{ app_name }}-ecs-tg'
+          description: 'Retail {{ env }} backend-service ALB target group'
+          application: 'retail'
+          environment: '{{ env }}'
+          lineofbusiness: 'send'
+          product_segment: 'instarem'
+          created_by: 'tech@nium.com'
+      register: ecs_tg_new
+    - debug: var=ecs_tg_new verbosity=2
+
+    # Create a Task definition for our container
+    - name: Create a task definition for ecs
+      tags: create_td
+      ecs_taskdefinition:
+        state: present
+        family: '{{ app_name }}'
+        network_mode: bridge
+        force_create: true
+        execution_role_arn: 'arn:aws:iam::{{ execution_role_arn_num }}:role/ecs-instance-role'
+        containers:
+          - name: '{{ app_name }}-container'
+            essential: true
+            image: '{{ app_image }}'
+            memory: '{{ memory_limit }}'
+            memoryReservation: '{{ reserved_memory }}'
+            secrets:
+              # For variables stored in Secrets Manager
+              - name: 'AWS_AUTO_SECRET_ENV_VARIABLES'
+                valueFrom: '{{ secret_arn }}'
+            portMappings:
+              - containerPort: '{{ container_port }}'
+                hostPort: 0
+                protocol: 'tcp'
+            logConfiguration:
+              logDriver: 'json-file'
+              options:
+                max-size: '10m'
+                max-file: '100'
+            environment:
+              - name: NODE_ENV
+                value: '{{ node_env }}'
+      register: td
+    - debug: var=td verbosity=2
+
+    # Create a service using the task definition to be run under our ECS cluster
+    - name: 'Create ECS Service for app - {{ app_name }} on ECS cluster - {{ cluster_name }}'
+      tags: create_ecs_svc
+      ecs_service:
+        state: present
+        name: '{{ app_name }}'
+        launch_type: EC2
+        force_new_deployment: yes
+        cluster: '{{ cluster_name }}'
+        task_definition: '{{ td.taskdefinition.family }}:{{ td.taskdefinition.revision }}'
+        desired_count: '{{desired_count}}'
+        role: ecsServiceRole
+        placement_strategy:
+          - type: spread
+            field: attribute:ecs.availability-zone
+        deployment_configuration:
+          minimum_healthy_percent: 100
+          maximum_percent: 200
+        load_balancers:
+          - targetGroupArn: '{{ ecs_tg.target_groups[0].target_group_arn if (ecs_tg.target_groups|length > 0) else ecs_tg_new.target_group_arn }}'
+            containerName: '{{ app_name }}-container'
+            containerPort: '{{ container_port }}'
+      register: ecs_service
+    - debug: var=ecs_service verbosity=2
+
+    # Create target tracking scaling policy for ECS Service
+    - name: 'Create CPU-based scaling policy'
+      aws_application_scaling_policy:
+        state: present
+        policy_name: cpu_scaling_policy
+        service_namespace: ecs
+        resource_id: 'service/{{ cluster_name }}/{{ app_name }}'
+        scalable_dimension: ecs:service:DesiredCount
+        policy_type: TargetTrackingScaling
+        minimum_tasks: '{{min_task}}'
+        maximum_tasks: '{{max_task}}'
+        override_task_capacity: true
+        target_tracking_scaling_policy_configuration:
+          TargetValue: '{{cpu_target_value}}'
+          PredefinedMetricSpecification:
+            PredefinedMetricType: ECSServiceAverageCPUUtilization
+          ScaleOutCooldown: '{{scale_out_cooldown}}'
+          ScaleInCooldown: '{{scale_in_cooldown}}'
+    - name: 'Create memory-based scaling policy'
+      aws_application_scaling_policy:
+        state: present
+        policy_name: memory_scaling_policy
+        service_namespace: ecs
+        resource_id: 'service/{{ cluster_name }}/{{ app_name }}'
+        scalable_dimension: ecs:service:DesiredCount
+        policy_type: TargetTrackingScaling
+        minimum_tasks: '{{min_task}}'
+        maximum_tasks: '{{max_task}}'
+        override_task_capacity: true
+        target_tracking_scaling_policy_configuration:
+          TargetValue: '{{memory_target_value}}'
+          PredefinedMetricSpecification:
+            PredefinedMetricType: ECSServiceAverageMemoryUtilization
+          ScaleOutCooldown: '{{scale_out_cooldown}}'
+          ScaleInCooldown: '{{scale_in_cooldown}}'
