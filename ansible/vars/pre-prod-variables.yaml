@@ -3,6 +3,6 @@ vpc_id: 'vpc-0a82255c1ea3246a2'
 cluster_name: 'niumforex-ecs-cluster'
 
 # Application Variables
-app_name: 'nium-forex-agent-portal-backend'
+app_name: 'forex-agent-portal-backnd'
 secret_arn: ''
 node_env: 'pre-prod'
