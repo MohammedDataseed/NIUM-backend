@@ -1,0 +1,187 @@
+[33mf755c4d[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mbitbucket-push[m[33m, [m[1;31mbitbucket/qa[m[33m, [m[1;31mbitbucket/pre-prod[m[33m, [m[1;31mbitbucket/master[m[33m)[m HEAD@{0}: reset: moving to bitbucket/qa
+[33mb8b4711[m[33m ([m[1;31morigin/bitbucket-push[m[33m, [m[1;31mbitbucket/feature-branch[m[33m, [m[1;31mbitbucket/bitbucket-push[m[33m, [m[1;32mfeature-branch[m[33m)[m HEAD@{1}: checkout: moving from bitbucket-push to bitbucket-push
+[33mb8b4711[m[33m ([m[1;31morigin/bitbucket-push[m[33m, [m[1;31mbitbucket/feature-branch[m[33m, [m[1;31mbitbucket/bitbucket-push[m[33m, [m[1;32mfeature-branch[m[33m)[m HEAD@{2}: checkout: moving from feature-branch to bitbucket-push
+[33mb8b4711[m[33m ([m[1;31morigin/bitbucket-push[m[33m, [m[1;31mbitbucket/feature-branch[m[33m, [m[1;31mbitbucket/bitbucket-push[m[33m, [m[1;32mfeature-branch[m[33m)[m HEAD@{3}: checkout: moving from bitbucket-push to feature-branch
+[33mb8b4711[m[33m ([m[1;31morigin/bitbucket-push[m[33m, [m[1;31mbitbucket/feature-branch[m[33m, [m[1;31mbitbucket/bitbucket-push[m[33m, [m[1;32mfeature-branch[m[33m)[m HEAD@{4}: checkout: moving from bitbucket-push to bitbucket-push
+[33mb8b4711[m[33m ([m[1;31morigin/bitbucket-push[m[33m, [m[1;31mbitbucket/feature-branch[m[33m, [m[1;31mbitbucket/bitbucket-push[m[33m, [m[1;32mfeature-branch[m[33m)[m HEAD@{5}: commit: code format
+[33m5a4eb09[m HEAD@{6}: commit: code corrected and removed unused code
+[33m213d1ba[m[33m ([m[1;31morigin/message-update[m[33m, [m[1;32mmessage-update[m[33m)[m HEAD@{7}: checkout: moving from message-update to bitbucket-push
+[33m213d1ba[m[33m ([m[1;31morigin/message-update[m[33m, [m[1;32mmessage-update[m[33m)[m HEAD@{8}: pull --tags origin message-update: Fast-forward
+[33m87262b3[m HEAD@{9}: commit: adding routes documents/esign
+[33m39ff106[m HEAD@{10}: commit: url masking
+[33me6cb827[m HEAD@{11}: checkout: moving from prod to message-update
+[33m1d3ddfa[m[33m ([m[1;31morigin/prod[m[33m, [m[1;32mprod[m[33m)[m HEAD@{12}: pull --tags origin prod: Fast-forward
+[33m2d2bcff[m HEAD@{13}: checkout: moving from message-update to prod
+[33me6cb827[m HEAD@{14}: commit: updated error messages
+[33m2d2bcff[m HEAD@{15}: checkout: moving from prod to message-update
+[33m2d2bcff[m HEAD@{16}: commit: update ghostcript
+[33m195d661[m HEAD@{17}: commit: uploading code
+[33mef27ff5[m[33m ([m[1;31morigin/code-refactor[m[33m, [m[1;32mcode-refactor[m[33m)[m HEAD@{18}: checkout: moving from code-refactor to prod
+[33mef27ff5[m[33m ([m[1;31morigin/code-refactor[m[33m, [m[1;32mcode-refactor[m[33m)[m HEAD@{19}: checkout: moving from new-updates to code-refactor
+[33mdb8e4da[m[33m ([m[1;31morigin/new-updates[m[33m, [m[1;32mnew-updates[m[33m)[m HEAD@{20}: reset: moving to HEAD
+[33mdb8e4da[m[33m ([m[1;31morigin/new-updates[m[33m, [m[1;32mnew-updates[m[33m)[m HEAD@{21}: commit: update limit
+[33mfb1864b[m[33m ([m[1;31morigin/document-merge-compress[m[33m, [m[1;32mdocument-merge-compress[m[33m)[m HEAD@{22}: checkout: moving from document-merge-compress to new-updates
+[33mfb1864b[m[33m ([m[1;31morigin/document-merge-compress[m[33m, [m[1;32mdocument-merge-compress[m[33m)[m HEAD@{23}: commit: updated limit
+[33m974f511[m HEAD@{24}: commit: extended limit to 300mb
+[33mecc8312[m HEAD@{25}: commit: updated long request
+[33me2a9a3a[m HEAD@{26}: commit: updated compression
+[33mef27ff5[m[33m ([m[1;31morigin/code-refactor[m[33m, [m[1;32mcode-refactor[m[33m)[m HEAD@{27}: checkout: moving from code-refactor to document-merge-compress
+[33mef27ff5[m[33m ([m[1;31morigin/code-refactor[m[33m, [m[1;32mcode-refactor[m[33m)[m HEAD@{28}: commit: updated webhooks
+[33m31302f0[m HEAD@{29}: commit: fixed e-sign-retrieve-prod
+[33m4a2237b[m HEAD@{30}: commit: updated code prod
+[33m71db79f[m HEAD@{31}: commit: updated production
+[33mfe0c0df[m HEAD@{32}: commit: updated code
+[33m9be3142[m HEAD@{33}: commit: verified-vkyc
+[33m8488442[m HEAD@{34}: commit: document updated and merged
+[33m2ed5794[m HEAD@{35}: commit: corrected creating order
+[33mbcec946[m HEAD@{36}: commit: fixed masters
+[33m10082c6[m[33m ([m[1;31morigin/creating-logs[m[33m, [m[1;32mcreating-logs[m[33m)[m HEAD@{37}: checkout: moving from creating-logs to code-refactor
+[33m10082c6[m[33m ([m[1;31morigin/creating-logs[m[33m, [m[1;32mcreating-logs[m[33m)[m HEAD@{38}: commit: merged code
+[33m4ed3861[m HEAD@{39}: pull --tags origin creating-logs: Fast-forward
+[33mfc846c5[m HEAD@{40}: commit: controller-updated
+[33mf5edee4[m HEAD@{41}: commit: updated checker apis
+[33m9472a4b[m HEAD@{42}: commit: single quotes
+[33m900bd81[m HEAD@{43}: commit: updated BMF FLOW
+[33mcf6462b[m HEAD@{44}: commit: e-sign completed with merge
+[33mf23ccfc[m HEAD@{45}: commit: working merge files
+[33m2d3c1c9[m HEAD@{46}: commit: cors resolved
+[33m0711892[m HEAD@{47}: commit: enabling cors
+[33m39f2f3e[m HEAD@{48}: commit: fixed
+[33m21fe8a6[m HEAD@{49}: commit: added dev env
+[33m8bec94a[m[33m ([m[1;31morigin/dev[m[33m, [m[1;32mdev[m[33m)[m HEAD@{50}: checkout: moving from dev to creating-logs
+[33m8bec94a[m[33m ([m[1;31morigin/dev[m[33m, [m[1;32mdev[m[33m)[m HEAD@{51}: pull --tags origin dev: Fast-forward
+[33m558d158[m[33m ([m[1;32mdocuments-merge[m[33m)[m HEAD@{52}: checkout: moving from documents-merge to dev
+[33m558d158[m[33m ([m[1;32mdocuments-merge[m[33m)[m HEAD@{53}: checkout: moving from merge-orders to documents-merge
+[33mc0efd3c[m[33m ([m[1;31morigin/merge-orders[m[33m, [m[1;32mmerge-orders[m[33m)[m HEAD@{54}: commit: production-code
+[33mc1ca1f8[m HEAD@{55}: commit: added order table columns
+[33m276746e[m HEAD@{56}: pull --tags origin merge-orders: Fast-forward
+[33m38a9bed[m HEAD@{57}: commit: removing unused code
+[33me3caa47[m[33m ([m[1;31morigin/update-v-kyc-orders[m[33m, [m[1;32mupdate-v-kyc-orders[m[33m)[m HEAD@{58}: checkout: moving from update-v-kyc-orders to merge-orders
+[33me3caa47[m[33m ([m[1;31morigin/update-v-kyc-orders[m[33m, [m[1;32mupdate-v-kyc-orders[m[33m)[m HEAD@{59}: commit: merging docs
+[33m892f51b[m HEAD@{60}: commit: updated orders get
+[33mdd022ab[m HEAD@{61}: commit: updated order status for BMF
+[33m8586ef4[m HEAD@{62}: commit: masked urls
+[33m858e000[m HEAD@{63}: commit: added vkyc and webhook
+[33mfc11e34[m HEAD@{64}: commit: generating an dstoring link
+[33md39c12e[m HEAD@{65}: commit: added vkyc on orders
+[33m8979d93[m HEAD@{66}: commit: added relations and tables
+[33mc17fee4[m[33m ([m[1;31morigin/order-update-e-sign[m[33m, [m[1;32morder-update-e-sign[m[33m)[m HEAD@{67}: checkout: moving from order-update-e-sign to update-v-kyc-orders
+[33mc17fee4[m[33m ([m[1;31morigin/order-update-e-sign[m[33m, [m[1;32morder-update-e-sign[m[33m)[m HEAD@{68}: commit: updated esign
+[33m560e9e9[m HEAD@{69}: commit: replacing old files with document_type_id
+[33m74cf736[m HEAD@{70}: commit: updated-webhook
+[33m1930641[m HEAD@{71}: commit: completing order status with webhook
+[33m5a9f257[m HEAD@{72}: commit: added cors
+[33m0e38fdf[m HEAD@{73}: commit: updated order-service
+[33m3732d02[m HEAD@{74}: commit: started webhhok
+[33mf53481b[m HEAD@{75}: commit: update doc_id and request_id
+[33mcf2eba5[m HEAD@{76}: commit: update order link on re-generate esign
+[33m3a502ab[m HEAD@{77}: commit: updatin orders
+[33mb88c012[m HEAD@{78}: pull --tags origin order-update-e-sign: Fast-forward
+[33md214763[m HEAD@{79}: checkout: moving from production-push-partners to order-update-e-sign
+[33md6fdae8[m[33m ([m[1;31morigin/production-push-partners[m[33m, [m[1;32mproduction-push-partners[m[33m)[m HEAD@{80}: checkout: moving from order-update-e-sign to production-push-partners
+[33md214763[m HEAD@{81}: checkout: moving from production-push-partners to order-update-e-sign
+[33md6fdae8[m[33m ([m[1;31morigin/production-push-partners[m[33m, [m[1;32mproduction-push-partners[m[33m)[m HEAD@{82}: commit: update swagger doc
+[33m1903115[m HEAD@{83}: checkout: moving from order-update-e-sign to production-push-partners
+[33md214763[m HEAD@{84}: commit: making model sequence
+[33m1903115[m HEAD@{85}: checkout: moving from production-push-partners to order-update-e-sign
+[33m1903115[m HEAD@{86}: checkout: moving from order-update-e-sign to production-push-partners
+[33m1903115[m HEAD@{87}: checkout: moving from production-push-partners to order-update-e-sign
+[33m1903115[m HEAD@{88}: commit: adding dev credentials
+[33mf9e8752[m HEAD@{89}: commit: updated code with auth
+[33m0f34dce[m HEAD@{90}: commit: updated models users
+[33m263cdbf[m HEAD@{91}: commit: updated users model
+[33m21af05a[m HEAD@{92}: commit: synced db
+[33md68fb55[m[33m ([m[1;31morigin/saving-orders-esign[m[33m, [m[1;32msaving-orders-esign[m[33m)[m HEAD@{93}: checkout: moving from saving-orders-esign to production-push-partners
+[33md68fb55[m[33m ([m[1;31morigin/saving-orders-esign[m[33m, [m[1;32msaving-orders-esign[m[33m)[m HEAD@{94}: commit: document upload and e-sign generate and re-generate
+[33m38d01d5[m HEAD@{95}: commit: uploading and merging pdf files with order-id
+[33m8300db4[m HEAD@{96}: commit: fixed models for master data
+[33m2f31206[m HEAD@{97}: commit: merged suraj-dev and modified
+[33ma2e0cc3[m[33m ([m[1;31morigin/bmf-e-sign-flow-through-order[m[33m, [m[1;32mbmf-e-sign-flow-through-order[m[33m)[m HEAD@{98}: checkout: moving from bmf-e-sign-flow-through-order to saving-orders-esign
+[33ma2e0cc3[m[33m ([m[1;31morigin/bmf-e-sign-flow-through-order[m[33m, [m[1;32mbmf-e-sign-flow-through-order[m[33m)[m HEAD@{99}: pull --tags origin bmf-e-sign-flow-through-order: Fast-forward
+[33m66afa16[m HEAD@{100}: commit: generating e-sign and storing on db
+[33md727956[m HEAD@{101}: commit: e-sign-without-aadhaar
+[33ma9dc6d6[m HEAD@{102}: commit: creating minimal order
+[33mc15fc61[m HEAD@{103}: commit: re-created orders table
+[33m5bc25fe[m[33m ([m[1;31morigin/bmf-flow[m[33m, [m[1;32mbmf-flow[m[33m)[m HEAD@{104}: checkout: moving from bmf-flow to bmf-e-sign-flow-through-order
+[33m5bc25fe[m[33m ([m[1;31morigin/bmf-flow[m[33m, [m[1;32mbmf-flow[m[33m)[m HEAD@{105}: commit: updated partners status
+[33mc64ca08[m[33m ([m[1;32mmodular-structure[m[33m)[m HEAD@{106}: checkout: moving from modular-structure to bmf-flow
+[33mc64ca08[m[33m ([m[1;32mmodular-structure[m[33m)[m HEAD@{107}: checkout: moving from bmf-flow to modular-structure
+[33mc64ca08[m[33m ([m[1;32mmodular-structure[m[33m)[m HEAD@{108}: commit: updated esign
+[33m6896c87[m HEAD@{109}: commit: uploade pdf doc
+[33m15757cc[m HEAD@{110}: commit: order API
+[33m60f6a4f[m HEAD@{111}: commit: added order table
+[33m1c4afad[m[33m ([m[1;31morigin/add-users[m[33m, [m[1;32madd-users[m[33m)[m HEAD@{112}: checkout: moving from add-users to bmf-flow
+[33m1c4afad[m[33m ([m[1;31morigin/add-users[m[33m, [m[1;32madd-users[m[33m)[m HEAD@{113}: commit: completed admin flow
+[33m3e70780[m HEAD@{114}: commit: added partner and products
+[33m8375215[m HEAD@{115}: commit: added-users,branch,bank_accounts
+[33m998526f[m HEAD@{116}: commit: adding hashed_key on branch
+[33mea3b8e4[m[33m ([m[1;31morigin/add-partners[m[33m, [m[1;32madd-partners[m[33m)[m HEAD@{117}: checkout: moving from add-partners to add-users
+[33mea3b8e4[m[33m ([m[1;31morigin/add-partners[m[33m, [m[1;32madd-partners[m[33m)[m HEAD@{118}: commit: roles added
+[33mdee7d71[m HEAD@{119}: commit: updated code for new db
+[33me8f236b[m HEAD@{120}: commit: updated partners
+[33mb9a5f36[m HEAD@{121}: commit: generating v-link
+[33m6aaa4af[m HEAD@{122}: commit: doc-merge-compress
+[33mcc5136a[m HEAD@{123}: commit: added order table and fetching
+[33maf55cb4[m HEAD@{124}: commit: put and delete s3 files
+[33mc2aa899[m HEAD@{125}: commit: merging document
+[33m07f8b78[m HEAD@{126}: commit: adding S3 upload and get via order_id
+[33madcea63[m HEAD@{127}: commit: updated order model
+[33m41fc173[m HEAD@{128}: commit: adding console
+[33meee6192[m HEAD@{129}: commit: made ekyc file url into passing base64
+[33m38ddca6[m HEAD@{130}: commit: correctly adding partners
+[33m9bcf0ff[m HEAD@{131}: commit: adding partners
+[33m904f957[m[33m ([m[1;31morigin/migration-test[m[33m, [m[1;32mmigration-test[m[33m)[m HEAD@{132}: checkout: moving from migration-test to add-partners
+[33m904f957[m[33m ([m[1;31morigin/migration-test[m[33m, [m[1;32mmigration-test[m[33m)[m HEAD@{133}: commit: adding in models
+[33m2e11f64[m HEAD@{134}: commit: adding 2 columns without deleting the exisitng data
+[33mcf83ce9[m HEAD@{135}: commit: adding my_partners with 4 columns and bulk data
+[33m56e0d6a[m[33m ([m[1;31morigin/ekyc-started[m[33m, [m[1;32mekyc-started[m[33m)[m HEAD@{136}: checkout: moving from ekyc-started to migration-test
+[33m56e0d6a[m[33m ([m[1;31morigin/ekyc-started[m[33m, [m[1;32mekyc-started[m[33m)[m HEAD@{137}: commit: adding doc and ekyc api
+[33mfb3530e[m HEAD@{138}: checkout: moving from webhook-idfy to ekyc-started
+[33me25ab9f[m[33m ([m[1;31morigin/webhook-idfy[m[33m, [m[1;32mwebhook-idfy[m[33m)[m HEAD@{139}: commit: removed sync
+[33mfb3530e[m HEAD@{140}: checkout: moving from ekyc-started to webhook-idfy
+[33mfb3530e[m HEAD@{141}: checkout: moving from webhook-idfy to ekyc-started
+[33mfb3530e[m HEAD@{142}: commit: added document-consolidate API
+[33m204cf90[m HEAD@{143}: commit: corrected cors
+[33mb66b75c[m HEAD@{144}: commit: added cors
+[33m935d9ee[m HEAD@{145}: commit: adding partners
+[33m3a9e565[m HEAD@{146}: commit: fixing cors issue and hiding password
+[33m77031b1[m HEAD@{147}: commit: user added
+[33m20c8129[m HEAD@{148}: commit: temp-removed fileds
+[33md493b8d[m HEAD@{149}: commit: removing authguard
+[33m3ec6157[m HEAD@{150}: commit: updated sync
+[33m862a1a7[m HEAD@{151}: commit: adding migration local db
+[33m0e5ea0a[m HEAD@{152}: commit: enabling cors
+[33m701c73f[m HEAD@{153}: commit: adding migration
+[33m0b3df8f[m[33m ([m[1;31morigin/branches-and-products[m[33m, [m[1;32mbranches-and-products[m[33m)[m HEAD@{154}: checkout: moving from branches-and-products to webhook-idfy
+[33m0b3df8f[m[33m ([m[1;31morigin/branches-and-products[m[33m, [m[1;32mbranches-and-products[m[33m)[m HEAD@{155}: commit: only postgres docker
+[33m4357b6b[m HEAD@{156}: commit: removed rabbit
+[33m360e670[m HEAD@{157}: commit: removing rabbitmq and redis
+[33mffd9e5b[m HEAD@{158}: commit: updating compose-file
+[33mc8b214a[m HEAD@{159}: commit: fixed port
+[33m9474a95[m HEAD@{160}: commit: updated rabbitmq docker
+[33m0d816c5[m HEAD@{161}: commit: updated db-provider
+[33m89dd16e[m HEAD@{162}: commit: updating console
+[33mdce34f4[m HEAD@{163}: commit: expanding response
+[33md8b75e3[m HEAD@{164}: checkout: moving from login-module to branches-and-products
+[33m18cd67f[m[33m ([m[1;31morigin/login-module[m[33m, [m[1;32mlogin-module[m[33m)[m HEAD@{165}: checkout: moving from branches-and-products to login-module
+[33md8b75e3[m HEAD@{166}: commit: copied
+[33me135bbd[m HEAD@{167}: commit: updated db-provider
+[33m2693642[m HEAD@{168}: commit: removed mongo
+[33m2859cae[m HEAD@{169}: commit: updating docker
+[33mcde146d[m HEAD@{170}: commit: updated docker
+[33md2e3b97[m HEAD@{171}: commit: adding branch+products GET and POST
+[33m18cd67f[m[33m ([m[1;31morigin/login-module[m[33m, [m[1;32mlogin-module[m[33m)[m HEAD@{172}: checkout: moving from login-module to branches-and-products
+[33m18cd67f[m[33m ([m[1;31morigin/login-module[m[33m, [m[1;32mlogin-module[m[33m)[m HEAD@{173}: commit: consolidate api save local
+[33mf2b3f4b[m HEAD@{174}: commit: added protected routes
+[33me4360bd[m HEAD@{175}: commit: updated reset token type to avoid all api
+[33m18a4b16[m HEAD@{176}: commit: added reset password
+[33m85060c7[m HEAD@{177}: commit: added login and CRUD for users
+[33m558d158[m[33m ([m[1;32mdocuments-merge[m[33m)[m HEAD@{178}: checkout: moving from dev to login-module
+[33m558d158[m[33m ([m[1;32mdocuments-merge[m[33m)[m HEAD@{179}: commit: POST roles
+[33m2b1e0db[m[33m ([m[1;31morigin/master[m[33m, [m[1;32mmaster[m[33m)[m HEAD@{180}: checkout: moving from master to dev
+[33m2b1e0db[m[33m ([m[1;31morigin/master[m[33m, [m[1;32mmaster[m[33m)[m HEAD@{181}: commit: added roles
+[33mdde6fac[m HEAD@{182}: commit: updated docker
+[33m65a7a95[m HEAD@{183}: commit: added user table
+[33mad00eee[m HEAD@{184}: commit: updated docker
+[33m1a77825[m HEAD@{185}: commit: removed comment
+[33m6605c24[m HEAD@{186}: commit (initial): first
