@@ -1,5 +1,4 @@
 import { Buffer } from "buffer";
-import { ConfigService } from "@nestjs/config";
 import { PDFDocument } from "pdf-lib";
 import { Order } from "src/database/models/order.model";
 import { Documents } from "src/database/models/documents.model";
@@ -8,11 +7,9 @@ export declare class PdfService {
     private readonly documentRepository;
     private readonly orderRepository;
     private readonly documentTypeRepository;
-    private readonly configService;
     private readonly s3;
-    private readonly MAX_SIZE_BYTES;
-    private readonly TEMP_DIR;
-    constructor(documentRepository: typeof Documents, orderRepository: typeof Order, documentTypeRepository: typeof DocumentType, configService: ConfigService);
+    private readonly MAX_FILE_SIZE;
+    constructor(documentRepository: typeof Documents, orderRepository: typeof Order, documentTypeRepository: typeof DocumentType);
     listFilesByFolder(folderName: string): Promise<{
         order_id: string;
         files: {
@@ -33,16 +30,22 @@ export declare class PdfService {
         message: string;
         file_url: string;
     }>;
-    private convertImageToPdf;
+    uploadLargeFileToS3(key: string, buffer: Buffer, mimeType: string): Promise<string>;
     uploadDocumentByOrderId(partner_order_id: string, document_type_id: string, base64File: string, merge_doc?: boolean): Promise<{
         merged_document_id: any;
         message: string;
         document_id: string;
     }>;
-    private compressToSize;
     mergeFilesByFolder(folderName: string, newFileBuffer?: Buffer, newFileMimeType?: string): Promise<{
         files: {
-            buffer: Uint8Array<ArrayBufferLike>;
+            buffer: Buffer<Uint8Array<ArrayBufferLike>>;
+            url: string;
+            s3Key: string;
+        }[];
+    }>;
+    mergeFilesByFolder1(folderName: string, newFileBuffer?: Buffer, newFileMimeType?: string): Promise<{
+        files: {
+            buffer: Buffer<Uint8Array<ArrayBufferLike>>;
             url: string;
             s3Key: string;
         }[];

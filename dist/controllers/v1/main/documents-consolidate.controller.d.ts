@@ -30,7 +30,7 @@ export declare class PdfController {
     }>;
     mergeFilesByOrderId(orderId: string): Promise<{
         files: {
-            buffer: Uint8Array<ArrayBufferLike>;
+            buffer: Buffer<Uint8Array<ArrayBufferLike>>;
             url: string;
             s3Key: string;
         }[];

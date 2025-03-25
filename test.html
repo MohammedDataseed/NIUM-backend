@@ -1,0 +1,219 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Upload to Base64</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        #status {
+            margin-top: 10px;
+            color: #333;
+        }
+        #progress {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Upload File</h2>
+    <input type="file" id="fileInput" accept=".jpg,.jpeg,.png,.pdf">
+    <button onclick="uploadFile()">Upload</button>
+    <div id="status"></div>
+    <div id="progress"></div>
+
+    <script>
+        async function uploadFile() {
+            const fileInput = document.getElementById('fileInput');
+            const status = document.getElementById('status');
+            const progress = document.getElementById('progress');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                status.textContent = "Please select a file.";
+                return;
+            }
+
+            status.textContent = "Converting to Base64...";
+            const base64String = await fileToBase64(file);
+            const chunkSize = 1 * 1024 * 1024; // 1MB chunks for processing
+            const totalSize = base64String.length;
+
+            // Process in chunks to avoid freezing, but collect full string
+            const chunks = [];
+            for (let i = 0; i < totalSize; i += chunkSize) {
+                chunks.push(base64String.slice(i, i + chunkSize));
+                progress.textContent = `Processed chunk ${chunks.length}/${Math.ceil(totalSize / chunkSize)}`;
+            }
+
+            // Combine chunks into full base64 string
+            const fullBase64 = chunks.join("");
+            status.textContent = "Uploading full file...";
+
+            try {
+                const response = await fetch('http://localhost:3002/v1/api/documents/upload', {
+                    method: 'POST',
+                    headers: {
+                        'accept': '*/*',
+                        'api_key': '7e563fd4-e6a7-4393-9541-555ccba0faf6',
+                        'partner_id': '10015708d01298cbc484b7d042318629m8cuy1r3',
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        partner_order_id: 'TEST-NIUM2',
+                        document_type_id: 'eec3fadcdbc41ce2473ddc9166d79e6em84deo8n',
+                        base64_file: fullBase64, // Send full base64 string at once
+                        merge_doc: false,         // Always true as requested
+                    }),
+                });
+
+                const result = await response.json();
+                progress.textContent = `Uploaded: ${result.message || 'Success'}`;
+                status.textContent = "Upload complete!";
+            } catch (error) {
+                status.textContent = `Error: ${error.message}`;
+                progress.textContent = '';
+            }
+        }
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const base64WithPrefix = reader.result.toString();
+                    const base64Data = base64WithPrefix.split(',')[1]; // Remove prefix
+                    resolve(base64Data);
+                };
+                reader.onerror = () => reject(new Error('Failed to read file'));
+                reader.readAsDataURL(file);
+            });
+        }
+    </script>
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Upload to Base64</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        #status {
+            margin-top: 10px;
+            color: #333;
+        }
+        #progress {
+            margin-top: 10px;
+        }
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+        input[type="text"] {
+            width: 100%;
+            max-width: 400px;
+            padding: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Upload File</h2>
+    <label for="fileInput">Select File:</label>
+    <input type="file" id="fileInput" accept=".jpg,.jpeg,.png,.pdf">
+    <label for="documentTypeId">Document Type ID:</label>
+    <input type="text" id="documentTypeId" placeholder="Enter document_type_id" value="eec3fadcdbc41ce2473ddc9166d79e6em84deo8n">
+    <label for="apiKey">API Key:</label>
+    <input type="text" id="apiKey" placeholder="Enter api_key" value="7e563fd4-e6a7-4393-9541-555ccba0faf6">
+    <label for="partnerId">Partner ID:</label>
+    <input type="text" id="partnerId" placeholder="Enter partner_id" value="10015708d01298cbc484b7d042318629m8cuy1r3">
+    <label for="partnerId">merge_doc:</label>
+    <input type="text" id="merge_doc" placeholder="false/true" value="false">
+    <button onclick="uploadFile()">Upload</button>
+    <div id="status"></div>
+    <div id="progress"></div>
+
+    <script>
+        async function uploadFile() {
+            const fileInput = document.getElementById('fileInput');
+            const documentTypeId = document.getElementById('documentTypeId').value;
+            const apiKey = document.getElementById('apiKey').value;
+            const partnerId = document.getElementById('partnerId').value;
+            const mergeDoc = document.getElementById('merge_doc').value;
+            const status = document.getElementById('status');
+            const progress = document.getElementById('progress');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                status.textContent = "Please select a file.";
+                return;
+            }
+            if (!documentTypeId || !apiKey || !partnerId) {
+                status.textContent = "Please fill in all fields.";
+                return;
+            }
+
+            status.textContent = "Converting to Base64...";
+            const base64String = await fileToBase64(file);
+            const chunkSize = 1 * 1024 * 1024; // 1MB chunks for processing
+            const totalSize = base64String.length;
+
+            // Process in chunks to avoid freezing, but collect full string
+            const chunks = [];
+            for (let i = 0; i < totalSize; i += chunkSize) {
+                chunks.push(base64String.slice(i, i + chunkSize));
+                progress.textContent = `Processed chunk ${chunks.length}/${Math.ceil(totalSize / chunkSize)}`;
+            }
+
+            // Combine chunks into full base64 string
+            const fullBase64 = chunks.join("");
+            status.textContent = "Uploading full file...";
+
+            try {
+                const response = await fetch('http://localhost:3002/v1/api/documents/upload', {
+                    method: 'POST',
+                    headers: {
+                        'accept': '*/*',
+                        'api_key': apiKey,       // Use input value
+                        'partner_id': partnerId, // Use input value
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        partner_order_id: 'TEST-NIUM2',
+                        document_type_id: documentTypeId, // Use input value
+                        base64_file: fullBase64,          // Send full base64 string at once
+                        merge_doc: true,
+                    }),
+                });
+
+                const result = await response.json();
+                progress.textContent = `Uploaded: ${result.message || 'Success'}`;
+                status.textContent = "Upload complete!";
+            } catch (error) {
+                status.textContent = `Error: ${error.message}`;
+                progress.textContent = '';
+            }
+        }
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const base64WithPrefix = reader.result.toString();
+                    const base64Data = base64WithPrefix.split(',')[1]; // Remove prefix
+                    resolve(base64Data);
+                };
+                reader.onerror = () => reject(new Error('Failed to read file'));
+                reader.readAsDataURL(file);
+            });
+        }
+    </script>
+</body>
+</html>
