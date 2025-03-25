@@ -1,15 +1,25 @@
+import { Order } from 'src/database/models/order.model';
 import { OrdersService } from '../../../services/v1/order/order.service';
 import { CreateOrderDto, UpdateOrderDto, UpdateCheckerDto, UnassignCheckerDto, GetCheckerOrdersDto, UpdateOrderDetailsDto, GetOrderDetailsDto, FilterOrdersDto } from '../../../dto/order.dto';
 export declare class OrdersController {
     private readonly ordersService;
     constructor(ordersService: OrdersService);
-    findAll(): Promise<import("../../../services/v1/order/order.service").FilteredOrder[]>;
+    findAll(): Promise<Array<Partial<Omit<Order, 'transaction_type' | 'purpose_type'>> & {
+        transaction_type: {
+            id: string | null;
+            text: string;
+        };
+        purpose_type: {
+            id: string | null;
+            text: string;
+        };
+    }>>;
     createOrder(api_key: string, partner_id: string, createOrderDto: CreateOrderDto): Promise<{
         message: string;
         partner_order_id: string;
         nium_forex_order_id: string;
     }>;
-    updateOrder(orderId: string, updateOrderDto: UpdateOrderDto): Promise<import("../../../database/models/order.model").Order>;
+    updateOrder(orderId: string, updateOrderDto: UpdateOrderDto): Promise<Order>;
     deleteOrder(orderId: string): Promise<{
         message: string;
     }>;
@@ -103,19 +113,19 @@ export declare class OrdersController {
             updatedAt?: Date | any;
             deletedAt?: Date | any;
             version?: number | any;
-            _attributes: import("../../../database/models/order.model").Order;
-            dataValues: import("../../../database/models/order.model").Order;
-            _creationAttributes: import("../../../database/models/order.model").Order;
+            _attributes: Order;
+            dataValues: Order;
+            _creationAttributes: Order;
             isNewRecord: boolean;
             sequelize: import("sequelize").Sequelize;
-            _model: import("sequelize").Model<import("../../../database/models/order.model").Order, import("../../../database/models/order.model").Order>;
+            _model: import("sequelize").Model<Order, Order>;
         }[];
     }>;
     updateOrderDetails(updateInvoiceStatusDto: UpdateOrderDetailsDto): Promise<{
         message: string;
-        updatedOrder: import("../../../database/models/order.model").Order;
+        updatedOrder: Order;
     }>;
-    fetchOrderDetails(getOrderDetailsDto: GetOrderDetailsDto): Promise<import("../../../database/models/order.model").Order>;
+    fetchOrderDetails(getOrderDetailsDto: GetOrderDetailsDto): Promise<Order>;
     getOrderStatusCounts(): Promise<{}>;
     getFilteredOrders(filterDto: FilterOrdersDto): Promise<Array<{
         [key: string]: any;

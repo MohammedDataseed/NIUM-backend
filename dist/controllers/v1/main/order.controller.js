@@ -23,9 +23,7 @@ let OrdersController = class OrdersController {
         this.ordersService = ordersService;
     }
     async findAll() {
-        const span = opentracing
-            .globalTracer()
-            .startSpan('find-all-orders-controller');
+        const span = opentracing.globalTracer().startSpan('find-all-orders-controller');
         try {
             return await this.ordersService.findAll(span);
         }

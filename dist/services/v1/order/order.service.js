@@ -106,7 +106,7 @@ let OrdersService = class OrdersService {
             childSpan.finish();
         }
     }
-    async findAll(span) {
+    async findAll1(span) {
         const childSpan = span.tracer().startSpan("find-all-orders", { childOf: span });
         try {
             const orders = await this.orderRepository.findAll({
@@ -179,6 +179,112 @@ let OrdersService = class OrdersService {
                         ? order.is_video_kyc_link_regenerated_details.length
                         : 0,
                     merged_document: ((_b = (_a = order.merged_document) === null || _a === void 0 ? void 0 : _a.url) === null || _b === void 0 ? void 0 : _b.split("?")[0]) || null,
+                });
+            });
+            return mappedOrders.length > 0 ? mappedOrders : [];
+        }
+        catch (error) {
+            childSpan.log({ event: "error", message: error.message });
+            throw error;
+        }
+        finally {
+            childSpan.finish();
+        }
+    }
+    async findAll(span) {
+        const childSpan = span.tracer().startSpan("find-all-orders", { childOf: span });
+        try {
+            const orders = await this.orderRepository.findAll({
+                include: [
+                    {
+                        model: esign_model_1.ESign,
+                        as: "esigns",
+                        required: false,
+                        where: sequelize_1.Sequelize.where(sequelize_1.Sequelize.cast(sequelize_1.Sequelize.col("esigns.order_id"), "uuid"), sequelize_2.Op.eq, sequelize_1.Sequelize.col("Order.id")),
+                    },
+                    {
+                        model: vkyc_model_1.Vkyc,
+                        as: "vkycs",
+                        required: false,
+                        where: sequelize_1.Sequelize.where(sequelize_1.Sequelize.cast(sequelize_1.Sequelize.col("vkycs.order_id"), "uuid"), sequelize_2.Op.eq, sequelize_1.Sequelize.col("Order.id")),
+                    },
+                ],
+                raw: true,
+                nest: true,
+            });
+            const transactionTypes = await this.transactionTypeRepository.findAll({
+                attributes: ["id", "hashed_key", "name"],
+                raw: true,
+            });
+            const purposeTypes = await this.purposeTypeRepository.findAll({
+                attributes: ["id", "hashed_key", "purposeName"],
+                raw: true,
+            });
+            const transactionTypeMap = Object.fromEntries(transactionTypes.map(({ id, hashed_key, name }) => [
+                hashed_key,
+                { id, text: name },
+            ]));
+            const purposeTypeMap = Object.fromEntries(purposeTypes.map(({ id, hashed_key, purposeName }) => [
+                hashed_key,
+                { id, text: purposeName },
+            ]));
+            const mappedOrders = orders.map((order) => {
+                var _a;
+                return ({
+                    id: order.id,
+                    hashed_key: order.hashed_key,
+                    partner_id: order.partner_id,
+                    partner_order_id: order.partner_order_id,
+                    transaction_type: transactionTypeMap[order.transaction_type] || {
+                        id: null,
+                        text: order.transaction_type,
+                    },
+                    purpose_type: purposeTypeMap[order.purpose_type] || {
+                        id: null,
+                        text: order.purpose_type,
+                    },
+                    is_esign_required: order.is_esign_required,
+                    is_v_kyc_required: order.is_v_kyc_required,
+                    customer_name: order.customer_name,
+                    customer_email: order.customer_email,
+                    customer_phone: order.customer_phone,
+                    customer_pan: order.customer_pan,
+                    order_status: order.order_status,
+                    e_sign_status: order.e_sign_status,
+                    e_sign_link: order.e_sign_link,
+                    e_sign_link_status: order.e_sign_link_status,
+                    e_sign_link_doc_id: order.e_sign_link_doc_id,
+                    e_sign_link_request_id: order.e_sign_link_request_id,
+                    e_sign_link_expires: order.e_sign_link_expires,
+                    e_sign_completed_by_customer: order.e_sign_completed_by_customer,
+                    e_sign_customer_completion_date: order.e_sign_customer_completion_date,
+                    e_sign_doc_comments: order.e_sign_doc_comments,
+                    is_esign_regenerated: order.is_esign_regenerated,
+                    is_esign_regenerated_details: order.is_esign_regenerated_details,
+                    v_kyc_reference_id: order.v_kyc_reference_id,
+                    v_kyc_profile_id: order.v_kyc_profile_id,
+                    v_kyc_status: order.v_kyc_status,
+                    v_kyc_link: order.v_kyc_link,
+                    v_kyc_link_status: order.v_kyc_link_status,
+                    v_kyc_link_expires: order.v_kyc_link_expires,
+                    v_kyc_completed_by_customer: order.v_kyc_completed_by_customer,
+                    v_kyc_customer_completion_date: order.v_kyc_customer_completion_date,
+                    v_kyc_comments: order.v_kyc_comments,
+                    is_v_kyc_link_regenerated: order.is_video_kyc_link_regenerated,
+                    is_v_kyc_link_regenerated_details: order.is_video_kyc_link_regenerated_details,
+                    incident_status: order.incident_status,
+                    incident_checker_comments: order.incident_checker_comments,
+                    incident_completion_date: order.incident_completion_date,
+                    nium_order_id: order.nium_order_id,
+                    nium_invoice_number: order.nium_invoice_number,
+                    date_of_departure: order.date_of_departure,
+                    created_by: order.created_by,
+                    updated_by: order.updated_by,
+                    checker_id: order.checker_id,
+                    merged_document: order.merged_document
+                        ? Object.assign(Object.assign({}, order.merged_document), { url: ((_a = order.merged_document.url) === null || _a === void 0 ? void 0 : _a.split("?")[0]) || null }) : null,
+                    esigns: order.esigns || [],
+                    vkycs: order.vkycs || [],
                 });
             });
             return mappedOrders.length > 0 ? mappedOrders : [];

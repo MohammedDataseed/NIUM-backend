@@ -54,7 +54,17 @@ export declare class OrdersService {
         partner_order_id: string;
         nium_forex_order_id: string;
     }>;
-    findAll(span: opentracing.Span): Promise<FilteredOrder[] | null>;
+    findAll1(span: opentracing.Span): Promise<FilteredOrder[] | null>;
+    findAll(span: opentracing.Span): Promise<Array<Partial<Omit<Order, 'transaction_type' | 'purpose_type'>> & {
+        transaction_type: {
+            id: string | null;
+            text: string;
+        };
+        purpose_type: {
+            id: string | null;
+            text: string;
+        };
+    }>>;
     validatePartnerHeaders(partnerId: string, apiKey: string): Promise<void>;
     findOne(span: opentracing.Span, orderId: string): Promise<Order>;
     findOneByOrderId(span: opentracing.Span, orderId: string): Promise<FilteredOrder>;
