@@ -21,7 +21,8 @@ export declare class EkycService {
         signedUrl: string;
     }>;
     getMergedPdfBase64W(orderId: string): Promise<string>;
-    sendEkycRequest(orderId: string): Promise<any>;
+    sendEkycRequest(orderId: string, partnerHashedApiKey: string, partnerHashedKey: string): Promise<any>;
+    sendEkycRequestChecker(orderId: string): Promise<any>;
     getTaskDetails(token: string, requestId: string): Promise<any>;
     handleEkycRetrieveWebhook(partner_order_id: string): Promise<any>;
     retrieveEkycData(requestData: any): Promise<any>;

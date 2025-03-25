@@ -315,6 +315,18 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
 ], UpdateOrderDto.prototype, "checker_id", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: "msddfheiuroifsnjd" }),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], UpdateOrderDto.prototype, "partner_hashed_api_key", void 0);
+__decorate([
+    (0, swagger_1.ApiProperty)({ example: "uweyrfjdswiewd" }),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", String)
+], UpdateOrderDto.prototype, "partner_hashed_key", void 0);
 class UpdateCheckerDto {
 }
 exports.UpdateCheckerDto = UpdateCheckerDto;

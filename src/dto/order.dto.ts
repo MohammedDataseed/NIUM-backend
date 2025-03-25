@@ -325,107 +325,19 @@ export class UpdateOrderDto {
   @IsUUID()
   @IsOptional()
   checker_id?: string;
+
+  @ApiProperty({ example: "msddfheiuroifsnjd" })
+  @IsString()
+  @IsOptional()
+  partner_hashed_api_key?: string;
+  
+  @ApiProperty({ example: "uweyrfjdswiewd" })
+  @IsString()
+  @IsOptional()
+  partner_hashed_key?: string;
+  
 }
-// export class UpdateOrderDto {
-//   @ApiProperty({ type: String, description: 'Order ID', example: 'BMFORDERID432' })
-//   @IsString()
-//   order_id: string;
 
-//   @ApiProperty({ type: Boolean, description: 'Indicates if e-signature is required', example: true })
-//   @IsBoolean()
-//   is_e_sign_required: boolean;
-
-//   @ApiProperty({ type: Boolean, description: 'Indicates if V-KYC is required', example: false })
-//   @IsBoolean()
-//   is_v_kyc_required: boolean;
-
-//   @ApiProperty({ type: String, description: 'Customer Name', example: 'Mohammed Tayibulla' })
-//   @IsString()
-//   customer_name: string;
-
-//   @ApiProperty({ type: String, description: 'Customer Email', example: 'mohammed@dataseedtech.com' })
-//   @IsEmail()
-//   customer_email: string;
-
-//   @ApiProperty({ type: String, description: 'Customer Phone', example: '8550895486' })
-//   @IsPhoneNumber('IN')
-//   customer_phone: string;
-
-//   @ApiProperty({ type: String, description: 'Customer PAN', example: 'DAIPT0727K' })
-//   @Matches(/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/, { message: 'Invalid PAN format' })
-//   customer_pan: string;
-
-//   @ApiProperty({ type: String, description: 'Customer Aadhaar Date of Birth', example: '2003-01-06' })
-//   @IsDateString()
-//   customer_aadhaar_dob: string;
-
-//   @ApiProperty({ type: String, description: 'Order Status', example: 'pending' })
-//   @IsString()
-//   order_status: string;
-
-//   @ApiProperty({ type: String, description: 'E-Sign Link', example: 'pending' })
-//   @IsString()
-//   e_sign_link: string;
-
-//   @ApiProperty({ type: String, description: 'E-Sign Status', example: 'pending' })
-//   @IsString()
-//   e_sign_status: string;
-
-//   @ApiProperty({ type: String, description: 'E-Sign Link Status', example: 'pending' })
-//   @IsString()
-//   @IsOptional()
-//   e_sign_link_status?: string;
-
-//   @ApiProperty({ type: String, description: 'E-Sign Link Expiry Date', example: '2025-03-30T12:00:00.000Z' })
-//   @IsDateString()
-//   @IsOptional()
-//   e_sign_link_expires?: string;
-
-//   @ApiProperty({ type: Boolean, description: 'E-Sign Completed by Customer', example: false })
-//   @IsBoolean()
-//   e_sign_completed_by_customer: boolean;
-
-//   @ApiProperty({ type: String, description: 'V-KYC Status', example: 'pending' })
-//   @IsString()
-//   v_kyc_status: string;
-
-//   @ApiProperty({ type: String, description: 'V-KYC Link', example: 'pending' })
-//   @IsString()
-//   v_kyc_link: string;
-
-//   @ApiProperty({ type: String, description: 'V-KYC Link Status', example: 'pending' })
-//   @IsString()
-//   v_kyc_link_status: string;
-
-//   @ApiProperty({ type: String, description: 'V-KYC Link Expiry Date', example: '2025-03-30T12:00:00.000Z' })
-//   @IsDateString()
-//   @IsOptional()
-//   v_kyc_link_expires?: string;
-
-//   @ApiProperty({ type: Boolean, description: 'V-KYC Completed by Customer', example: false })
-//   @IsBoolean()
-//   v_kyc_completed_by_customer: boolean;
-
-//   @ApiProperty({ type: Boolean, description: 'Is E-Sign Regenerated', example: false })
-//   @IsBoolean()
-//   is_esign_regenerated: boolean;
-
-//   @ApiProperty({ type: Boolean, description: 'Is Video KYC Link Regenerated', example: false })
-//   @IsBoolean()
-//   is_video_kyc_link_regenerated: boolean;
-
-//   @ApiProperty({ type: String, description: 'Created By (Partner ID)', example: '00eb04d0-646c-41d5-a69e-197b2b504f01' })
-//   @IsUUID()
-//   created_by: string;
-
-//   @ApiProperty({ type: String, description: 'Updated By (Partner ID)', example: '00eb04d0-646c-41d5-a69e-197b2b504f01' })
-//   @IsUUID()
-//   updated_by: string;
-
-//   @ApiProperty({ type: String, description: 'Checker ID (User ID)', example: '49592f43-c59f-4084-bf3a-79a7ba6f182e' })
-//   @IsUUID()
-//   checker_id: string;
-// }
 
 export class UpdateCheckerDto {
   @ApiProperty({

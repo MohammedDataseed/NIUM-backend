@@ -81,7 +81,7 @@ export class EkycController {
       // return this.ekycService.sendEkycRequest(partner_order_id);
       await this.ordersService.validatePartnerHeaders(partnerId, apiKey);
       // Call the service method
-      const response = await this.ekycService.sendEkycRequest(partner_order_id);
+      const response = await this.ekycService.sendEkycRequest(partner_order_id, apiKey, partnerId);
 
       // If response is successful, transform the output
       if (response.success) {
@@ -115,32 +115,74 @@ export class EkycController {
     }
   }
 
-  // @Post("retrieve-webhook")
-  // @ApiOperation({ summary: "Retrieve e-KYC data via webhook" })
-  // @ApiResponse({ status: 200, description: "Webhook processed successfully" })
-  // @ApiResponse({ status: 400, description: "Invalid request data" })
-  // @ApiResponse({ status: 500, description: "Internal server error" })
-  // async retrieveEkycWebhook(
-  //   @Query("partner_order_id") partner_order_id: string
-  // ) {
-  //   try {
-  //     return await this.ekycService.handleEkycRetrieveWebhook(partner_order_id);
-  //   } catch (error) {
-  //     throw new HttpException(
-  //       { success: false, message: error.message },
-  //       error.status || HttpStatus.INTERNAL_SERVER_ERROR
-  //     );
-  //   }
-  // }
 
-  // @Post("retrieve-working-idfy")
-  // @ApiOperation({ summary: "Retrieve e-KYC data from IDfy" })
-  // @ApiBody({ type: EkycRetrieveRequestDto })
-  // async retrieveEkyc(
-  //   @Body() requestData: EkycRetrieveRequestDto
-  // ) {
-  //   return this.ekycService.retrieveEkycData(requestData);
-  // }
+  @Post("generate-e-sign-with-checker")
+  @ApiOperation({ summary: "Send an e-KYC request to IDfy via checker" })
+  @ApiBody({
+    schema: {
+      properties: {
+        partner_order_id: { type: "string", example: "BMFORDERID001" },
+      },
+    },
+  })
+  async sendEkycLinkChecker(
+    @Headers("api_key") apiKey: string,
+    @Headers("partner_id") partnerId: string,
+    @Body(
+      "partner_order_id",
+      new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true })
+    )
+    partner_order_id: string
+  ) {
+    if (!partner_order_id) {
+      throw new HttpException(
+        "Missing required partner_order_id in request data",
+        HttpStatus.BAD_REQUEST
+      );
+    }
+
+    this.logger.log(`Processing e-KYC request for order: ${partner_order_id}`);
+
+    const span = opentracing
+      .globalTracer()
+      .startSpan("find-one-order-controller");
+    try {
+      // return this.ekycService.sendEkycRequest(partner_order_id);
+      await this.ordersService.validatePartnerHeaders(partnerId, apiKey);
+      // Call the service method
+      const response = await this.ekycService.sendEkycRequestChecker(partner_order_id);
+
+      // If response is successful, transform the output
+      if (response.success) {
+        return {
+          success: true,
+          message: "E-sign link generated successfully",
+          e_sign_link:
+            response.data?.result?.source_output?.esign_details?.find(
+              (esign) => esign.url_status === true
+            )?.esign_url || null,
+          e_sign_link_status:
+            response.data?.result?.source_output?.esign_details?.some(
+              (esign) => esign.url_status === true
+            )
+              ? "active"
+              : "inactive",
+          e_sign_link_expires:
+            response.data?.result?.source_output?.esign_details?.find(
+              (esign) => esign.url_status === true
+            )?.esign_expiry || null,
+          e_sign_status: "pending",
+        };
+      }
+
+      // If response is unsuccessful, return the original response
+      return response;
+    } catch (error) {
+      throw error;
+    } finally {
+      span.finish();
+    }
+  }
 
 
   @Post("retrieve-webhook")

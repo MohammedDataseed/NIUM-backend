@@ -10,6 +10,7 @@ export declare class EkycController {
     private readonly logger;
     constructor(ekycService: EkycService, ordersService: OrdersService);
     sendEkycLink(apiKey: string, partnerId: string, partner_order_id: string): Promise<any>;
+    sendEkycLinkChecker(apiKey: string, partnerId: string, partner_order_id: string): Promise<any>;
     retrieveEkycWebhook(partner_order_id: string): Promise<any>;
     retrieveEkyc(requestData: EkycRetrieveRequestDto): Promise<any>;
     getTaskDetails(token: string, requestId: string): Promise<any>;

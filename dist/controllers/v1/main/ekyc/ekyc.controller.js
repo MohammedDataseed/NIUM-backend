@@ -47,7 +47,40 @@ let EkycController = class EkycController {
             .startSpan("find-one-order-controller");
         try {
             await this.ordersService.validatePartnerHeaders(partnerId, apiKey);
-            const response = await this.ekycService.sendEkycRequest(partner_order_id);
+            const response = await this.ekycService.sendEkycRequest(partner_order_id, apiKey, partnerId);
+            if (response.success) {
+                return {
+                    success: true,
+                    message: "E-sign link generated successfully",
+                    e_sign_link: ((_e = (_d = (_c = (_b = (_a = response.data) === null || _a === void 0 ? void 0 : _a.result) === null || _b === void 0 ? void 0 : _b.source_output) === null || _c === void 0 ? void 0 : _c.esign_details) === null || _d === void 0 ? void 0 : _d.find((esign) => esign.url_status === true)) === null || _e === void 0 ? void 0 : _e.esign_url) || null,
+                    e_sign_link_status: ((_j = (_h = (_g = (_f = response.data) === null || _f === void 0 ? void 0 : _f.result) === null || _g === void 0 ? void 0 : _g.source_output) === null || _h === void 0 ? void 0 : _h.esign_details) === null || _j === void 0 ? void 0 : _j.some((esign) => esign.url_status === true))
+                        ? "active"
+                        : "inactive",
+                    e_sign_link_expires: ((_p = (_o = (_m = (_l = (_k = response.data) === null || _k === void 0 ? void 0 : _k.result) === null || _l === void 0 ? void 0 : _l.source_output) === null || _m === void 0 ? void 0 : _m.esign_details) === null || _o === void 0 ? void 0 : _o.find((esign) => esign.url_status === true)) === null || _p === void 0 ? void 0 : _p.esign_expiry) || null,
+                    e_sign_status: "pending",
+                };
+            }
+            return response;
+        }
+        catch (error) {
+            throw error;
+        }
+        finally {
+            span.finish();
+        }
+    }
+    async sendEkycLinkChecker(apiKey, partnerId, partner_order_id) {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p;
+        if (!partner_order_id) {
+            throw new common_1.HttpException("Missing required partner_order_id in request data", common_1.HttpStatus.BAD_REQUEST);
+        }
+        this.logger.log(`Processing e-KYC request for order: ${partner_order_id}`);
+        const span = opentracing
+            .globalTracer()
+            .startSpan("find-one-order-controller");
+        try {
+            await this.ordersService.validatePartnerHeaders(partnerId, apiKey);
+            const response = await this.ekycService.sendEkycRequestChecker(partner_order_id);
             if (response.success) {
                 return {
                     success: true,
@@ -119,6 +152,23 @@ __decorate([
     __metadata("design:paramtypes", [String, String, String]),
     __metadata("design:returntype", Promise)
 ], EkycController.prototype, "sendEkycLink", null);
+__decorate([
+    (0, common_1.Post)("generate-e-sign-with-checker"),
+    (0, swagger_1.ApiOperation)({ summary: "Send an e-KYC request to IDfy via checker" }),
+    (0, swagger_1.ApiBody)({
+        schema: {
+            properties: {
+                partner_order_id: { type: "string", example: "BMFORDERID001" },
+            },
+        },
+    }),
+    __param(0, (0, common_1.Headers)("api_key")),
+    __param(1, (0, common_1.Headers)("partner_id")),
+    __param(2, (0, common_1.Body)("partner_order_id", new common_1.ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, String]),
+    __metadata("design:returntype", Promise)
+], EkycController.prototype, "sendEkycLinkChecker", null);
 __decorate([
     (0, common_1.Post)("retrieve-webhook"),
     (0, swagger_1.ApiOperation)({ summary: "Retrieve e-KYC data via webhook" }),

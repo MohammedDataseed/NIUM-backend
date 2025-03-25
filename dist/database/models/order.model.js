@@ -47,6 +47,14 @@ __decorate([
     __metadata("design:type", String)
 ], Order.prototype, "partner_id", void 0);
 __decorate([
+    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.STRING }),
+    __metadata("design:type", String)
+], Order.prototype, "partner_hashed_api_key", void 0);
+__decorate([
+    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.STRING }),
+    __metadata("design:type", String)
+], Order.prototype, "partner_hashed_key", void 0);
+__decorate([
     sequelize_typescript_1.Unique,
     (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.STRING, allowNull: false }),
     __metadata("design:type", String)

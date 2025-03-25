@@ -38,9 +38,14 @@ export class Order extends Model<Order> {
   @Column({ type: DataType.STRING, field: "hashed_key", defaultValue: "" })
   hashed_key: string;
 
-
   @Column({ type: DataType.STRING, allowNull: false })
   partner_id: string;
+
+  @Column({ type: DataType.STRING }) // New field
+  partner_hashed_api_key: string;
+
+  @Column({ type: DataType.STRING }) // New field
+  partner_hashed_key: string;
 
   @Unique // 🔥 Ensure uniqueness
   @Column({ type: DataType.STRING, allowNull: false })

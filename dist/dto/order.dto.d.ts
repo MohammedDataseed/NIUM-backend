@@ -45,6 +45,8 @@ export declare class UpdateOrderDto {
     created_by?: string;
     updated_by?: string;
     checker_id?: string;
+    partner_hashed_api_key?: string;
+    partner_hashed_key?: string;
 }
 export declare class UpdateCheckerDto {
     orderIds: string[];

@@ -84,6 +84,8 @@ export declare class OrdersService {
             id: string;
             hashed_key: string;
             partner_id: string;
+            partner_hashed_api_key: string;
+            partner_hashed_key: string;
             partner_order_id: string;
             is_esign_required: boolean;
             is_v_kyc_required: boolean;

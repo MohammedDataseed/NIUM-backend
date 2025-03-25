@@ -7,6 +7,8 @@ export declare class Order extends Model<Order> {
     id: string;
     hashed_key: string;
     partner_id: string;
+    partner_hashed_api_key: string;
+    partner_hashed_key: string;
     partner_order_id: string;
     transaction_type: string;
     purpose_type: string;
