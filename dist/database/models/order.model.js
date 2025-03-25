@@ -8,6 +8,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
+var Order_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Order = void 0;
 const sequelize_typescript_1 = require("sequelize-typescript");
@@ -17,13 +18,21 @@ const esign_model_1 = require("./esign.model");
 const vkyc_model_1 = require("./vkyc.model");
 const common_1 = require("@nestjs/common");
 const crypto = require("crypto");
-let Order = class Order extends sequelize_typescript_1.Model {
+let Order = Order_1 = class Order extends sequelize_typescript_1.Model {
     static generateHashedKey(instance) {
         console.log("Generating hashed_key...");
         const randomPart = crypto.randomBytes(16).toString("hex");
         const timestampPart = Date.now().toString(36);
         instance.hashed_key = `${randomPart}${timestampPart}`;
         console.log("Generated hashed_key:", instance.hashed_key);
+    }
+    static async setSerialNumber(instance) {
+        const latestOrder = await Order_1.findOne({
+            order: [['serial_number', 'DESC']]
+        });
+        const newSerialNumber = latestOrder ? latestOrder.serial_number + 1 : 1;
+        instance.serial_number = newSerialNumber;
+        instance.nium_order_id = `NIUMF${String(newSerialNumber).padStart(6, "0")}`;
     }
 };
 exports.Order = Order;
@@ -36,6 +45,15 @@ __decorate([
     }),
     __metadata("design:type", String)
 ], Order.prototype, "id", void 0);
+__decorate([
+    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.INTEGER, allowNull: false, unique: true, autoIncrement: true }),
+    __metadata("design:type", Number)
+], Order.prototype, "serial_number", void 0);
+__decorate([
+    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.STRING, allowNull: true }),
+    (0, common_1.Optional)(),
+    __metadata("design:type", String)
+], Order.prototype, "nium_order_id", void 0);
 __decorate([
     sequelize_typescript_1.Unique,
     (0, sequelize_typescript_1.AllowNull)(false),
@@ -198,11 +216,6 @@ __decorate([
     (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.STRING, allowNull: true }),
     (0, common_1.Optional)(),
     __metadata("design:type", String)
-], Order.prototype, "nium_order_id", void 0);
-__decorate([
-    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.STRING, allowNull: true }),
-    (0, common_1.Optional)(),
-    __metadata("design:type", String)
 ], Order.prototype, "nium_invoice_number", void 0);
 __decorate([
     (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.DATE, allowNull: true }),
@@ -280,7 +293,13 @@ __decorate([
     __metadata("design:paramtypes", [Order]),
     __metadata("design:returntype", void 0)
 ], Order, "generateHashedKey", null);
-exports.Order = Order = __decorate([
+__decorate([
+    sequelize_typescript_1.BeforeCreate,
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Order]),
+    __metadata("design:returntype", Promise)
+], Order, "setSerialNumber", null);
+exports.Order = Order = Order_1 = __decorate([
     (0, sequelize_typescript_1.Table)({
         tableName: "orders",
         timestamps: true,

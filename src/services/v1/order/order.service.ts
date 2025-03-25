@@ -139,7 +139,7 @@ export class OrdersService {
       }
 
       // Generate a unique nium_order_id
-      const niumOrderId = `NIUMF${Math.floor(100000 + Math.random() * 900000)}`; // Example: NIUMF789012
+      // const niumOrderId = `NIUMF${Math.floor(100000 + Math.random() * 900000)}`; // Example: NIUMF789012
 
       const orderData = {
         partner_id: partner?.id,
@@ -152,7 +152,7 @@ export class OrdersService {
         customer_email: createOrderDto.customer_email,
         customer_phone: createOrderDto.customer_phone,
         customer_pan: createOrderDto.customer_pan,
-        nium_order_id: niumOrderId, // Assigning the generated nium_order_id
+        // nium_order_id: niumOrderId, // Assigning the generated nium_order_id
         order_status: "pending", // Default value
         e_sign_status: "pending", // Default value
         v_kyc_status: "pending", // Default value
@@ -166,7 +166,7 @@ export class OrdersService {
       return {
         message: "Order created successfully",
         partner_order_id: order.partner_order_id,
-        nium_forex_order_id: order.nium_order_id, // Return generated nium_order_id
+        nium_forex_order_id: order.nium_order_id, // Return generated nium_order_id based on serial_number
       };
       // return order;
     } catch (error) {
@@ -853,6 +853,8 @@ export class OrdersService {
       order: [["createdAt", "DESC"]],
       raw: true,
     });
+
+    console.log('order-data',orders)
 
     // Fetch transaction and purpose types with IDs
     const transactionTypes = await this.transactionTypeRepository.findAll({

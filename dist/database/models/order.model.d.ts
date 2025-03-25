@@ -5,6 +5,8 @@ import { ESign } from "./esign.model";
 import { Vkyc } from "./vkyc.model";
 export declare class Order extends Model<Order> {
     id: string;
+    serial_number: number;
+    nium_order_id: string;
     hashed_key: string;
     partner_id: string;
     partner_hashed_api_key: string;
@@ -39,7 +41,6 @@ export declare class Order extends Model<Order> {
     v_kyc_comments: string;
     incident_status: boolean;
     incident_checker_comments: string;
-    nium_order_id: string;
     nium_invoice_number: string;
     date_of_departure: Date;
     incident_completion_date: Date;
@@ -63,4 +64,5 @@ export declare class Order extends Model<Order> {
     esigns: ESign[];
     vkycs: Vkyc[];
     static generateHashedKey(instance: Order): void;
+    static setSerialNumber(instance: Order): Promise<void>;
 }

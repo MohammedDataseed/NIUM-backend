@@ -71,7 +71,6 @@ let OrdersService = class OrdersService {
             if (!transactionType) {
                 throw new common_1.BadRequestException("Invalid or inactive transaction_type_id");
             }
-            const niumOrderId = `NIUMF${Math.floor(100000 + Math.random() * 900000)}`;
             const orderData = {
                 partner_id: partner === null || partner === void 0 ? void 0 : partner.id,
                 partner_order_id: createOrderDto.partner_order_id,
@@ -83,7 +82,6 @@ let OrdersService = class OrdersService {
                 customer_email: createOrderDto.customer_email,
                 customer_phone: createOrderDto.customer_phone,
                 customer_pan: createOrderDto.customer_pan,
-                nium_order_id: niumOrderId,
                 order_status: "pending",
                 e_sign_status: "pending",
                 v_kyc_status: "pending",
@@ -402,6 +400,7 @@ let OrdersService = class OrdersService {
             order: [["createdAt", "DESC"]],
             raw: true,
         });
+        console.log('order-data', orders);
         const transactionTypes = await this.transactionTypeRepository.findAll({
             attributes: ["id", "hashed_key", "name"],
             raw: true,

@@ -32,6 +32,12 @@ export class Order extends Model<Order> {
   })
   id: string;
 
+  @Column({ type: DataType.INTEGER, allowNull: false, unique: true, autoIncrement: true })
+  serial_number: number; // Sequential order number
+
+  @Column({ type: DataType.STRING, allowNull: true })
+  @Optional()
+  nium_order_id: string;
 
   @Unique
   @AllowNull(false)
@@ -163,9 +169,7 @@ export class Order extends Model<Order> {
   @Optional()
   incident_checker_comments: string;
 
-  @Column({ type: DataType.STRING, allowNull: true })
-  @Optional()
-  nium_order_id: string;
+
 
   @Column({ type: DataType.STRING, allowNull: true })
   @Optional()
@@ -247,5 +251,19 @@ export class Order extends Model<Order> {
     instance.hashed_key = `${randomPart}${timestampPart}`;
     console.log("Generated hashed_key:", instance.hashed_key); // Debugging
   }
+  
+  // Hook to generate nium_order_id before saving
+  @BeforeCreate
+  static async setSerialNumber(instance: Order) {
+    const latestOrder = await Order.findOne({ 
+      order: [['serial_number', 'DESC']]  // Get the latest serial number
+    });
+
+    const newSerialNumber = latestOrder ? latestOrder.serial_number + 1 : 1;
+    instance.serial_number = newSerialNumber;
+    instance.nium_order_id = `NIUMF${String(newSerialNumber).padStart(6, "0")}`;
+  }
  
-}
+  }
+ 
+
