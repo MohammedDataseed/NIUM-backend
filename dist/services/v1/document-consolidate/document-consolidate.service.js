@@ -29,7 +29,7 @@ let PdfService = class PdfService {
         this.documentRepository = documentRepository;
         this.orderRepository = orderRepository;
         this.documentTypeRepository = documentTypeRepository;
-        this.MAX_FILE_SIZE = 15 * 1024 * 1024;
+        this.MAX_FILE_SIZE = 50 * 1024 * 1024;
         this.s3 = new client_s3_1.S3Client({
             region: process.env.AWS_REGION,
             credentials: {
@@ -299,9 +299,9 @@ let PdfService = class PdfService {
         }
         const chunkSize = 4 * 1024 * 1024;
         const totalSize = buffer_1.Buffer.byteLength(base64Data, "base64");
-        const MAX_SIZE_BYTES = 30 * 1024 * 1024;
+        const MAX_SIZE_BYTES = 50 * 1024 * 1024;
         if (totalSize > MAX_SIZE_BYTES)
-            throw new common_1.BadRequestException("File size must be ≤ 30MB");
+            throw new common_1.BadRequestException("File size must be ≤ 50MB");
         let buffer;
         if (totalSize <= chunkSize) {
             buffer = buffer_1.Buffer.from(base64Data, "base64");
@@ -515,7 +515,7 @@ let PdfService = class PdfService {
         let pdfDoc = await pdf_lib_1.PDFDocument.load(pdfBuffer);
         let compressedBuffer = buffer_1.Buffer.from(await pdfDoc.save());
         let quality = 80;
-        while (compressedBuffer.length > maxSize && quality > 30) {
+        while (compressedBuffer.length > maxSize && quality > 50) {
             console.warn(`Compressed size (${compressedBuffer.length} bytes) still exceeds limit. Reducing quality.`);
             const newPdfDoc = await pdf_lib_1.PDFDocument.create();
             const copiedPages = await newPdfDoc.copyPages(pdfDoc, pdfDoc.getPageIndices());
