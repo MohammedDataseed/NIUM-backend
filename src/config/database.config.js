@@ -4,7 +4,7 @@ module.exports = {
   development: {
     username: "postgres",
     password: "1234",
-    database: "nium-dev",
+    database: "nium-test-2",
     host: "localhost",
     dialect: "postgres", // Ensure this is here
     pool: {
