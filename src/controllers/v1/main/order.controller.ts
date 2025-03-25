@@ -34,12 +34,29 @@ import * as opentracing from 'opentracing';
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
+  @Get()
+  @ApiResponse({ status: 200, description: 'List of orders' })
+  async findAll() {
+    const span = opentracing
+      .globalTracer()
+      .startSpan('find-all-orders-controller');
+    try {
+      return await this.ordersService.findAll(span);
+    } catch (error) {
+      throw error;
+    } finally {
+      span.finish();
+    }
+  }
+
+
   // @Get()
   // @ApiResponse({ status: 200, description: 'List of orders' })
-  // async findAll() {
-  //   const span = opentracing
-  //     .globalTracer()
-  //     .startSpan('find-all-orders-controller');
+  // async findAll(): Promise<Array<Partial<Omit<Order, 'transaction_type' | 'purpose_type'>> & {
+  //   transaction_type: { id: string | null; text: string };
+  //   purpose_type: { id: string | null; text: string };
+  // }>> {
+  //   const span = opentracing.globalTracer().startSpan('find-all-orders-controller');
   //   try {
   //     return await this.ordersService.findAll(span);
   //   } catch (error) {
@@ -50,21 +67,6 @@ export class OrdersController {
   // }
 
 
-  @Get()
-  @ApiResponse({ status: 200, description: 'List of orders' })
-  async findAll(): Promise<Array<Partial<Omit<Order, 'transaction_type' | 'purpose_type'>> & {
-    transaction_type: { id: string | null; text: string };
-    purpose_type: { id: string | null; text: string };
-  }>> {
-    const span = opentracing.globalTracer().startSpan('find-all-orders-controller');
-    try {
-      return await this.ordersService.findAll(span);
-    } catch (error) {
-      throw error;
-    } finally {
-      span.finish();
-    }
-  }
   @Post('generate-order')
   async createOrder(
     @Headers('api_key') api_key: string,

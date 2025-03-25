@@ -4,16 +4,7 @@ import { CreateOrderDto, UpdateOrderDto, UpdateCheckerDto, UnassignCheckerDto, G
 export declare class OrdersController {
     private readonly ordersService;
     constructor(ordersService: OrdersService);
-    findAll(): Promise<Array<Partial<Omit<Order, 'transaction_type' | 'purpose_type'>> & {
-        transaction_type: {
-            id: string | null;
-            text: string;
-        };
-        purpose_type: {
-            id: string | null;
-            text: string;
-        };
-    }>>;
+    findAll(): Promise<Order[]>;
     createOrder(api_key: string, partner_id: string, createOrderDto: CreateOrderDto): Promise<{
         message: string;
         partner_order_id: string;
