@@ -48,7 +48,7 @@ import { DocumentType } from "src/database/models/documentType.model"; // Assumi
 export class PdfService {
   private readonly s3: S3Client;
   // Add this to your class definition (e.g., PdfService)
-  private readonly MAX_FILE_SIZE = 15 * 1024 * 1024; // 15MB
+  private readonly MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 
   constructor(
     @Inject("DOCUMENTS_REPOSITORY")
@@ -400,8 +400,8 @@ export class PdfService {
   
     const chunkSize = 4 * 1024 * 1024; // 4MB chunks
     const totalSize = Buffer.byteLength(base64Data, "base64");
-    const MAX_SIZE_BYTES = 30 * 1024 * 1024; // Increased to 30MB
-    if (totalSize > MAX_SIZE_BYTES) throw new BadRequestException("File size must be ≤ 30MB");
+    const MAX_SIZE_BYTES = 50 * 1024 * 1024; // Increased to 50MB
+    if (totalSize > MAX_SIZE_BYTES) throw new BadRequestException("File size must be ≤ 50MB");
   
     let buffer: Buffer;
     if (totalSize <= chunkSize) {
@@ -660,7 +660,7 @@ export class PdfService {
     let compressedBuffer = Buffer.from(await pdfDoc.save());
 
     let quality = 80; // Initial compression quality
-    while (compressedBuffer.length > maxSize && quality > 30) {
+    while (compressedBuffer.length > maxSize && quality > 50) {
       console.warn(`Compressed size (${compressedBuffer.length} bytes) still exceeds limit. Reducing quality.`);
 
       const newPdfDoc = await PDFDocument.create();
