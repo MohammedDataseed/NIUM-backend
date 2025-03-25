@@ -319,12 +319,35 @@ let EkycService = EkycService_1 = class EkycService {
                 .startSpan("update-e-sign", { childOf: span });
             try {
                 console.log("Event: Updating order with e-sign details", { orderId });
+                const requestDetail = {
+                    is_active: validEsign.url_status,
+                    is_signed: false,
+                    is_expired: validEsign.esign_expiry ? new Date(validEsign.esign_expiry) < new Date() : false,
+                    is_rejected: false,
+                };
+                let eSignStatus;
+                const { is_active, is_signed, is_expired, is_rejected } = requestDetail;
+                if (is_active && is_signed) {
+                    eSignStatus = "completed";
+                }
+                else if (is_active && !is_expired && !is_rejected && !is_signed) {
+                    eSignStatus = "pending";
+                }
+                else if (is_expired && !is_rejected) {
+                    eSignStatus = "expired";
+                }
+                else if (is_rejected || (is_active && is_expired)) {
+                    eSignStatus = "rejected";
+                }
+                else {
+                    eSignStatus = "pending";
+                }
                 await this.orderService.updateOrder(childSpan, orderId, {
-                    e_sign_status: "completed",
+                    e_sign_status: eSignStatus,
                     e_sign_link: validEsign.esign_url,
                     e_sign_link_status: "active",
                     e_sign_link_expires: validEsign.esign_expiry
-                        ? new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString()
+                        ? new Date(validEsign.esign_expiry).toISOString()
                         : null,
                     e_sign_link_doc_id: (_x = (_w = responseData.result) === null || _w === void 0 ? void 0 : _w.source_output) === null || _x === void 0 ? void 0 : _x.esign_doc_id,
                     e_sign_link_request_id: responseData === null || responseData === void 0 ? void 0 : responseData.request_id,
