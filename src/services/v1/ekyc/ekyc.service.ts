@@ -412,7 +412,7 @@ export class EkycService {
         esign_details: responseData.result?.source_output || responseData,
         esign_doc_id: responseData.result?.source_output?.esign_doc_id || null, // Should work if present
         request_id: responseData.request_id || null,
-        completed_at: responseData.status === "completed" ? new Date() : null,
+        completed_at: responseData.status == "completed" ? new Date() : null,
         esign_expiry: responseData.result?.source_output?.expiry || null,
         active:
           responseData.status === "completed" &&
@@ -1135,8 +1135,8 @@ export class EkycService {
     const { source_output } = responseData.result;
     const requestDetail = source_output.request_details[0];
 
-    const completedAt = responseData.completed_at
-      ? new Date(responseData.completed_at)
+    const ESigncompletedAt = responseData?.completed_at
+      ? responseData?.completed_at
       : null;
 
     // Manually parse `esign_expiry` if it exists
@@ -1153,7 +1153,7 @@ export class EkycService {
     }
 
     // Validate `completedAt`
-    if (completedAt && isNaN(completedAt.getTime())) {
+    if (ESigncompletedAt ) {
       this.logger.error(
         `Invalid completed_at value: ${responseData.completed_at}`
       );
@@ -1212,8 +1212,14 @@ export class EkycService {
       },
     });
 
+    console.log('updating order',{
+      e_sign_status: eSignStatus,
+      e_sign_customer_completion_date:ESigncompletedAt
+    })
+
     await orderData.update({
       e_sign_status: eSignStatus,
+      e_sign_customer_completion_date:ESigncompletedAt
     });
 
     this.logger.log(

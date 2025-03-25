@@ -253,7 +253,7 @@ let EkycService = EkycService_1 = class EkycService {
                 esign_details: ((_c = responseData.result) === null || _c === void 0 ? void 0 : _c.source_output) || responseData,
                 esign_doc_id: ((_e = (_d = responseData.result) === null || _d === void 0 ? void 0 : _d.source_output) === null || _e === void 0 ? void 0 : _e.esign_doc_id) || null,
                 request_id: responseData.request_id || null,
-                completed_at: responseData.status === "completed" ? new Date() : null,
+                completed_at: responseData.status == "completed" ? new Date() : null,
                 esign_expiry: ((_g = (_f = responseData.result) === null || _f === void 0 ? void 0 : _f.source_output) === null || _g === void 0 ? void 0 : _g.expiry) || null,
                 active: responseData.status === "completed" &&
                     ((_j = (_h = responseData.result) === null || _h === void 0 ? void 0 : _h.source_output) === null || _j === void 0 ? void 0 : _j.status) === "Success",
@@ -789,8 +789,8 @@ let EkycService = EkycService_1 = class EkycService {
         }
         const { source_output } = responseData.result;
         const requestDetail = source_output.request_details[0];
-        const completedAt = responseData.completed_at
-            ? new Date(responseData.completed_at)
+        const ESigncompletedAt = (responseData === null || responseData === void 0 ? void 0 : responseData.completed_at)
+            ? responseData === null || responseData === void 0 ? void 0 : responseData.completed_at
             : null;
         let esignExpiry = esignRecord.esign_expiry;
         if (requestDetail.expiry_date) {
@@ -799,7 +799,7 @@ let EkycService = EkycService_1 = class EkycService {
             const formattedExpiry = `${year}-${month}-${day}T${hours || "00"}:${minutes || "00"}:${seconds || "00"}Z`;
             esignExpiry = new Date(formattedExpiry);
         }
-        if (completedAt && isNaN(completedAt.getTime())) {
+        if (ESigncompletedAt) {
             this.logger.error(`Invalid completed_at value: ${responseData.completed_at}`);
             throw new common_1.HttpException("Invalid completed_at timestamp", common_1.HttpStatus.BAD_REQUEST);
         }
@@ -842,8 +842,13 @@ let EkycService = EkycService_1 = class EkycService {
             request_details: source_output.request_details,
             esign_details: Object.assign(Object.assign({}, esignRecord.esign_details), { status: source_output.status }),
         });
+        console.log('updating order', {
+            e_sign_status: eSignStatus,
+            e_sign_customer_completion_date: ESigncompletedAt
+        });
         await orderData.update({
             e_sign_status: eSignStatus,
+            e_sign_customer_completion_date: ESigncompletedAt
         });
         this.logger.log(`Updated Order record for task_id: ${task_id}, e_sign_status: ${eSignStatus}`);
         this.logger.log(`Updated ESign record for task_id: ${task_id}, esign_doc_id: ${esign_doc_id}`);
