@@ -339,7 +339,7 @@ let OrdersService = class OrdersService {
         }
     }
     async findOneByOrderId(span, orderId) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p;
         const childSpan = span
             .tracer()
             .startSpan("find-one-order", { childOf: span });
@@ -377,15 +377,38 @@ let OrdersService = class OrdersService {
             const extractBaseUrl = (url) => {
                 return url ? url.split("?")[0] : null;
             };
+            const requestDetail = {
+                is_active: ((_f = latestEsign === null || latestEsign === void 0 ? void 0 : latestEsign.request_details[0]) === null || _f === void 0 ? void 0 : _f.is_active) || false,
+                is_signed: (latestEsign === null || latestEsign === void 0 ? void 0 : latestEsign.is_signed) || false,
+                is_expired: (latestEsign === null || latestEsign === void 0 ? void 0 : latestEsign.esign_expiry) ? new Date(latestEsign.esign_expiry) < new Date() : false,
+                is_rejected: ((_g = latestEsign === null || latestEsign === void 0 ? void 0 : latestEsign.request_details[0]) === null || _g === void 0 ? void 0 : _g.is_rejected) || false,
+            };
+            let eSignStatus;
+            const { is_active, is_signed, is_expired, is_rejected } = requestDetail;
+            if (is_active && is_signed) {
+                eSignStatus = "completed";
+            }
+            else if (is_active && !is_expired && !is_rejected && !is_signed) {
+                eSignStatus = "pending";
+            }
+            else if (is_expired && !is_rejected) {
+                eSignStatus = "expired";
+            }
+            else if (is_rejected || (is_active && is_expired)) {
+                eSignStatus = "rejected";
+            }
+            else {
+                eSignStatus = "pending";
+            }
             const result = Object.assign({ partner_order_id: order.partner_order_id, nium_order_id: order.nium_order_id, order_status: order.order_status, is_esign_required: order.is_esign_required, is_v_kyc_required: order.is_v_kyc_required, transaction_type: transactionTypeMap[order.transaction_type] || {
                     id: null,
                     text: order.transaction_type,
                 }, purpose_type: purposeTypeMap[order.purpose_type] || {
                     id: null,
                     text: order.purpose_type,
-                }, e_sign_status: (latestEsign === null || latestEsign === void 0 ? void 0 : latestEsign.status) === "completed" ? "completed" : "pending", e_sign_link: ((_g = (_f = latestEsign === null || latestEsign === void 0 ? void 0 : latestEsign.esign_details) === null || _f === void 0 ? void 0 : _f[0]) === null || _g === void 0 ? void 0 : _g.esign_url) || order.e_sign_link, e_sign_link_status: (_j = (_h = latestEsign === null || latestEsign === void 0 ? void 0 : latestEsign.esign_details) === null || _h === void 0 ? void 0 : _h[0]) === null || _j === void 0 ? void 0 : _j.url_status, e_sign_link_expires: ((_l = (_k = latestEsign === null || latestEsign === void 0 ? void 0 : latestEsign.esign_details) === null || _k === void 0 ? void 0 : _k[0]) === null || _l === void 0 ? void 0 : _l.esign_expiry) ||
+                }, e_sign_status: eSignStatus, e_sign_link: ((_j = (_h = latestEsign === null || latestEsign === void 0 ? void 0 : latestEsign.esign_details) === null || _h === void 0 ? void 0 : _h[0]) === null || _j === void 0 ? void 0 : _j.esign_url) || order.e_sign_link, e_sign_link_status: (_l = (_k = latestEsign === null || latestEsign === void 0 ? void 0 : latestEsign.esign_details) === null || _k === void 0 ? void 0 : _k[0]) === null || _l === void 0 ? void 0 : _l.url_status, e_sign_link_expires: ((_o = (_m = latestEsign === null || latestEsign === void 0 ? void 0 : latestEsign.esign_details) === null || _m === void 0 ? void 0 : _m[0]) === null || _o === void 0 ? void 0 : _o.esign_expiry) ||
                     order.e_sign_link_expires, e_sign_completed_by_customer: latestEsign === null || latestEsign === void 0 ? void 0 : latestEsign.is_signed, e_sign_customer_completion_date: order.e_sign_customer_completion_date, e_sign_doc_comments: order.e_sign_doc_comments, is_e_sign_regenerated: regeneratedEsignCount > 1, e_sign_regenerated_count: regeneratedEsignCount, v_kyc_status: (latestVkyc === null || latestVkyc === void 0 ? void 0 : latestVkyc.status) || order.v_kyc_status, v_kyc_link: (latestVkyc === null || latestVkyc === void 0 ? void 0 : latestVkyc.v_kyc_link) || order.v_kyc_link, v_kyc_link_status: (latestVkyc === null || latestVkyc === void 0 ? void 0 : latestVkyc.v_kyc_link_status) || order.v_kyc_link_status, v_kyc_link_expires: (latestVkyc === null || latestVkyc === void 0 ? void 0 : latestVkyc.v_kyc_link_expires) || order.v_kyc_link_expires, v_kyc_completed_by_customer: order.v_kyc_completed_by_customer, v_kyc_customer_completion_date: order.v_kyc_customer_completion_date, v_kyc_comments: order.v_kyc_comments, is_v_kyc_link_regenerated: order.is_video_kyc_link_regenerated, v_kyc_regenerated_count: regeneratedVkycCount }, ((order === null || order === void 0 ? void 0 : order.merged_document) && {
-                merged_document: extractBaseUrl((_m = order.merged_document) === null || _m === void 0 ? void 0 : _m.url),
+                merged_document: extractBaseUrl((_p = order.merged_document) === null || _p === void 0 ? void 0 : _p.url),
             }));
             return result;
         }

@@ -556,6 +556,7 @@ export class OrdersService {
         ])
       );
 
+      
       // Determine the latest eSign and vKYC attempts
       const latestEsign =
         order.esigns?.sort(
@@ -575,6 +576,29 @@ export class OrdersService {
         return url ? url.split("?")[0] : null;
       };
 
+      const requestDetail = {
+        is_active: latestEsign?.request_details[0]?.is_active || false, // true
+        is_signed: latestEsign?.is_signed || false, // false
+        is_expired: latestEsign?.esign_expiry ? new Date(latestEsign.esign_expiry) < new Date() : false, // false
+        is_rejected: latestEsign?.request_details[0]?.is_rejected || false, // false
+      };
+      
+      let eSignStatus: string;
+      const { is_active, is_signed, is_expired, is_rejected } = requestDetail;
+      
+      if (is_active && is_signed) {
+        eSignStatus = "completed";
+      } else if (is_active && !is_expired && !is_rejected && !is_signed) {
+        eSignStatus = "pending"; // Applies here
+      } else if (is_expired && !is_rejected) {
+        eSignStatus = "expired";
+      } else if (is_rejected || (is_active && is_expired)) {
+        eSignStatus = "rejected";
+      } else {
+        eSignStatus = "pending";
+      }
+
+
       const result: FilteredOrder = {
         partner_order_id: order.partner_order_id,
         nium_order_id: order.nium_order_id,
@@ -591,8 +615,8 @@ export class OrdersService {
           text: order.purpose_type,
         },
         // eSign details
-        e_sign_status:
-          latestEsign?.status === "completed" ? "completed" : "pending",
+        // latestEsign?.status === "completed" ? "completed" : "pending",
+        e_sign_status:eSignStatus,
         e_sign_link:
           latestEsign?.esign_details?.[0]?.esign_url || order.e_sign_link,
         e_sign_link_status: latestEsign?.esign_details?.[0]?.url_status,
