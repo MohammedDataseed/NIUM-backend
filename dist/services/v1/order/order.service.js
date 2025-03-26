@@ -40,27 +40,27 @@ let OrdersService = class OrdersService {
     async createOrder(span, createOrderDto, partnerId) {
         const childSpan = span
             .tracer()
-            .startSpan("create-order", { childOf: span });
+            .startSpan('create-order', { childOf: span });
         try {
             const existingOrder = await this.orderRepository.findOne({
                 where: { partner_order_id: createOrderDto.partner_order_id },
             });
             if (existingOrder) {
-                throw new common_1.ConflictException("Order ID already exists");
+                throw new common_1.ConflictException('Order ID already exists');
             }
             const partner = await this.partnerRepository.findOne({
                 where: { hashed_key: partnerId },
-                attributes: ["id", "api_key"],
+                attributes: ['id', 'api_key'],
             });
-            console.log("parter_id", partner === null || partner === void 0 ? void 0 : partner.id);
+            console.log('parter_id', partner === null || partner === void 0 ? void 0 : partner.id);
             if (!partner) {
-                throw new common_1.BadRequestException("Invalid partner ID");
+                throw new common_1.BadRequestException('Invalid partner ID');
             }
             const purposeType = await this.purposeTypeRepository.findOne({
                 where: { hashed_key: createOrderDto.purpose_type_id, isActive: true },
             });
             if (!purposeType) {
-                throw new common_1.BadRequestException("Invalid or inactive purpose_type_id");
+                throw new common_1.BadRequestException('Invalid or inactive purpose_type_id');
             }
             const transactionType = await this.transactionTypeRepository.findOne({
                 where: {
@@ -69,7 +69,7 @@ let OrdersService = class OrdersService {
                 },
             });
             if (!transactionType) {
-                throw new common_1.BadRequestException("Invalid or inactive transaction_type_id");
+                throw new common_1.BadRequestException('Invalid or inactive transaction_type_id');
             }
             const orderData = {
                 partner_id: partner === null || partner === void 0 ? void 0 : partner.id,
@@ -82,22 +82,22 @@ let OrdersService = class OrdersService {
                 customer_email: createOrderDto.customer_email,
                 customer_phone: createOrderDto.customer_phone,
                 customer_pan: createOrderDto.customer_pan,
-                order_status: "pending",
-                e_sign_status: "pending",
-                v_kyc_status: "pending",
+                order_status: 'pending',
+                e_sign_status: 'pending',
+                v_kyc_status: 'pending',
                 created_by: partner === null || partner === void 0 ? void 0 : partner.id,
                 updated_by: partner === null || partner === void 0 ? void 0 : partner.id,
             };
-            console.log("orderData:", JSON.stringify(orderData, null, 2));
+            console.log('orderData:', JSON.stringify(orderData, null, 2));
             const order = await this.orderRepository.create(orderData);
             return {
-                message: "Order created successfully",
+                message: 'Order created successfully',
                 partner_order_id: order.partner_order_id,
                 nium_forex_order_id: order.nium_order_id,
             };
         }
         catch (error) {
-            childSpan.log({ event: "error", message: error.message });
+            childSpan.log({ event: 'error', message: error.message });
             throw error;
         }
         finally {
@@ -107,28 +107,28 @@ let OrdersService = class OrdersService {
     async findAll(span) {
         const childSpan = span
             .tracer()
-            .startSpan("find-all-orders", { childOf: span });
+            .startSpan('find-all-orders', { childOf: span });
         try {
             const orders = await this.orderRepository.findAll({
                 include: [
                     {
                         model: esign_model_1.ESign,
-                        as: "esigns",
+                        as: 'esigns',
                         required: false,
-                        where: sequelize_1.Sequelize.where(sequelize_1.Sequelize.cast(sequelize_1.Sequelize.col("esigns.order_id"), "uuid"), sequelize_2.Op.eq, sequelize_1.Sequelize.col("Order.id")),
+                        where: sequelize_1.Sequelize.where(sequelize_1.Sequelize.cast(sequelize_1.Sequelize.col('esigns.order_id'), 'uuid'), sequelize_2.Op.eq, sequelize_1.Sequelize.col('Order.id')),
                     },
                     {
                         model: vkyc_model_1.Vkyc,
-                        as: "vkycs",
+                        as: 'vkycs',
                         required: false,
-                        where: sequelize_1.Sequelize.where(sequelize_1.Sequelize.cast(sequelize_1.Sequelize.col("vkycs.order_id"), "uuid"), sequelize_2.Op.eq, sequelize_1.Sequelize.col("Order.id")),
+                        where: sequelize_1.Sequelize.where(sequelize_1.Sequelize.cast(sequelize_1.Sequelize.col('vkycs.order_id'), 'uuid'), sequelize_2.Op.eq, sequelize_1.Sequelize.col('Order.id')),
                     },
                 ],
             });
             return orders.length > 0 ? orders : [];
         }
         catch (error) {
-            childSpan.log({ event: "error", message: error.message });
+            childSpan.log({ event: 'error', message: error.message });
             throw error;
         }
         finally {
@@ -139,21 +139,21 @@ let OrdersService = class OrdersService {
         console.log(`Validating partnerId: ${partnerId}, apiKey: ${apiKey}`);
         const partner = await this.partnerRepository.findOne({
             where: { hashed_key: partnerId },
-            attributes: ["id", "api_key"],
+            attributes: ['id', 'api_key'],
         });
-        console.log("parter_id", partner === null || partner === void 0 ? void 0 : partner.id);
-        console.log("Partner found:", partner ? JSON.stringify(partner.toJSON()) : "null");
+        console.log('parter_id', partner === null || partner === void 0 ? void 0 : partner.id);
+        console.log('Partner found:', partner ? JSON.stringify(partner.toJSON()) : 'null');
         if (!partner) {
-            throw new common_1.BadRequestException("Invalid partner ID");
+            throw new common_1.BadRequestException('Invalid partner ID');
         }
         if (!partner.api_key || partner.api_key !== apiKey) {
-            throw new common_1.UnauthorizedException("Invalid API key for this partner");
+            throw new common_1.UnauthorizedException('Invalid API key for this partner');
         }
     }
     async findOne(span, orderId) {
         const childSpan = span
             .tracer()
-            .startSpan("find-one-order", { childOf: span });
+            .startSpan('find-one-order', { childOf: span });
         try {
             const order = await this.orderRepository.findOne({
                 where: { partner_order_id: orderId },
@@ -169,7 +169,7 @@ let OrdersService = class OrdersService {
             return Object.assign(Object.assign({}, orderWithoutVideoKyc), { regenerated_v_kyc_count: regeneratedVkycCount, regenerated_e_sign_count: regeneratedEsignCount });
         }
         catch (error) {
-            childSpan.log({ event: "error", message: error.message });
+            childSpan.log({ event: 'error', message: error.message });
             throw error;
         }
         finally {
@@ -180,21 +180,21 @@ let OrdersService = class OrdersService {
         var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p;
         const childSpan = span
             .tracer()
-            .startSpan("find-one-order", { childOf: span });
+            .startSpan('find-one-order', { childOf: span });
         try {
             const order = await this.orderRepository.findOne({
                 where: { partner_order_id: orderId },
-                include: [{ association: "esigns" }, { association: "vkycs" }],
+                include: [{ association: 'esigns' }, { association: 'vkycs' }],
             });
             if (!order) {
                 throw new common_1.NotFoundException(`Order with ID ${orderId} not found`);
             }
             const transactionTypes = await this.transactionTypeRepository.findAll({
-                attributes: ["id", "hashed_key", "name"],
+                attributes: ['id', 'hashed_key', 'name'],
                 raw: true,
             });
             const purposeTypes = await this.purposeTypeRepository.findAll({
-                attributes: ["id", "hashed_key", "purposeName"],
+                attributes: ['id', 'hashed_key', 'purposeName'],
                 raw: true,
             });
             const transactionTypeMap = Object.fromEntries(transactionTypes.map(({ id, hashed_key, name }) => [
@@ -213,30 +213,32 @@ let OrdersService = class OrdersService {
                 : 0;
             const regeneratedEsignCount = ((_e = order.esigns) === null || _e === void 0 ? void 0 : _e.length) > 1 ? order.esigns.length - 1 : 0;
             const extractBaseUrl = (url) => {
-                return url ? url.split("?")[0] : null;
+                return url ? url.split('?')[0] : null;
             };
             const requestDetail = {
                 is_active: ((_f = latestEsign === null || latestEsign === void 0 ? void 0 : latestEsign.request_details[0]) === null || _f === void 0 ? void 0 : _f.is_active) || false,
                 is_signed: (latestEsign === null || latestEsign === void 0 ? void 0 : latestEsign.is_signed) || false,
-                is_expired: (latestEsign === null || latestEsign === void 0 ? void 0 : latestEsign.esign_expiry) ? new Date(latestEsign.esign_expiry) < new Date() : false,
+                is_expired: (latestEsign === null || latestEsign === void 0 ? void 0 : latestEsign.esign_expiry)
+                    ? new Date(latestEsign.esign_expiry) < new Date()
+                    : false,
                 is_rejected: ((_g = latestEsign === null || latestEsign === void 0 ? void 0 : latestEsign.request_details[0]) === null || _g === void 0 ? void 0 : _g.is_rejected) || false,
             };
             let eSignStatus;
             const { is_active, is_signed, is_expired, is_rejected } = requestDetail;
             if (is_active && is_signed) {
-                eSignStatus = "completed";
+                eSignStatus = 'completed';
             }
             else if (is_active && !is_expired && !is_rejected && !is_signed) {
-                eSignStatus = "pending";
+                eSignStatus = 'pending';
             }
             else if (is_expired && !is_rejected) {
-                eSignStatus = "expired";
+                eSignStatus = 'expired';
             }
             else if (is_rejected || (is_active && is_expired)) {
-                eSignStatus = "rejected";
+                eSignStatus = 'rejected';
             }
             else {
-                eSignStatus = "pending";
+                eSignStatus = 'pending';
             }
             const result = Object.assign({ partner_order_id: order.partner_order_id, nium_order_id: order.nium_order_id, order_status: order.order_status, is_esign_required: order.is_esign_required, is_v_kyc_required: order.is_v_kyc_required, transaction_type: transactionTypeMap[order.transaction_type] || {
                     id: null,
@@ -260,7 +262,7 @@ let OrdersService = class OrdersService {
     async updateOrder(span, orderId, updateOrderDto) {
         const childSpan = span
             .tracer()
-            .startSpan("update-order", { childOf: span });
+            .startSpan('update-order', { childOf: span });
         try {
             const order = await this.orderRepository.findOne({
                 where: { partner_order_id: orderId },
@@ -279,27 +281,27 @@ let OrdersService = class OrdersService {
             order.order_status =
                 (order.is_esign_required &&
                     order.is_v_kyc_required &&
-                    order.e_sign_status === "completed" &&
-                    order.v_kyc_status === "completed") ||
+                    order.e_sign_status === 'completed' &&
+                    order.v_kyc_status === 'completed') ||
                     (!order.is_esign_required &&
                         order.is_v_kyc_required &&
                         !order.e_sign_status &&
-                        order.v_kyc_status === "completed") ||
+                        order.v_kyc_status === 'completed') ||
                     (order.is_esign_required &&
                         !order.is_v_kyc_required &&
-                        order.e_sign_status === "completed" &&
+                        order.e_sign_status === 'completed' &&
                         !order.v_kyc_status) ||
                     (!order.is_esign_required &&
                         order.is_v_kyc_required &&
                         !order.e_sign_status &&
-                        order.v_kyc_status === "completed")
-                    ? "completed"
-                    : "pending";
+                        order.v_kyc_status === 'completed')
+                    ? 'completed'
+                    : 'pending';
             await order.save();
             return order;
         }
         catch (error) {
-            childSpan.log({ event: "error", message: error.message });
+            childSpan.log({ event: 'error', message: error.message });
             throw error;
         }
         finally {
@@ -309,7 +311,7 @@ let OrdersService = class OrdersService {
     async deleteOrder(span, orderId) {
         const childSpan = span
             .tracer()
-            .startSpan("delete-order", { childOf: span });
+            .startSpan('delete-order', { childOf: span });
         try {
             const order = await this.orderRepository.findOne({
                 where: { partner_order_id: orderId },
@@ -320,7 +322,7 @@ let OrdersService = class OrdersService {
             await order.destroy();
         }
         catch (error) {
-            childSpan.log({ event: "error", message: error.message });
+            childSpan.log({ event: 'error', message: error.message });
             throw error;
         }
         finally {
@@ -331,23 +333,23 @@ let OrdersService = class OrdersService {
         const { orderIds, checkerId } = dto;
         const checker = await this.userRepository.findOne({
             where: { hashed_key: checkerId },
-            attributes: ["id"],
+            attributes: ['id'],
         });
         if (!checker) {
             throw new common_1.NotFoundException(`Checker with ID ${checkerId} not found.`);
         }
         const orders = await this.orderRepository.findAll({
             where: { partner_order_id: orderIds },
-            attributes: ["id", "partner_order_id"],
+            attributes: ['id', 'partner_order_id'],
         });
         const foundOrderIds = orders.map((order) => order.partner_order_id);
         const missingOrderIds = orderIds.filter((id) => !foundOrderIds.includes(id));
         if (missingOrderIds.length) {
-            throw new common_1.NotFoundException(`Orders not found: ${missingOrderIds.join(", ")}`);
+            throw new common_1.NotFoundException(`Orders not found: ${missingOrderIds.join(', ')}`);
         }
         await this.orderRepository.update({ checker_id: checker.id }, { where: { partner_order_id: orderIds } });
         return {
-            message: "Checker ID updated successfully",
+            message: 'Checker ID updated successfully',
             updatedOrders: orderIds,
         };
     }
@@ -355,14 +357,14 @@ let OrdersService = class OrdersService {
         const { orderId, checkerId } = dto;
         const checker = await this.userRepository.findOne({
             where: { hashed_key: checkerId },
-            attributes: ["id"],
+            attributes: ['id'],
         });
         if (!checker) {
             throw new common_1.NotFoundException(`Checker with ID ${checkerId} not found.`);
         }
         const order = await this.orderRepository.findOne({
             where: { partner_order_id: orderId },
-            attributes: ["id", "partner_order_id", "checker_id"],
+            attributes: ['id', 'partner_order_id', 'checker_id'],
         });
         if (!order) {
             throw new common_1.NotFoundException(`Order with ID ${orderId} not found.`);
@@ -372,7 +374,7 @@ let OrdersService = class OrdersService {
         }
         await this.orderRepository.update({ checker_id: null }, { where: { partner_order_id: orderId } });
         return {
-            message: "Checker unassigned successfully",
+            message: 'Checker unassigned successfully',
             unassignedOrder: orderId,
         };
     }
@@ -380,33 +382,29 @@ let OrdersService = class OrdersService {
         const { checkerId, transaction_type } = dto;
         const checker = await this.userRepository.findOne({
             where: { hashed_key: checkerId },
-            attributes: ["id"],
+            attributes: ['id'],
         });
         if (!checker) {
             throw new common_1.NotFoundException(`Checker with ID ${checkerId} not found.`);
         }
         const whereCondition = { checker_id: checker.id };
-        if (transaction_type === "all") {
-            whereCondition.order_status = { [sequelize_2.Op.ne]: "Completed" };
-        }
-        else if (transaction_type === "completed") {
-            whereCondition.order_status = "Completed";
-        }
-        else {
-            whereCondition.order_status = { [sequelize_2.Op.or]: ["Pending", null] };
+        if (transaction_type === 'completed') {
+            whereCondition.incident_status = true;
+            whereCondition.e_sign_status = 'completed';
+            whereCondition.v_kyc_status = 'completed';
         }
         const orders = await this.orderRepository.findAll({
             where: whereCondition,
-            order: [["createdAt", "DESC"]],
+            order: [['createdAt', 'DESC']],
             raw: true,
         });
         console.log('order-data', orders);
         const transactionTypes = await this.transactionTypeRepository.findAll({
-            attributes: ["id", "hashed_key", "name"],
+            attributes: ['id', 'hashed_key', 'name'],
             raw: true,
         });
         const purposeTypes = await this.purposeTypeRepository.findAll({
-            attributes: ["id", "hashed_key", "purposeName"],
+            attributes: ['id', 'hashed_key', 'purposeName'],
             raw: true,
         });
         const transactionTypeMap = Object.fromEntries(transactionTypes.map(({ id, hashed_key, name }) => [
@@ -427,7 +425,7 @@ let OrdersService = class OrdersService {
         return {
             message: `Orders assigned to checker ${checkerId}`,
             totalOrders: orders.length,
-            filterApplied: transaction_type || "all",
+            filterApplied: transaction_type || 'all',
             orders: mappedOrders,
         };
     }
@@ -435,7 +433,7 @@ let OrdersService = class OrdersService {
         const { partner_order_id, checker_id, nium_invoice_number, incident_checker_comments, incident_status, } = dto;
         const checker = await this.userRepository.findOne({
             where: { hashed_key: checker_id },
-            attributes: ["id"],
+            attributes: ['id'],
         });
         if (!checker) {
             throw new common_1.NotFoundException(`Checker with ID ${checker_id} not found.`);
@@ -446,12 +444,18 @@ let OrdersService = class OrdersService {
         if (!order) {
             throw new common_1.NotFoundException(`Order ${partner_order_id} not found or not assigned to this checker.`);
         }
+        if (order.is_esign_required == true && order.e_sign_status != 'completed') {
+            throw new common_1.NotFoundException(`Order ${partner_order_id} esign not completed`);
+        }
+        if (order.is_v_kyc_required == true && order.v_kyc_status != 'completed') {
+            throw new common_1.NotFoundException(`Order ${partner_order_id} vkyc not completed`);
+        }
         order.nium_invoice_number = nium_invoice_number;
         order.incident_status = incident_status;
         order.incident_checker_comments = incident_checker_comments;
         await order.save();
         return {
-            message: "Order details has updated successfully",
+            message: 'Order details has updated successfully',
             updatedOrder: order,
         };
     }
@@ -459,7 +463,7 @@ let OrdersService = class OrdersService {
         const { orderId, checkerId } = dto;
         const checker = await this.userRepository.findOne({
             where: { hashed_key: checkerId },
-            attributes: ["id"],
+            attributes: ['id'],
         });
         if (!checker) {
             throw new common_1.NotFoundException(`Checker with ID ${checkerId} not found.`);
@@ -474,7 +478,7 @@ let OrdersService = class OrdersService {
             throw new common_1.BadRequestException(`Checker ID "${checkerId}" is not assigned to this order.`);
         }
         const transactionTypes = await this.transactionTypeRepository.findAll({
-            attributes: ["hashed_key", "name"],
+            attributes: ['hashed_key', 'name'],
             raw: true,
         });
         const transactionTypeMap = transactionTypes.reduce((acc, type) => {
@@ -482,7 +486,7 @@ let OrdersService = class OrdersService {
             return acc;
         }, {});
         const purposeTypes = await this.purposeTypeRepository.findAll({
-            attributes: ["hashed_key", "purpose_name"],
+            attributes: ['hashed_key', 'purpose_name'],
             raw: true,
         });
         const purposeTypeMap = purposeTypes.reduce((acc, type) => {
@@ -499,16 +503,17 @@ let OrdersService = class OrdersService {
     async getUnassignedOrders() {
         const orders = await this.orderRepository.findAll({
             where: {
-                checker_id: null,
+                checker_id: { [sequelize_2.Op.is]: null },
+                merged_document: { [sequelize_2.Op.ne]: null },
             },
             raw: true,
         });
         const transactionTypes = await this.transactionTypeRepository.findAll({
-            attributes: ["id", "hashed_key", "name"],
+            attributes: ['id', 'hashed_key', 'name'],
             raw: true,
         });
         const purposeTypes = await this.purposeTypeRepository.findAll({
-            attributes: ["id", "hashed_key", "purposeName"],
+            attributes: ['id', 'hashed_key', 'purposeName'],
             raw: true,
         });
         const transactionTypeMap = Object.fromEntries(transactionTypes
@@ -516,11 +521,20 @@ let OrdersService = class OrdersService {
             .map(({ id, hashed_key, name }) => [hashed_key, { id, text: name }]));
         const purposeTypeMap = Object.fromEntries(purposeTypes
             .filter(({ hashed_key }) => hashed_key !== undefined && hashed_key !== null)
-            .map(({ id, hashed_key, purposeName }) => [hashed_key, { id, text: purposeName }]));
+            .map(({ id, hashed_key, purposeName }) => [
+            hashed_key,
+            { id, text: purposeName },
+        ]));
         return orders.map((order) => (Object.assign(Object.assign({}, order), { transaction_type: order.transaction_type
-                ? transactionTypeMap[order.transaction_type] || { id: null, text: order.transaction_type }
+                ? transactionTypeMap[order.transaction_type] || {
+                    id: null,
+                    text: order.transaction_type,
+                }
                 : { id: null, text: null }, purpose_type: order.purpose_type
-                ? purposeTypeMap[order.purpose_type] || { id: null, text: order.purpose_type }
+                ? purposeTypeMap[order.purpose_type] || {
+                    id: null,
+                    text: order.purpose_type,
+                }
                 : { id: null, text: null } })));
     }
     async getOrderStatusCounts() {
@@ -528,44 +542,44 @@ let OrdersService = class OrdersService {
             const orderCounts = await this.orderRepository.findAll({
                 attributes: [
                     [
-                        this.orderRepository.sequelize.fn("COUNT", this.orderRepository.sequelize.col("id")),
-                        "transactionReceived",
+                        this.orderRepository.sequelize.fn('COUNT', this.orderRepository.sequelize.col('id')),
+                        'transactionReceived',
                     ],
                     [
-                        this.orderRepository.sequelize.fn("SUM", this.orderRepository.sequelize.literal("CASE WHEN incident_status = true THEN 1 ELSE 0 END")),
-                        "transactionApproved",
+                        this.orderRepository.sequelize.fn('SUM', this.orderRepository.sequelize.literal('CASE WHEN incident_status = true THEN 1 ELSE 0 END')),
+                        'transactionApproved',
                     ],
                     [
-                        this.orderRepository.sequelize.fn("SUM", this.orderRepository.sequelize.literal("CASE WHEN incident_status = false THEN 1 ELSE 0 END")),
-                        "transactionRejected",
+                        this.orderRepository.sequelize.fn('SUM', this.orderRepository.sequelize.literal('CASE WHEN incident_status = false THEN 1 ELSE 0 END')),
+                        'transactionRejected',
                     ],
                     [
-                        this.orderRepository.sequelize.fn("SUM", this.orderRepository.sequelize.literal("CASE WHEN incident_status IS NULL THEN 1 ELSE 0 END")),
-                        "transactionPending",
+                        this.orderRepository.sequelize.fn('SUM', this.orderRepository.sequelize.literal('CASE WHEN incident_status IS NULL THEN 1 ELSE 0 END')),
+                        'transactionPending',
                     ],
                     [
-                        this.orderRepository.sequelize.fn("SUM", this.orderRepository.sequelize.literal("CASE WHEN v_kyc_status = 'completed' THEN 1 ELSE 0 END")),
-                        "vkycCompleted",
+                        this.orderRepository.sequelize.fn('SUM', this.orderRepository.sequelize.literal("CASE WHEN v_kyc_status = 'completed' THEN 1 ELSE 0 END")),
+                        'vkycCompleted',
                     ],
                     [
-                        this.orderRepository.sequelize.fn("SUM", this.orderRepository.sequelize.literal("CASE WHEN v_kyc_status = 'pending' THEN 1 ELSE 0 END")),
-                        "vkycPending",
+                        this.orderRepository.sequelize.fn('SUM', this.orderRepository.sequelize.literal("CASE WHEN v_kyc_status = 'pending' THEN 1 ELSE 0 END")),
+                        'vkycPending',
                     ],
                     [
-                        this.orderRepository.sequelize.fn("SUM", this.orderRepository.sequelize.literal("CASE WHEN v_kyc_status = 'rejected' THEN 1 ELSE 0 END")),
-                        "vkycRejected",
+                        this.orderRepository.sequelize.fn('SUM', this.orderRepository.sequelize.literal("CASE WHEN v_kyc_status = 'rejected' THEN 1 ELSE 0 END")),
+                        'vkycRejected',
                     ],
                     [
-                        this.orderRepository.sequelize.fn("SUM", this.orderRepository.sequelize.literal("CASE WHEN e_sign_status = 'completed' THEN 1 ELSE 0 END")),
-                        "esignCompleted",
+                        this.orderRepository.sequelize.fn('SUM', this.orderRepository.sequelize.literal("CASE WHEN e_sign_status = 'completed' THEN 1 ELSE 0 END")),
+                        'esignCompleted',
                     ],
                     [
-                        this.orderRepository.sequelize.fn("SUM", this.orderRepository.sequelize.literal("CASE WHEN e_sign_status = 'pending' THEN 1 ELSE 0 END")),
-                        "esignPending",
+                        this.orderRepository.sequelize.fn('SUM', this.orderRepository.sequelize.literal("CASE WHEN e_sign_status = 'pending' THEN 1 ELSE 0 END")),
+                        'esignPending',
                     ],
                     [
-                        this.orderRepository.sequelize.fn("SUM", this.orderRepository.sequelize.literal("CASE WHEN e_sign_status = 'rejected' THEN 1 ELSE 0 END")),
-                        "esignRejected",
+                        this.orderRepository.sequelize.fn('SUM', this.orderRepository.sequelize.literal("CASE WHEN e_sign_status = 'rejected' THEN 1 ELSE 0 END")),
+                        'esignRejected',
                     ],
                 ],
                 raw: true,
@@ -573,15 +587,15 @@ let OrdersService = class OrdersService {
             return orderCounts[0] || {};
         }
         catch (error) {
-            console.error("Error fetching dashboard details:", error);
-            throw new common_1.InternalServerErrorException("Failed to fetch dashboard data.");
+            console.error('Error fetching dashboard details:', error);
+            throw new common_1.InternalServerErrorException('Failed to fetch dashboard data.');
         }
     }
     async getFilteredOrders(filterDto) {
-        const { checkerId, transaction_type_hashed_key, purpose_type_hashed_key, from, to } = filterDto;
+        const { checkerId, transaction_type_hashed_key, purpose_type_hashed_key, from, to, } = filterDto;
         const checker = await this.userRepository.findOne({
             where: { hashed_key: checkerId },
-            attributes: ["id"],
+            attributes: ['id'],
         });
         if (!checker) {
             throw new common_1.NotFoundException(`Checker with ID ${checkerId} not found.`);
@@ -589,7 +603,7 @@ let OrdersService = class OrdersService {
         if (transaction_type_hashed_key) {
             const transactionExists = await this.transactionTypeRepository.findOne({
                 where: { hashed_key: transaction_type_hashed_key },
-                attributes: ["hashed_key"],
+                attributes: ['hashed_key'],
             });
             if (!transactionExists) {
                 throw new common_1.BadRequestException(`Invalid Transaction Type ID: ${transaction_type_hashed_key}`);
@@ -598,7 +612,7 @@ let OrdersService = class OrdersService {
         if (purpose_type_hashed_key) {
             const purposeExists = await this.purposeTypeRepository.findOne({
                 where: { hashed_key: purpose_type_hashed_key },
-                attributes: ["hashed_key"],
+                attributes: ['hashed_key'],
             });
             if (!purposeExists) {
                 throw new common_1.BadRequestException(`Invalid Purpose Type ID: ${purpose_type_hashed_key}`);
@@ -621,11 +635,11 @@ let OrdersService = class OrdersService {
             raw: true,
         });
         const transactionTypes = await this.transactionTypeRepository.findAll({
-            attributes: ["id", "hashed_key", "name"],
+            attributes: ['id', 'hashed_key', 'name'],
             raw: true,
         });
         const purposeTypes = await this.purposeTypeRepository.findAll({
-            attributes: ["id", "hashed_key", "purposeName"],
+            attributes: ['id', 'hashed_key', 'purposeName'],
             raw: true,
         });
         const transactionTypeMap = Object.fromEntries(transactionTypes.map(({ id, hashed_key, name }) => [
@@ -637,20 +651,26 @@ let OrdersService = class OrdersService {
             { id, text: purposeName },
         ]));
         return orders.map((order) => (Object.assign(Object.assign({}, order), { transaction_type: order.transaction_type
-                ? transactionTypeMap[order.transaction_type] || { id: null, text: order.transaction_type }
+                ? transactionTypeMap[order.transaction_type] || {
+                    id: null,
+                    text: order.transaction_type,
+                }
                 : { id: null, text: null }, purpose_type: order.purpose_type
-                ? purposeTypeMap[order.purpose_type] || { id: null, text: order.purpose_type }
+                ? purposeTypeMap[order.purpose_type] || {
+                    id: null,
+                    text: order.purpose_type,
+                }
                 : { id: null, text: null } })));
     }
 };
 exports.OrdersService = OrdersService;
 exports.OrdersService = OrdersService = __decorate([
     (0, common_1.Injectable)(),
-    __param(0, (0, common_1.Inject)("ORDER_REPOSITORY")),
-    __param(1, (0, common_1.Inject)("PARTNER_REPOSITORY")),
-    __param(2, (0, common_1.Inject)("USER_REPOSITORY")),
-    __param(3, (0, common_1.Inject)("PURPOSE_REPOSITORY")),
-    __param(4, (0, common_1.Inject)("TRANSACTION_TYPE_REPOSITORY")),
+    __param(0, (0, common_1.Inject)('ORDER_REPOSITORY')),
+    __param(1, (0, common_1.Inject)('PARTNER_REPOSITORY')),
+    __param(2, (0, common_1.Inject)('USER_REPOSITORY')),
+    __param(3, (0, common_1.Inject)('PURPOSE_REPOSITORY')),
+    __param(4, (0, common_1.Inject)('TRANSACTION_TYPE_REPOSITORY')),
     __metadata("design:paramtypes", [Object, Object, Object, Object, Object])
 ], OrdersService);
 //# sourceMappingURL=order.service.js.map

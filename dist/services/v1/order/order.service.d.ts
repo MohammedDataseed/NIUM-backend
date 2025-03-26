@@ -1,13 +1,13 @@
-import { Sequelize } from "sequelize";
-import { Order } from "../../../database/models/order.model";
-import { CreateOrderDto, UpdateOrderDto, UpdateCheckerDto, UnassignCheckerDto, GetCheckerOrdersDto, UpdateOrderDetailsDto, GetOrderDetailsDto, FilterOrdersDto } from "../../../dto/order.dto";
-import * as opentracing from "opentracing";
-import { User } from "../../../database/models/user.model";
-import { ESign } from "src/database/models/esign.model";
-import { Vkyc } from "src/database/models/vkyc.model";
-import { Partner } from "../../../database/models/partner.model";
-import { Purpose } from "src/database/models/purpose.model";
-import { transaction_type } from "src/database/models/transaction_type.model";
+import { Sequelize } from 'sequelize';
+import { Order } from '../../../database/models/order.model';
+import { CreateOrderDto, UpdateOrderDto, UpdateCheckerDto, UnassignCheckerDto, GetCheckerOrdersDto, UpdateOrderDetailsDto, GetOrderDetailsDto, FilterOrdersDto } from '../../../dto/order.dto';
+import * as opentracing from 'opentracing';
+import { User } from '../../../database/models/user.model';
+import { ESign } from 'src/database/models/esign.model';
+import { Vkyc } from 'src/database/models/vkyc.model';
+import { Partner } from '../../../database/models/partner.model';
+import { Purpose } from 'src/database/models/purpose.model';
+import { transaction_type } from 'src/database/models/transaction_type.model';
 export interface FilteredOrder {
     partner_order_id: string;
     nium_order_id: string;
