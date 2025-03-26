@@ -1359,7 +1359,6 @@ export class OrdersService {
   //       transactionTypeMap[order.transaction_type] || null;
   //     sequelizeOrderInstance.purpose_type =
   //       purposeTypeMap[order.purpose_type] || null;
-
   //     return sequelizeOrderInstance;
   //   });
   // }
