@@ -7,9 +7,9 @@ import {
   NotFoundException,
   UnauthorizedException,
   InternalServerErrorException,
-} from "@nestjs/common";
-import { Sequelize } from "sequelize";
-import { Order } from "../../../database/models/order.model";
+} from '@nestjs/common';
+import { Sequelize } from 'sequelize';
+import { Order } from '../../../database/models/order.model';
 import {
   CreateOrderDto,
   UpdateOrderDto,
@@ -19,17 +19,17 @@ import {
   UpdateOrderDetailsDto,
   GetOrderDetailsDto,
   FilterOrdersDto,
-} from "../../../dto/order.dto";
+} from '../../../dto/order.dto';
 // import { CreateOrderDto, UpdateOrderDto,UpdateCheckerDto,UnassignCheckerDto } from "../../../dto/order.dto";
-import * as opentracing from "opentracing";
-import { User } from "../../../database/models/user.model";
-import { ESign } from "src/database/models/esign.model";
-import { Vkyc } from "src/database/models/vkyc.model";
-import { Partner } from "../../../database/models/partner.model";
-import { Purpose } from "src/database/models/purpose.model";
-import { transaction_type } from "src/database/models/transaction_type.model";
+import * as opentracing from 'opentracing';
+import { User } from '../../../database/models/user.model';
+import { ESign } from 'src/database/models/esign.model';
+import { Vkyc } from 'src/database/models/vkyc.model';
+import { Partner } from '../../../database/models/partner.model';
+import { Purpose } from 'src/database/models/purpose.model';
+import { transaction_type } from 'src/database/models/transaction_type.model';
 
-import { WhereOptions, Op } from "sequelize";
+import { WhereOptions, Op } from 'sequelize';
 
 // Define a new interface for the filtered order data
 export interface FilteredOrder {
@@ -64,25 +64,26 @@ export interface FilteredOrder {
 @Injectable()
 export class OrdersService {
   constructor(
-    @Inject("ORDER_REPOSITORY")
+    @Inject('ORDER_REPOSITORY')
     private readonly orderRepository: typeof Order,
-    @Inject("PARTNER_REPOSITORY") // Change to Partner repository
+    @Inject('PARTNER_REPOSITORY') // Change to Partner repository
     private readonly partnerRepository: typeof Partner,
-    @Inject("USER_REPOSITORY")
+    @Inject('USER_REPOSITORY')
     private readonly userRepository: typeof User,
-    @Inject("PURPOSE_REPOSITORY") // Change to Partner repository
+    @Inject('PURPOSE_REPOSITORY') // Change to Partner repository
     private readonly purposeTypeRepository: typeof Purpose,
-    @Inject("TRANSACTION_TYPE_REPOSITORY")
-    private readonly transactionTypeRepository: typeof transaction_type // @Inject("E_SIGN_REPOSITORY") // private readonly esignRepository: typeof ESign,
-  ) // @Inject("V_KYC_REPOSITORY")
-  // private readonly vkycRepository: typeof Vkyc
-  {}
+    @Inject('TRANSACTION_TYPE_REPOSITORY')
+    private readonly transactionTypeRepository: typeof transaction_type, // @Inject("E_SIGN_REPOSITORY") // private readonly esignRepository: typeof ESign,
+  ) {
+    // @Inject("V_KYC_REPOSITORY")
+    // private readonly vkycRepository: typeof Vkyc
+  }
 
   // CREATE: Create a new order
   async createOrder(
     span: opentracing.Span,
     createOrderDto: CreateOrderDto,
-    partnerId: string
+    partnerId: string,
   ): Promise<{
     message: string;
     partner_order_id: string;
@@ -90,7 +91,7 @@ export class OrdersService {
   }> {
     const childSpan = span
       .tracer()
-      .startSpan("create-order", { childOf: span });
+      .startSpan('create-order', { childOf: span });
 
     try {
       // Check for existing order with the same partner_order_id
@@ -98,7 +99,7 @@ export class OrdersService {
         where: { partner_order_id: createOrderDto.partner_order_id },
       });
       if (existingOrder) {
-        throw new ConflictException("Order ID already exists");
+        throw new ConflictException('Order ID already exists');
       }
 
       // Validate partner_id exists
@@ -109,12 +110,12 @@ export class OrdersService {
 
       const partner = await this.partnerRepository.findOne({
         where: { hashed_key: partnerId },
-        attributes: ["id", "api_key"], // Fetch only necessary fields
+        attributes: ['id', 'api_key'], // Fetch only necessary fields
       });
 
-      console.log("parter_id", partner?.id);
+      console.log('parter_id', partner?.id);
       if (!partner) {
-        throw new BadRequestException("Invalid partner ID");
+        throw new BadRequestException('Invalid partner ID');
       }
 
       // Validate purpose_type_id exists and is active
@@ -122,7 +123,7 @@ export class OrdersService {
         where: { hashed_key: createOrderDto.purpose_type_id, isActive: true },
       });
       if (!purposeType) {
-        throw new BadRequestException("Invalid or inactive purpose_type_id");
+        throw new BadRequestException('Invalid or inactive purpose_type_id');
       }
 
       // Validate transaction_type_id exists and is active
@@ -134,7 +135,7 @@ export class OrdersService {
       });
       if (!transactionType) {
         throw new BadRequestException(
-          "Invalid or inactive transaction_type_id"
+          'Invalid or inactive transaction_type_id',
         );
       }
 
@@ -153,24 +154,24 @@ export class OrdersService {
         customer_phone: createOrderDto.customer_phone,
         customer_pan: createOrderDto.customer_pan,
         // nium_order_id: niumOrderId, // Assigning the generated nium_order_id
-        order_status: "pending", // Default value
-        e_sign_status: "pending", // Default value
-        v_kyc_status: "pending", // Default value
+        order_status: 'pending', // Default value
+        e_sign_status: 'pending', // Default value
+        v_kyc_status: 'pending', // Default value
         created_by: partner?.id,
         updated_by: partner?.id,
       };
 
-      console.log("orderData:", JSON.stringify(orderData, null, 2));
+      console.log('orderData:', JSON.stringify(orderData, null, 2));
       const order = await this.orderRepository.create(orderData);
       // Return structured response
       return {
-        message: "Order created successfully",
+        message: 'Order created successfully',
         partner_order_id: order.partner_order_id,
         nium_forex_order_id: order.nium_order_id, // Return generated nium_order_id based on serial_number
       };
       // return order;
     } catch (error) {
-      childSpan.log({ event: "error", message: error.message });
+      childSpan.log({ event: 'error', message: error.message });
       throw error;
     } finally {
       childSpan.finish();
@@ -179,7 +180,7 @@ export class OrdersService {
 
   // async findAll1(span: opentracing.Span): Promise<FilteredOrder[] | null> {
   //   const childSpan = span.tracer().startSpan("find-all-orders", { childOf: span });
-  
+
   //   try {
   //     const orders = await this.orderRepository.findAll({
   //       include: [
@@ -206,7 +207,7 @@ export class OrdersService {
   //       ],
   //       raw: true,
   //     });
-  
+
   //     const transactionTypes = await this.transactionTypeRepository.findAll({
   //       attributes: ["id", "hashed_key", "name"],
   //       raw: true,
@@ -215,7 +216,7 @@ export class OrdersService {
   //       attributes: ["id", "hashed_key", "purposeName"],
   //       raw: true,
   //     });
-  
+
   //     const transactionTypeMap = Object.fromEntries(
   //       transactionTypes.map(({ id, hashed_key, name }) => [
   //         hashed_key,
@@ -228,7 +229,7 @@ export class OrdersService {
   //         { id, text: purposeName },
   //       ])
   //     );
-  
+
   //     const mappedOrders = orders.map((order) => ({
   //       partner_order_id: order.partner_order_id,
   //       nium_order_id: order.nium_order_id,
@@ -265,7 +266,7 @@ export class OrdersService {
   //         : 0,
   //       merged_document: order.merged_document?.url?.split("?")[0] || null,
   //     }));
-  
+
   //     return mappedOrders.length > 0 ? mappedOrders : [];
   //   } catch (error) {
   //     childSpan.log({ event: "error", message: error.message });
@@ -275,13 +276,12 @@ export class OrdersService {
   //   }
   // }
 
-
   //   async findAll(span: opentracing.Span): Promise<Array<Partial<Omit<Order, 'transaction_type' | 'purpose_type'>> & {
   //     transaction_type: { id: string | null; text: string };
   //     purpose_type: { id: string | null; text: string };
   //   }>> {
   //   const childSpan = span.tracer().startSpan("find-all-orders", { childOf: span });
-  
+
   //   try {
   //     const orders = await this.orderRepository.findAll({
   //       include: [
@@ -309,7 +309,7 @@ export class OrdersService {
   //       raw: true,
   //       nest: true,
   //     });
-  
+
   //     const transactionTypes = await this.transactionTypeRepository.findAll({
   //       attributes: ["id", "hashed_key", "name"],
   //       raw: true,
@@ -318,7 +318,7 @@ export class OrdersService {
   //       attributes: ["id", "hashed_key", "purposeName"],
   //       raw: true,
   //     });
-  
+
   //     const transactionTypeMap = Object.fromEntries(
   //       transactionTypes.map(({ id, hashed_key, name }) => [
   //         hashed_key,
@@ -331,7 +331,7 @@ export class OrdersService {
   //         { id, text: purposeName },
   //       ])
   //     );
-  
+
   //     const mappedOrders = orders.map((order) => ({
   //       id: order.id,
   //       hashed_key: order.hashed_key,
@@ -389,7 +389,7 @@ export class OrdersService {
   //       esigns: order.esigns || [],
   //       vkycs: order.vkycs || [],
   //     }));
-  
+
   //     return mappedOrders.length > 0 ? mappedOrders : [];
   //   } catch (error) {
   //     childSpan.log({ event: "error", message: error.message });
@@ -399,11 +399,10 @@ export class OrdersService {
   //   }
   // }
 
-
   async findAll(span: opentracing.Span): Promise<Order[] | null> {
     const childSpan = span
       .tracer()
-      .startSpan("find-all-orders", { childOf: span });
+      .startSpan('find-all-orders', { childOf: span });
 
     try {
       // const orders = await this.orderRepository.findAll({
@@ -413,22 +412,22 @@ export class OrdersService {
         include: [
           {
             model: ESign,
-            as: "esigns",
+            as: 'esigns',
             required: false,
             where: Sequelize.where(
-              Sequelize.cast(Sequelize.col("esigns.order_id"), "uuid"), // Cast as UUID
+              Sequelize.cast(Sequelize.col('esigns.order_id'), 'uuid'), // Cast as UUID
               Op.eq,
-              Sequelize.col("Order.id")
+              Sequelize.col('Order.id'),
             ),
           },
           {
             model: Vkyc,
-            as: "vkycs",
+            as: 'vkycs',
             required: false,
             where: Sequelize.where(
-              Sequelize.cast(Sequelize.col("vkycs.order_id"), "uuid"), // Cast as UUID
+              Sequelize.cast(Sequelize.col('vkycs.order_id'), 'uuid'), // Cast as UUID
               Op.eq,
-              Sequelize.col("Order.id")
+              Sequelize.col('Order.id'),
             ),
           },
         ],
@@ -436,7 +435,7 @@ export class OrdersService {
 
       return orders.length > 0 ? orders : [];
     } catch (error) {
-      childSpan.log({ event: "error", message: error.message });
+      childSpan.log({ event: 'error', message: error.message });
       throw error;
     } finally {
       childSpan.finish();
@@ -445,23 +444,23 @@ export class OrdersService {
 
   async validatePartnerHeaders(
     partnerId: string,
-    apiKey: string
+    apiKey: string,
   ): Promise<void> {
     console.log(`Validating partnerId: ${partnerId}, apiKey: ${apiKey}`); // Debug log
     const partner = await this.partnerRepository.findOne({
       where: { hashed_key: partnerId },
-      attributes: ["id", "api_key"], // Fetch only necessary fields
+      attributes: ['id', 'api_key'], // Fetch only necessary fields
     });
 
-    console.log("parter_id", partner?.id);
+    console.log('parter_id', partner?.id);
 
     console.log(
-      "Partner found:",
-      partner ? JSON.stringify(partner.toJSON()) : "null"
+      'Partner found:',
+      partner ? JSON.stringify(partner.toJSON()) : 'null',
     ); // Debug log
 
     if (!partner) {
-      throw new BadRequestException("Invalid partner ID");
+      throw new BadRequestException('Invalid partner ID');
     }
 
     // // Check if the partner has the "maker" role
@@ -473,14 +472,14 @@ export class OrdersService {
 
     // Check if the api-key matches the partner's api_key
     if (!partner.api_key || partner.api_key !== apiKey) {
-      throw new UnauthorizedException("Invalid API key for this partner");
+      throw new UnauthorizedException('Invalid API key for this partner');
     }
   }
 
   async findOne(span: opentracing.Span, orderId: string): Promise<Order> {
     const childSpan = span
       .tracer()
-      .startSpan("find-one-order", { childOf: span });
+      .startSpan('find-one-order', { childOf: span });
 
     try {
       const order = await this.orderRepository.findOne({
@@ -507,26 +506,25 @@ export class OrdersService {
         regenerated_e_sign_count: regeneratedEsignCount,
       };
     } catch (error) {
-      childSpan.log({ event: "error", message: error.message });
+      childSpan.log({ event: 'error', message: error.message });
       throw error;
     } finally {
       childSpan.finish();
     }
   }
 
-  
   async findOneByOrderId(
     span: opentracing.Span,
-    orderId: string
+    orderId: string,
   ): Promise<FilteredOrder> {
     const childSpan = span
       .tracer()
-      .startSpan("find-one-order", { childOf: span });
+      .startSpan('find-one-order', { childOf: span });
 
     try {
       const order = await this.orderRepository.findOne({
         where: { partner_order_id: orderId },
-        include: [{ association: "esigns" }, { association: "vkycs" }],
+        include: [{ association: 'esigns' }, { association: 'vkycs' }],
       });
 
       if (!order) {
@@ -535,11 +533,11 @@ export class OrdersService {
 
       // Fetch transaction and purpose types with IDs
       const transactionTypes = await this.transactionTypeRepository.findAll({
-        attributes: ["id", "hashed_key", "name"],
+        attributes: ['id', 'hashed_key', 'name'],
         raw: true,
       });
       const purposeTypes = await this.purposeTypeRepository.findAll({
-        attributes: ["id", "hashed_key", "purposeName"],
+        attributes: ['id', 'hashed_key', 'purposeName'],
         raw: true,
       });
 
@@ -548,20 +546,19 @@ export class OrdersService {
         transactionTypes.map(({ id, hashed_key, name }) => [
           hashed_key,
           { id, text: name },
-        ])
+        ]),
       );
       const purposeTypeMap = Object.fromEntries(
         purposeTypes.map(({ id, hashed_key, purposeName }) => [
           hashed_key,
           { id, text: purposeName },
-        ])
+        ]),
       );
 
-      
       // Determine the latest eSign and vKYC attempts
       const latestEsign =
         order.esigns?.sort(
-          (a, b) => b.attempt_number - a.attempt_number
+          (a, b) => b.attempt_number - a.attempt_number,
         )?.[0] || null;
       const latestVkyc =
         order.vkycs?.sort((a, b) => b.attempt_number - a.attempt_number)?.[0] ||
@@ -574,31 +571,32 @@ export class OrdersService {
         order.esigns?.length > 1 ? order.esigns.length - 1 : 0;
 
       const extractBaseUrl = (url: string): string | null => {
-        return url ? url.split("?")[0] : null;
+        return url ? url.split('?')[0] : null;
       };
 
       const requestDetail = {
         is_active: latestEsign?.request_details[0]?.is_active || false, // true
         is_signed: latestEsign?.is_signed || false, // false
-        is_expired: latestEsign?.esign_expiry ? new Date(latestEsign.esign_expiry) < new Date() : false, // false
+        is_expired: latestEsign?.esign_expiry
+          ? new Date(latestEsign.esign_expiry) < new Date()
+          : false, // false
         is_rejected: latestEsign?.request_details[0]?.is_rejected || false, // false
       };
-      
+
       let eSignStatus: string;
       const { is_active, is_signed, is_expired, is_rejected } = requestDetail;
-      
-      if (is_active && is_signed) {
-        eSignStatus = "completed";
-      } else if (is_active && !is_expired && !is_rejected && !is_signed) {
-        eSignStatus = "pending"; // Applies here
-      } else if (is_expired && !is_rejected) {
-        eSignStatus = "expired";
-      } else if (is_rejected || (is_active && is_expired)) {
-        eSignStatus = "rejected";
-      } else {
-        eSignStatus = "pending";
-      }
 
+      if (is_active && is_signed) {
+        eSignStatus = 'completed';
+      } else if (is_active && !is_expired && !is_rejected && !is_signed) {
+        eSignStatus = 'pending'; // Applies here
+      } else if (is_expired && !is_rejected) {
+        eSignStatus = 'expired';
+      } else if (is_rejected || (is_active && is_expired)) {
+        eSignStatus = 'rejected';
+      } else {
+        eSignStatus = 'pending';
+      }
 
       const result: FilteredOrder = {
         partner_order_id: order.partner_order_id,
@@ -617,7 +615,7 @@ export class OrdersService {
         },
         // eSign details
         // latestEsign?.status === "completed" ? "completed" : "pending",
-        e_sign_status:eSignStatus,
+        e_sign_status: eSignStatus,
         e_sign_link:
           latestEsign?.esign_details?.[0]?.esign_url || order.e_sign_link,
         e_sign_link_status: latestEsign?.esign_details?.[0]?.url_status,
@@ -657,11 +655,11 @@ export class OrdersService {
   async updateOrder(
     span: opentracing.Span,
     orderId: string,
-    updateOrderDto: Partial<UpdateOrderDto>
+    updateOrderDto: Partial<UpdateOrderDto>,
   ): Promise<Order> {
     const childSpan = span
       .tracer()
-      .startSpan("update-order", { childOf: span });
+      .startSpan('update-order', { childOf: span });
     try {
       const order = await this.orderRepository.findOne({
         where: { partner_order_id: orderId },
@@ -698,29 +696,29 @@ export class OrdersService {
       order.order_status =
         (order.is_esign_required &&
           order.is_v_kyc_required &&
-          order.e_sign_status === "completed" &&
-          order.v_kyc_status === "completed") ||
+          order.e_sign_status === 'completed' &&
+          order.v_kyc_status === 'completed') ||
         (!order.is_esign_required &&
           order.is_v_kyc_required &&
           !order.e_sign_status &&
-          order.v_kyc_status === "completed") ||
+          order.v_kyc_status === 'completed') ||
         (order.is_esign_required &&
           !order.is_v_kyc_required &&
-          order.e_sign_status === "completed" &&
+          order.e_sign_status === 'completed' &&
           !order.v_kyc_status) ||
         (!order.is_esign_required &&
           order.is_v_kyc_required &&
           !order.e_sign_status &&
-          order.v_kyc_status === "completed")
-          ? "completed"
-          : "pending"; // If any of the conditions is true, set to "completed", else "pending"
+          order.v_kyc_status === 'completed')
+          ? 'completed'
+          : 'pending'; // If any of the conditions is true, set to "completed", else "pending"
 
       // Save the updated order
 
       await order.save();
       return order;
     } catch (error) {
-      childSpan.log({ event: "error", message: error.message });
+      childSpan.log({ event: 'error', message: error.message });
       throw error;
     } finally {
       childSpan.finish();
@@ -730,7 +728,7 @@ export class OrdersService {
   async deleteOrder(span: opentracing.Span, orderId: string): Promise<void> {
     const childSpan = span
       .tracer()
-      .startSpan("delete-order", { childOf: span });
+      .startSpan('delete-order', { childOf: span });
 
     try {
       const order = await this.orderRepository.findOne({
@@ -742,7 +740,7 @@ export class OrdersService {
 
       await order.destroy();
     } catch (error) {
-      childSpan.log({ event: "error", message: error.message });
+      childSpan.log({ event: 'error', message: error.message });
       throw error;
     } finally {
       childSpan.finish();
@@ -754,7 +752,7 @@ export class OrdersService {
 
     const checker = await this.userRepository.findOne({
       where: { hashed_key: checkerId },
-      attributes: ["id"],
+      attributes: ['id'],
     });
 
     if (!checker) {
@@ -763,27 +761,27 @@ export class OrdersService {
 
     const orders = await this.orderRepository.findAll({
       where: { partner_order_id: orderIds },
-      attributes: ["id", "partner_order_id"],
+      attributes: ['id', 'partner_order_id'],
     });
 
     const foundOrderIds = orders.map((order) => order.partner_order_id);
     const missingOrderIds = orderIds.filter(
-      (id) => !foundOrderIds.includes(id)
+      (id) => !foundOrderIds.includes(id),
     );
 
     if (missingOrderIds.length) {
       throw new NotFoundException(
-        `Orders not found: ${missingOrderIds.join(", ")}`
+        `Orders not found: ${missingOrderIds.join(', ')}`,
       );
     }
 
     await this.orderRepository.update(
       { checker_id: checker.id },
-      { where: { partner_order_id: orderIds } }
+      { where: { partner_order_id: orderIds } },
     );
 
     return {
-      message: "Checker ID updated successfully",
+      message: 'Checker ID updated successfully',
       updatedOrders: orderIds,
     };
   }
@@ -793,7 +791,7 @@ export class OrdersService {
 
     const checker = await this.userRepository.findOne({
       where: { hashed_key: checkerId },
-      attributes: ["id"],
+      attributes: ['id'],
     });
 
     if (!checker) {
@@ -802,7 +800,7 @@ export class OrdersService {
 
     const order = await this.orderRepository.findOne({
       where: { partner_order_id: orderId },
-      attributes: ["id", "partner_order_id", "checker_id"],
+      attributes: ['id', 'partner_order_id', 'checker_id'],
     });
 
     if (!order) {
@@ -811,17 +809,17 @@ export class OrdersService {
 
     if (order.checker_id !== checker.id) {
       throw new BadRequestException(
-        `Checker is not assigned to the given order.`
+        `Checker is not assigned to the given order.`,
       );
     }
 
     await this.orderRepository.update(
       { checker_id: null },
-      { where: { partner_order_id: orderId } }
+      { where: { partner_order_id: orderId } },
     );
 
     return {
-      message: "Checker unassigned successfully",
+      message: 'Checker unassigned successfully',
       unassignedOrder: orderId,
     };
   }
@@ -831,7 +829,7 @@ export class OrdersService {
 
     const checker = await this.userRepository.findOne({
       where: { hashed_key: checkerId },
-      attributes: ["id"],
+      attributes: ['id'],
     });
 
     if (!checker) {
@@ -840,29 +838,27 @@ export class OrdersService {
 
     const whereCondition: any = { checker_id: checker.id };
 
-    if (transaction_type === "all") {
-      whereCondition.order_status = { [Op.ne]: "Completed" };
-    } else if (transaction_type === "completed") {
-      whereCondition.order_status = "Completed";
-    } else {
-      whereCondition.order_status = { [Op.or]: ["Pending", null] };
+    if (transaction_type === 'completed') {
+      whereCondition.incident_status = true;
+      whereCondition.e_sign_status = 'completed';
+      whereCondition.v_kyc_status = 'completed';
     }
 
     const orders = await this.orderRepository.findAll({
       where: whereCondition,
-      order: [["createdAt", "DESC"]],
+      order: [['createdAt', 'DESC']],
       raw: true,
     });
 
-    console.log('order-data',orders)
+    console.log('order-data', orders);
 
     // Fetch transaction and purpose types with IDs
     const transactionTypes = await this.transactionTypeRepository.findAll({
-      attributes: ["id", "hashed_key", "name"],
+      attributes: ['id', 'hashed_key', 'name'],
       raw: true,
     });
     const purposeTypes = await this.purposeTypeRepository.findAll({
-      attributes: ["id", "hashed_key", "purposeName"],
+      attributes: ['id', 'hashed_key', 'purposeName'],
       raw: true,
     });
 
@@ -871,13 +867,13 @@ export class OrdersService {
       transactionTypes.map(({ id, hashed_key, name }) => [
         hashed_key,
         { id, text: name },
-      ])
+      ]),
     );
     const purposeTypeMap = Object.fromEntries(
       purposeTypes.map(({ id, hashed_key, purposeName }) => [
         hashed_key,
         { id, text: purposeName },
-      ])
+      ]),
     );
 
     // Map orders with structured transaction_type and purpose_type
@@ -896,7 +892,7 @@ export class OrdersService {
     return {
       message: `Orders assigned to checker ${checkerId}`,
       totalOrders: orders.length,
-      filterApplied: transaction_type || "all",
+      filterApplied: transaction_type || 'all',
       orders: mappedOrders,
     };
   }
@@ -912,7 +908,7 @@ export class OrdersService {
 
     const checker = await this.userRepository.findOne({
       where: { hashed_key: checker_id },
-      attributes: ["id"],
+      attributes: ['id'],
     });
 
     if (!checker) {
@@ -925,7 +921,19 @@ export class OrdersService {
 
     if (!order) {
       throw new NotFoundException(
-        `Order ${partner_order_id} not found or not assigned to this checker.`
+        `Order ${partner_order_id} not found or not assigned to this checker.`,
+      );
+    }
+
+    if (order.is_esign_required == true && order.e_sign_status != 'completed') {
+      throw new NotFoundException(
+        `Order ${partner_order_id} esign not completed`,
+      );
+    }
+
+    if (order.is_v_kyc_required == true && order.v_kyc_status != 'completed') {
+      throw new NotFoundException(
+        `Order ${partner_order_id} vkyc not completed`,
       );
     }
 
@@ -935,7 +943,7 @@ export class OrdersService {
     await order.save();
 
     return {
-      message: "Order details has updated successfully",
+      message: 'Order details has updated successfully',
       updatedOrder: order,
     };
   }
@@ -945,7 +953,7 @@ export class OrdersService {
 
     const checker = await this.userRepository.findOne({
       where: { hashed_key: checkerId },
-      attributes: ["id"],
+      attributes: ['id'],
     });
 
     if (!checker) {
@@ -958,35 +966,41 @@ export class OrdersService {
 
     if (!order) {
       throw new NotFoundException(
-        `Order with hash key "${orderId}" not found.`
+        `Order with hash key "${orderId}" not found.`,
       );
     }
 
     if (order.checker_id !== checker.id) {
       throw new BadRequestException(
-        `Checker ID "${checkerId}" is not assigned to this order.`
+        `Checker ID "${checkerId}" is not assigned to this order.`,
       );
     }
 
     const transactionTypes = await this.transactionTypeRepository.findAll({
-      attributes: ["hashed_key", "name"],
+      attributes: ['hashed_key', 'name'],
       raw: true,
     });
 
-    const transactionTypeMap = transactionTypes.reduce((acc, type) => {
-      acc[type.hashed_key] = type.name;
-      return acc;
-    }, {} as Record<string, string>);
+    const transactionTypeMap = transactionTypes.reduce(
+      (acc, type) => {
+        acc[type.hashed_key] = type.name;
+        return acc;
+      },
+      {} as Record<string, string>,
+    );
 
     const purposeTypes = await this.purposeTypeRepository.findAll({
-      attributes: ["hashed_key", "purpose_name"],
+      attributes: ['hashed_key', 'purpose_name'],
       raw: true,
     });
 
-    const purposeTypeMap = purposeTypes.reduce((acc, type) => {
-      acc[type.hashed_key] = type.purposeName;
-      return acc;
-    }, {} as Record<string, string>);
+    const purposeTypeMap = purposeTypes.reduce(
+      (acc, type) => {
+        acc[type.hashed_key] = type.purposeName;
+        return acc;
+      },
+      {} as Record<string, string>,
+    );
 
     const sequelizeOrderInstance = this.orderRepository.build(order);
     sequelizeOrderInstance.transaction_type =
@@ -1034,49 +1048,65 @@ export class OrdersService {
   //   }));
   // }
 
-  async getUnassignedOrders(): Promise<Array<{
-    [key: string]: any;
-    transaction_type: { id: string | null; text: string };
-    purpose_type: { id: string | null; text: string };
-  }>> {
+  async getUnassignedOrders(): Promise<
+    Array<{
+      [key: string]: any;
+      transaction_type: { id: string | null; text: string };
+      purpose_type: { id: string | null; text: string };
+    }>
+  > {
     // const orders = await this.orderRepository.findAll({
     //   raw: true,
     // });
 
     const orders = await this.orderRepository.findAll({
       where: {
-        checker_id: null, // Filter for orders with no checker
+        checker_id: { [Op.is]: null },
+        merged_document: { [Op.ne]: null },
       },
       raw: true,
     });
-  
+
     const transactionTypes = await this.transactionTypeRepository.findAll({
-      attributes: ["id", "hashed_key", "name"],
+      attributes: ['id', 'hashed_key', 'name'],
       raw: true,
     });
     const purposeTypes = await this.purposeTypeRepository.findAll({
-      attributes: ["id", "hashed_key", "purposeName"],
+      attributes: ['id', 'hashed_key', 'purposeName'],
       raw: true,
     });
-  
+
     const transactionTypeMap = Object.fromEntries(
       transactionTypes
-        .filter(({ hashed_key }) => hashed_key !== undefined && hashed_key !== null)
-        .map(({ id, hashed_key, name }) => [hashed_key, { id, text: name }])
+        .filter(
+          ({ hashed_key }) => hashed_key !== undefined && hashed_key !== null,
+        )
+        .map(({ id, hashed_key, name }) => [hashed_key, { id, text: name }]),
     );
     const purposeTypeMap = Object.fromEntries(
       purposeTypes
-        .filter(({ hashed_key }) => hashed_key !== undefined && hashed_key !== null)
-        .map(({ id, hashed_key, purposeName }) => [hashed_key, { id, text: purposeName }])
+        .filter(
+          ({ hashed_key }) => hashed_key !== undefined && hashed_key !== null,
+        )
+        .map(({ id, hashed_key, purposeName }) => [
+          hashed_key,
+          { id, text: purposeName },
+        ]),
     );
-  
+
     return orders.map((order) => ({
       ...order,
       transaction_type: order.transaction_type
-        ? transactionTypeMap[order.transaction_type] || { id: null, text: order.transaction_type }
+        ? transactionTypeMap[order.transaction_type] || {
+            id: null,
+            text: order.transaction_type,
+          }
         : { id: null, text: null },
       purpose_type: order.purpose_type
-        ? purposeTypeMap[order.purpose_type] || { id: null, text: order.purpose_type }
+        ? purposeTypeMap[order.purpose_type] || {
+            id: null,
+            text: order.purpose_type,
+          }
         : { id: null, text: null },
     }));
   }
@@ -1087,91 +1117,91 @@ export class OrdersService {
         attributes: [
           [
             this.orderRepository.sequelize.fn(
-              "COUNT",
-              this.orderRepository.sequelize.col("id")
+              'COUNT',
+              this.orderRepository.sequelize.col('id'),
             ),
-            "transactionReceived",
+            'transactionReceived',
           ],
           [
             this.orderRepository.sequelize.fn(
-              "SUM",
+              'SUM',
               this.orderRepository.sequelize.literal(
-                "CASE WHEN incident_status = true THEN 1 ELSE 0 END"
-              )
+                'CASE WHEN incident_status = true THEN 1 ELSE 0 END',
+              ),
             ),
-            "transactionApproved",
+            'transactionApproved',
           ],
           [
             this.orderRepository.sequelize.fn(
-              "SUM",
+              'SUM',
               this.orderRepository.sequelize.literal(
-                "CASE WHEN incident_status = false THEN 1 ELSE 0 END"
-              )
+                'CASE WHEN incident_status = false THEN 1 ELSE 0 END',
+              ),
             ),
-            "transactionRejected",
+            'transactionRejected',
           ],
           [
             this.orderRepository.sequelize.fn(
-              "SUM",
+              'SUM',
               this.orderRepository.sequelize.literal(
-                "CASE WHEN incident_status IS NULL THEN 1 ELSE 0 END"
-              )
+                'CASE WHEN incident_status IS NULL THEN 1 ELSE 0 END',
+              ),
             ),
-            "transactionPending",
+            'transactionPending',
           ],
           [
             this.orderRepository.sequelize.fn(
-              "SUM",
+              'SUM',
               this.orderRepository.sequelize.literal(
-                "CASE WHEN v_kyc_status = 'completed' THEN 1 ELSE 0 END"
-              )
+                "CASE WHEN v_kyc_status = 'completed' THEN 1 ELSE 0 END",
+              ),
             ),
-            "vkycCompleted",
+            'vkycCompleted',
           ],
           [
             this.orderRepository.sequelize.fn(
-              "SUM",
+              'SUM',
               this.orderRepository.sequelize.literal(
-                "CASE WHEN v_kyc_status = 'pending' THEN 1 ELSE 0 END"
-              )
+                "CASE WHEN v_kyc_status = 'pending' THEN 1 ELSE 0 END",
+              ),
             ),
-            "vkycPending",
+            'vkycPending',
           ],
           [
             this.orderRepository.sequelize.fn(
-              "SUM",
+              'SUM',
               this.orderRepository.sequelize.literal(
-                "CASE WHEN v_kyc_status = 'rejected' THEN 1 ELSE 0 END"
-              )
+                "CASE WHEN v_kyc_status = 'rejected' THEN 1 ELSE 0 END",
+              ),
             ),
-            "vkycRejected",
+            'vkycRejected',
           ],
           [
             this.orderRepository.sequelize.fn(
-              "SUM",
+              'SUM',
               this.orderRepository.sequelize.literal(
-                "CASE WHEN e_sign_status = 'completed' THEN 1 ELSE 0 END"
-              )
+                "CASE WHEN e_sign_status = 'completed' THEN 1 ELSE 0 END",
+              ),
             ),
-            "esignCompleted",
+            'esignCompleted',
           ],
           [
             this.orderRepository.sequelize.fn(
-              "SUM",
+              'SUM',
               this.orderRepository.sequelize.literal(
-                "CASE WHEN e_sign_status = 'pending' THEN 1 ELSE 0 END"
-              )
+                "CASE WHEN e_sign_status = 'pending' THEN 1 ELSE 0 END",
+              ),
             ),
-            "esignPending",
+            'esignPending',
           ],
           [
             this.orderRepository.sequelize.fn(
-              "SUM",
+              'SUM',
               this.orderRepository.sequelize.literal(
-                "CASE WHEN e_sign_status = 'rejected' THEN 1 ELSE 0 END"
-              )
+                "CASE WHEN e_sign_status = 'rejected' THEN 1 ELSE 0 END",
+              ),
             ),
-            "esignRejected",
+            'esignRejected',
           ],
         ],
         raw: true,
@@ -1179,8 +1209,8 @@ export class OrdersService {
 
       return orderCounts[0] || {};
     } catch (error) {
-      console.error("Error fetching dashboard details:", error);
-      throw new InternalServerErrorException("Failed to fetch dashboard data.");
+      console.error('Error fetching dashboard details:', error);
+      throw new InternalServerErrorException('Failed to fetch dashboard data.');
     }
   }
 
@@ -1269,96 +1299,112 @@ export class OrdersService {
   //   });
   // }
 
-  async getFilteredOrders(filterDto: FilterOrdersDto): Promise<Array<{
-  [key: string]: any;
-  transaction_type: { id: string | null; text: string };
-  purpose_type: { id: string | null; text: string };
-}>> {
-  const { checkerId, transaction_type_hashed_key, purpose_type_hashed_key, from, to } = filterDto;
+  async getFilteredOrders(filterDto: FilterOrdersDto): Promise<
+    Array<{
+      [key: string]: any;
+      transaction_type: { id: string | null; text: string };
+      purpose_type: { id: string | null; text: string };
+    }>
+  > {
+    const {
+      checkerId,
+      transaction_type_hashed_key,
+      purpose_type_hashed_key,
+      from,
+      to,
+    } = filterDto;
 
-  const checker = await this.userRepository.findOne({
-    where: { hashed_key: checkerId },
-    attributes: ["id"],
-  });
-
-  if (!checker) {
-    throw new NotFoundException(`Checker with ID ${checkerId} not found.`);
-  }
-
-  if (transaction_type_hashed_key) {
-    const transactionExists = await this.transactionTypeRepository.findOne({
-      where: { hashed_key: transaction_type_hashed_key },
-      attributes: ["hashed_key"],
+    const checker = await this.userRepository.findOne({
+      where: { hashed_key: checkerId },
+      attributes: ['id'],
     });
 
-    if (!transactionExists) {
-      throw new BadRequestException(
-        `Invalid Transaction Type ID: ${transaction_type_hashed_key}`
-      );
+    if (!checker) {
+      throw new NotFoundException(`Checker with ID ${checkerId} not found.`);
     }
-  }
 
-  if (purpose_type_hashed_key) {
-    const purposeExists = await this.purposeTypeRepository.findOne({
-      where: { hashed_key: purpose_type_hashed_key },
-      attributes: ["hashed_key"],
+    if (transaction_type_hashed_key) {
+      const transactionExists = await this.transactionTypeRepository.findOne({
+        where: { hashed_key: transaction_type_hashed_key },
+        attributes: ['hashed_key'],
+      });
+
+      if (!transactionExists) {
+        throw new BadRequestException(
+          `Invalid Transaction Type ID: ${transaction_type_hashed_key}`,
+        );
+      }
+    }
+
+    if (purpose_type_hashed_key) {
+      const purposeExists = await this.purposeTypeRepository.findOne({
+        where: { hashed_key: purpose_type_hashed_key },
+        attributes: ['hashed_key'],
+      });
+
+      if (!purposeExists) {
+        throw new BadRequestException(
+          `Invalid Purpose Type ID: ${purpose_type_hashed_key}`,
+        );
+      }
+    }
+
+    const whereCondition: any = { checker_id: checker.id };
+
+    if (transaction_type_hashed_key)
+      whereCondition.transaction_type = transaction_type_hashed_key;
+    if (purpose_type_hashed_key)
+      whereCondition.purpose_type = purpose_type_hashed_key;
+
+    if (from || to) {
+      whereCondition.createdAt = {};
+      if (from) whereCondition.createdAt[Op.gte] = new Date(from);
+      if (to) whereCondition.createdAt[Op.lte] = new Date(to);
+    }
+
+    const orders = await this.orderRepository.findAll({
+      where: whereCondition,
+      raw: true,
     });
 
-    if (!purposeExists) {
-      throw new BadRequestException(
-        `Invalid Purpose Type ID: ${purpose_type_hashed_key}`
-      );
-    }
+    const transactionTypes = await this.transactionTypeRepository.findAll({
+      attributes: ['id', 'hashed_key', 'name'],
+      raw: true,
+    });
+
+    const purposeTypes = await this.purposeTypeRepository.findAll({
+      attributes: ['id', 'hashed_key', 'purposeName'],
+      raw: true,
+    });
+
+    const transactionTypeMap = Object.fromEntries(
+      transactionTypes.map(({ id, hashed_key, name }) => [
+        hashed_key,
+        { id, text: name },
+      ]),
+    );
+
+    const purposeTypeMap = Object.fromEntries(
+      purposeTypes.map(({ id, hashed_key, purposeName }) => [
+        hashed_key,
+        { id, text: purposeName },
+      ]),
+    );
+
+    return orders.map((order) => ({
+      ...order,
+      transaction_type: order.transaction_type
+        ? transactionTypeMap[order.transaction_type] || {
+            id: null,
+            text: order.transaction_type,
+          }
+        : { id: null, text: null },
+      purpose_type: order.purpose_type
+        ? purposeTypeMap[order.purpose_type] || {
+            id: null,
+            text: order.purpose_type,
+          }
+        : { id: null, text: null },
+    }));
   }
-
-  const whereCondition: any = { checker_id: checker.id };
-
-  if (transaction_type_hashed_key) whereCondition.transaction_type = transaction_type_hashed_key;
-  if (purpose_type_hashed_key) whereCondition.purpose_type = purpose_type_hashed_key;
-
-  if (from || to) {
-    whereCondition.createdAt = {};
-    if (from) whereCondition.createdAt[Op.gte] = new Date(from);
-    if (to) whereCondition.createdAt[Op.lte] = new Date(to);
-  }
-
-  const orders = await this.orderRepository.findAll({
-    where: whereCondition,
-    raw: true,
-  });
-
-  const transactionTypes = await this.transactionTypeRepository.findAll({
-    attributes: ["id", "hashed_key", "name"],
-    raw: true,
-  });
-
-  const purposeTypes = await this.purposeTypeRepository.findAll({
-    attributes: ["id", "hashed_key", "purposeName"],
-    raw: true,
-  });
-
-  const transactionTypeMap = Object.fromEntries(
-    transactionTypes.map(({ id, hashed_key, name }) => [
-      hashed_key,
-      { id, text: name },
-    ])
-  );
-
-  const purposeTypeMap = Object.fromEntries(
-    purposeTypes.map(({ id, hashed_key, purposeName }) => [
-      hashed_key,
-      { id, text: purposeName },
-    ])
-  );
-
-  return orders.map((order) => ({
-    ...order,
-    transaction_type: order.transaction_type
-      ? transactionTypeMap[order.transaction_type] || { id: null, text: order.transaction_type }
-      : { id: null, text: null },
-    purpose_type: order.purpose_type
-      ? purposeTypeMap[order.purpose_type] || { id: null, text: order.purpose_type }
-      : { id: null, text: null },
-  }));
-}
 }
