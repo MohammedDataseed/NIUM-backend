@@ -840,8 +840,26 @@ export class OrdersService {
 
     if (transaction_type === 'completed') {
       whereCondition.incident_status = true;
-      whereCondition.e_sign_status = 'completed';
-      whereCondition.v_kyc_status = 'completed';
+      whereCondition[Op.or] = [
+        {
+          is_esign_required: true,
+          is_v_kyc_required: false,
+          e_sign_status: 'completed',
+          v_kyc_status: 'not required',
+        },
+        {
+          is_esign_required: false,
+          is_v_kyc_required: true,
+          e_sign_status: 'not required',
+          v_kyc_status: 'completed',
+        },
+        {
+          is_esign_required: true,
+          is_v_kyc_required: true,
+          e_sign_status: 'completed',
+          v_kyc_status: 'completed',
+        },
+      ];
     }
 
     const orders = await this.orderRepository.findAll({
@@ -937,7 +955,31 @@ export class OrdersService {
       );
     }
 
-    order.nium_invoice_number = nium_invoice_number;
+    if (
+      (incident_status === true && nium_invoice_number.trim() === '') ||
+      nium_invoice_number.trim() == null
+    ) {
+      throw new NotFoundException(
+        `Order ${partner_order_id} invoice number is required`,
+      );
+    }
+
+    if (!incident_status) {
+      order.nium_invoice_number = '';
+    } else {
+      order.nium_invoice_number = nium_invoice_number;
+    }
+
+    if (!!incident_status && nium_invoice_number?.trim()) {
+      order.order_status = 'completed';
+    }
+
+    const nowIST = new Date();
+    nowIST.setHours(nowIST.getHours() + 5);
+    nowIST.setMinutes(nowIST.getMinutes() + 30);
+
+    order.incident_completion_date = nowIST;
+
     order.incident_status = incident_status;
     order.incident_checker_comments = incident_checker_comments;
     await order.save();
@@ -1063,6 +1105,29 @@ export class OrdersService {
       where: {
         checker_id: { [Op.is]: null },
         merged_document: { [Op.ne]: null },
+        [Op.or]: [
+          // Condition 1: eSign Required & vKYC Not Required & eSign Completed & vKYC Not Required
+          {
+            is_esign_required: true,
+            is_v_kyc_required: false,
+            e_sign_status: 'completed',
+            v_kyc_status: 'not required',
+          },
+          // Condition 2: eSign Not Required & vKYC Required & eSign Not Required & vKYC Completed
+          {
+            is_esign_required: false,
+            is_v_kyc_required: true,
+            e_sign_status: 'not required',
+            v_kyc_status: 'completed',
+          },
+          // Condition 3: eSign Required & vKYC Required & eSign Completed & vKYC Completed
+          {
+            is_esign_required: true,
+            is_v_kyc_required: true,
+            e_sign_status: 'completed',
+            v_kyc_status: 'completed',
+          },
+        ],
       },
       raw: true,
     });
