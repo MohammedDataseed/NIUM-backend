@@ -1,0 +1,406 @@
+{
+  "success": true,
+  "message": "Webhook processed successfully",
+  "data": {
+    "config": {
+      "id": "349b8f41-badd-44de-a2c3-ff50fc8a2a44",
+      "overrides": {}
+    },
+    "device_info": {
+      "final_ipv4": "103.176.235.75",
+      "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"
+    },
+    "profile_data": {
+      "completed_at": "2025-03-27T10:06:51Z",
+      "created_at": "2025-03-27T09:58:15Z",
+      "email": [],
+      "mobile_number": [],
+      "notes": null,
+      "performed_by": [
+        {
+          "account_id": "a3edb5ef-0df3-47cf-a6e2-be5594650558",
+          "action": "video_call",
+          "email": "mohammed@dataseedtech.com",
+          "performed_at": "2025-03-27T10:03:40Z"
+        },
+        {
+          "account_id": "a3edb5ef-0df3-47cf-a6e2-be5594650558",
+          "action": "review",
+          "email": "mohammed@dataseedtech.com",
+          "performed_at": "2025-03-27T10:06:51Z"
+        }
+      ],
+      "purged_at": null
+    },
+    "profile_id": "5f7a8090-4005-428a-abed-1109e042b266",
+    "reference_id": "NIUMTEST3-1743069497287",
+    "resources": {
+      "documents": [
+        {
+          "attr": null,
+          "location": {},
+          "metadata": {},
+          "ref_id": "user.profile_report.nil.4.nil",
+          "source": 4,
+          "tags": [],
+          "type": "profile_report",
+          "value": "https://storage.googleapis.com/e1628d9a6e50.storage.pg.idfy.com/reports/760eb4da-e06e-4742-b121-30d906705d1c.pdf?Expires=1743071826&GoogleAccessId=kyc-gateway%40idfy-kyc-prod.iam.gserviceaccount.com&Signature=n3ZDO3ozJD8cfPI8x1438Z9xBbq7%2FMwBaRrvJzJD9ZKsfdqrJA7mjxjHUvzXpsPZzM63RqYTptefH6Mh%2BtSJgzHsE6Srku%2Bdj54VRDGlfGTQ6YMBnLHpje8XtJ5jsBLL9P7522uBFDYCZeIafu3sJRN5gKJACgndpvBFmqGRItzrqWHw0wbWkmo1gk%2FTdZkUwZJNTOav7HOrTLgofCUoCMTgMWSi39O6zNN%2FI1QoDBjEHY4bOIhBqk9OqfAfOhE8gPv6o0Tm%2BrUbp4tOEJON%2BEqlsAbPXBCUIk1QGhi2wv3lP56eP1%2B%2F2CmEIsJJLGSCA%2Fx8F%2F4sDO6T%2FbktYQy4JA%3D%3D"
+        }
+      ],
+      "images": [
+        {
+          "attr": null,
+          "location": {},
+          "metadata": {},
+          "ref_id": "capture_three.others.nil.2.1",
+          "source": 2,
+          "tags": null,
+          "type": "others",
+          "value": "https://storage.googleapis.com/e1628d9a6e50.storage.pg.idfy.com/0b88d336-2fef-4589-aaae-d9b75f710611?Expires=1743071826&GoogleAccessId=kyc-gateway%40idfy-kyc-prod.iam.gserviceaccount.com&Signature=tbkFA37rc9oJFOD%2B6Eq638zqCXi4PWiOcTOc2i3enrTSOqmM6ai3CCzw3qkpAnK2zMpQxmqOGZmqQksBv2AinSZRF%2FPcAlVkfblkInAIR%2BpXh9WvECW2VgIAJMk5eWRTwGet%2FFNfSjK65ROHYNI1StKsM3lln1S356328E3KdBZhnvHvqWk8XBxLBgie5%2BjcSDH0%2B%2F6d33n%2B2n%2B%2FY%2F2I%2FmZGgrC%2FuE0YCDzlogObVhPIHmFPUcoqbyrVqsLcBa%2FtWyMHmb2vb%2FCZb%2BQMDBNc64g0myr51gPovA57CxMK1WzyZlDquVqloejlyEbpFBalkoizqYrdzbaMdPkbXdrqDw%3D%3D"
+        },
+        {
+          "attr": null,
+          "location": {},
+          "metadata": {},
+          "ref_id": "capture_two.others.nil.2.1",
+          "source": 2,
+          "tags": null,
+          "type": "others",
+          "value": "https://storage.googleapis.com/e1628d9a6e50.storage.pg.idfy.com/a4473740-174e-4b24-915b-ea8ff5a80aae?Expires=1743071826&GoogleAccessId=kyc-gateway%40idfy-kyc-prod.iam.gserviceaccount.com&Signature=adP%2BV1mZbu6pxiUAXM4cmKq%2FFz1UqE90cCLCT1bYVS3Fm7aSriOD8vr7KmX0A%2BsgOkW0wQxA6kZz7phP8a9bz61WNkWqudker2yDNAzWaqwuKEl9rTG1L%2B6Z4d7B%2Fo78Vvd%2Fh4e68KFCaokpKh5sgGdWL63rKus9neGGLkM0F4M7fPz9PfhpNoVXgqhGn93eOOYdQ6KwYTpdkRVIOsMgKAXgwqiryYfuWD2YVV9ekmrIQPvO%2FNUQZbGZvBUjfhptlHEUCG3mR%2BkSkobDOjDfdJeq90b16uznhfqQF5pYl6Fw%2FnYzrrVdmfHu5vfIn6vatMqnDQk9ezzy1B46mFNS3w%3D%3D"
+        },
+        {
+          "attr": null,
+          "location": {},
+          "metadata": {},
+          "ref_id": "capture_one.others.nil.2.1",
+          "source": 2,
+          "tags": null,
+          "type": "others",
+          "value": "https://storage.googleapis.com/e1628d9a6e50.storage.pg.idfy.com/77cd7079-bf3d-4bbf-be1f-955cc48d92dd?Expires=1743071826&GoogleAccessId=kyc-gateway%40idfy-kyc-prod.iam.gserviceaccount.com&Signature=bNBf95gKBNjO96xGfEAn6ZEoXe8P5dGZikeaX1hQtTgfPK4YZQI1SmOPbFPy51IAc0CJOok75Xi4EtHN9M7aAY4bsmAgNXRDrwh1EhcbAZNIjyoXq%2FPIV%2BgewKS4uRNas8z9pP6wpRBIgdgXZ8B2gA4paWCjr83hQiS8m5zoUo84VBGptRC1nUHSdolpoeWcKbWrPI%2FoENO2QALG3M7k2PsxbfhuxnjsD5s9UISxX0dB6HjYaKGw6dMUC%2BcPZNNj5n1Zuxf907wjUjpWuQ4qkzQ9LB3BX9S5T2qxkXL4tcMZLlPCBhbIHDJ1yMwUfRF3f6s88bWG6JOD9jHL0MiSsQ%3D%3D"
+        },
+        {
+          "attr": null,
+          "location": {},
+          "metadata": {},
+          "ref_id": "nil.ind_pan.nil.2.nil",
+          "source": 2,
+          "tags": null,
+          "type": "ind_pan",
+          "value": "https://storage.googleapis.com/e1628d9a6e50.storage.pg.idfy.com/4c40dcab-012a-49f4-93dc-e8b628739ade?Expires=1743071826&GoogleAccessId=kyc-gateway%40idfy-kyc-prod.iam.gserviceaccount.com&Signature=q%2FS2WaeKXKlZq0xkLmus8G85fO2Pn9iH8dV5WRoKU9%2Bo2bidKdlVaTJbaJNgzG6SQm7m1%2F81Yb0wRwwoBcaklfHAmbu5ul%2Fo%2B0XWRlacCbiYmSo4q6fPwKHKkbnbDycYadBjuZDjkpwR2SxlgS4bNFspMJ291iKPa6wd9LYhCaUe8ukI%2BYsEbdZg2vhEFz%2BbyZVq6WX9pMhbgMteTfmzqlHKBqUeSIGAe2T%2BDP3DJDf9%2BUimky0lsjW6Aar5l5P0wFFEUkxG%2FC92a8eYta5Kfnq6jHVbK0U6D7WgCLzNfYjludPOl%2B0OeoWZWUskW4l215U%2Bg8lHq5Fx2IyQt%2FbEkA%3D%3D"
+        },
+        {
+          "attr": null,
+          "location": {},
+          "metadata": {},
+          "ref_id": "nil.selfie.nil.2.nil",
+          "source": 2,
+          "tags": null,
+          "type": "selfie",
+          "value": "https://storage.googleapis.com/e1628d9a6e50.storage.pg.idfy.com/a4f48fc5-cba2-4e96-bad0-d36c6c86e27d?Expires=1743071826&GoogleAccessId=kyc-gateway%40idfy-kyc-prod.iam.gserviceaccount.com&Signature=ZzKof1ycmFDD1OFhqNLhFaAeJWJGYJvkKLZ1g8oZElBurwIvPI0cpom%2FvK1yBcgdsPDuu4F347NPPF3NP5j1aE%2BU593Yi9B63RAT0TVXe8RmuYvS8LzLL5GjHb9u0T%2FhvfCzHHiW3XyTJL7iJ7Em1xywACkBt%2FE5Xd9OMQrj7bvGoD%2BX27ILkWuDXn%2B1tWPliLjNOMYx6L0NFQE%2FHNd3btaXaTHac%2BzTER9K6b3ELU4SuEeh5%2Fx3OWkR%2FqVXsJKARDP23T4kh8%2Fh1rqxB%2BUO%2FYdUM40%2Fe4BMxwCNejhdO5l6XzjpKCuQARCR35FbQK0tVEFMU%2Ff78IBnrja%2BXJO4IQ%3D%3D"
+        }
+      ],
+      "text": [
+        {
+          "attr": "location",
+          "location": {},
+          "metadata": {},
+          "ref_id": "nil.nil.location.2.nil",
+          "source": 2,
+          "tags": null,
+          "type": null,
+          "value": {
+            "accuracy": 13988.53254315311,
+            "accuracy_level": "Low",
+            "address": {
+              "country": "India",
+              "country_code": "in",
+              "district": "Bengaluru Urban",
+              "pincode": "560097",
+              "state": "Karnataka",
+              "street_address": "Canara Bank Layout, Kodigehalli, Yelahanka taluku, Bengaluru Urban, Karnataka, 560097, India"
+            },
+            "captured_at": null,
+            "latitude": 13.06754,
+            "longitude": 77.57483,
+            "source": "GPS"
+          }
+        },
+        {
+          "attr": "name",
+          "location": {},
+          "metadata": {},
+          "ref_id": "nil.nil.name.0.nil",
+          "source": 0,
+          "tags": null,
+          "type": null,
+          "value": {
+            "first_name": "Mohammed Tayibulla"
+          }
+        }
+      ],
+      "videos": [
+        {
+          "attr": "agent",
+          "location": {},
+          "metadata": {
+            "offset": 0
+          },
+          "ref_id": "nil.nil.agent.2.nil",
+          "source": 2,
+          "tags": null,
+          "type": null,
+          "value": "https://storage.googleapis.com/e1628d9a6e50.storage.pg.idfy.com/9513d5c3-404a-4931-b115-cd127a2cac3f?Expires=1743071826&GoogleAccessId=kyc-gateway%40idfy-kyc-prod.iam.gserviceaccount.com&Signature=jxSm1gQ9I8ef3FO9BtYptgWeOwHysln1C9%2B85bnRS2soZ1j6qq41zRPWFEuYLOTeM8%2BrV%2FytMkIPLqwo92f0lldPkQzcQTGTluKyGu1%2BpvHCtjLNQ2mjYJ9FFv6OFwLHJc8PkMnVaEbcHrD83AGqEYRBS2YX4VDvr4DWAveM%2Fc%2BtMmviDikJmKXwRilfvz3SaUWcOyOZEgCWKWKohlunw6kpFDoaUoVF6MrcBbxZbh4u7jXQIwOo4o%2B3t5MUpEXpIeEYW8bpuIdGe6nbtvTVTmBE5sp0ytQkmjJz5ncXQoBV0lxS6DdiMGccqHU7%2B4Jjpu78Yt1iHcUJHS5m7KHxDA%3D%3D"
+        },
+        {
+          "attr": "customer",
+          "location": {},
+          "metadata": {
+            "offset": 0
+          },
+          "ref_id": "nil.nil.customer.2.nil",
+          "source": 2,
+          "tags": null,
+          "type": null,
+          "value": "https://storage.googleapis.com/e1628d9a6e50.storage.pg.idfy.com/9b0f2805-255b-44e3-9191-5fadb4efa5ab?Expires=1743071826&GoogleAccessId=kyc-gateway%40idfy-kyc-prod.iam.gserviceaccount.com&Signature=IupBkzndRtKiKHgpdH0CUpiU6FbHzKCm1dYk%2Fec3H2jRWed4C1hFow%2Fjq0NgH61ghSrOOyKxD2ZBytC0JDM6vKGF1JplPz8C8rL32VHzpwZVRfgyedC7EdINcfunueFGLvz4JW6%2FlxMUxHFgkW749NbUVN26dcsiRnhpySuxFwGxWK8vQMPy1DJbPwggB5c579A2EecuRAyqoXuVnVEO%2BLd68l0hm9HL3HylQGF6f%2F4TATQFAVYsvz48j%2Bt0kOFyOnIDB1livlwCPlipcJnxkDo9nfKl1Sdklusy%2B08aWlUXKhAZhGtPdOjDZZJniyBkmBBUiNYK%2FC0vPrEoyR7Z4g%3D%3D"
+        }
+      ]
+    },
+    "reviewer_action": "rejected",
+    "schema_version": "1.0.0",
+    "status": "completed",
+    "status_description": {
+      "code": null,
+      "comments": "pan card was not correctly displayed",
+      "reason": "Other"
+    },
+    "status_detail": "Other",
+    "tag": null,
+    "tasks": [
+      {
+        "key": "vkyc.assisted_vkyc",
+        "resources": [
+          "nil.nil.customer.2.nil",
+          "nil.nil.agent.2.nil"
+        ],
+        "result": {
+          "automated_response": null,
+          "manual_response": {
+            "call_assigned_at": "2025-03-27T10:01:33Z",
+            "performed_by": {
+              "account_id": "a3edb5ef-0df3-47cf-a6e2-be5594650558",
+              "action": "video_call",
+              "call_decision_time": "2025-03-27T10:03:40Z",
+              "call_duration": 124,
+              "call_end_time": "2025-03-27T10:03:40Z",
+              "call_handling_duration": 124,
+              "call_start_time": "2025-03-27T10:01:36Z",
+              "email": "mohammed@dataseedtech.com",
+              "performed_at": "2025-03-27T10:03:40Z"
+            },
+            "skill_config": {},
+            "status": "rejected",
+            "status_reason": "Details not matching document(s)"
+          }
+        },
+        "status": "completed",
+        "task_id": "6a0b3a9b-b112-44c5-b5f6-ae2a8773dac7",
+        "task_type": "vkyc.assisted_vkyc",
+        "tasks": [
+          {
+            "tasks": [
+              {
+                "key": "key_location",
+                "resources": [
+                  "nil.nil.location.2.nil"
+                ],
+                "result": {
+                  "automated_response": null,
+                  "manual_response": null
+                },
+                "status": "completed",
+                "task_id": "3bdc047f-6f08-4c3d-833a-d1bc1ee9e368",
+                "task_type": "data_capture.location",
+                "tasks": [
+                  {
+                    "key": "key_resolve_location",
+                    "resources": [
+                      "nil.nil.location.2.nil"
+                    ],
+                    "result": {
+                      "automated_response": null,
+                      "manual_response": null
+                    },
+                    "status": "completed",
+                    "task_id": "2a4842a8-72b3-477f-9b5e-eac7a39e2e8d",
+                    "task_type": "resolve.location"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "tasks": [
+              {
+                "key": "sec_key1",
+                "resources": [],
+                "result": {
+                  "automated_response": null,
+                  "manual_response": {
+                    "answer": "Mohammed Tayibulla",
+                    "question": "What is your name?",
+                    "value": "Pass"
+                  }
+                },
+                "status": "completed",
+                "task_id": "91c9f176-ed5c-4295-a1b5-2a6ac17d0fd0",
+                "task_type": "verify.security_question"
+              },
+              {
+                "key": "sec_key2",
+                "resources": [],
+                "result": {
+                  "automated_response": null,
+                  "manual_response": {
+                    "answer": "8550895486",
+                    "question": "What is your contact number ?",
+                    "value": "Pass"
+                  }
+                },
+                "status": "completed",
+                "task_id": "4d4def89-6bcb-4576-8b8e-ced39a4b25c6",
+                "task_type": "verify.security_question"
+              },
+              {
+                "key": "sec_key3",
+                "resources": [],
+                "result": {
+                  "automated_response": null,
+                  "manual_response": {
+                    "answer": "contact2tayib@gmail.com",
+                    "question": "What is your email id?",
+                    "value": "Pass"
+                  }
+                },
+                "status": "completed",
+                "task_id": "c660d6bb-6d16-4be4-a11e-9fe5d91c2752",
+                "task_type": "verify.security_question"
+              }
+            ]
+          },
+          {
+            "tasks": [
+              {
+                "key": "key13",
+                "resources": [
+                  "nil.selfie.nil.2.nil",
+                  "nil.ind_pan.nil.2.nil"
+                ],
+                "result": {
+                  "automated_response": {
+                    "image_1": {
+                      "face_detected": true,
+                      "face_quality": "Good"
+                    },
+                    "image_2": {
+                      "face_detected": false,
+                      "face_quality": "Bad"
+                    },
+                    "is_a_match": false,
+                    "match_score": 0,
+                    "review_recommended": false
+                  },
+                  "manual_response": {
+                    "change_log": [],
+                    "changed": false,
+                    "image_1": {
+                      "face_detected": true,
+                      "face_quality": "Good"
+                    },
+                    "image_2": {
+                      "face_detected": false,
+                      "face_quality": "Bad"
+                    },
+                    "is_a_match": false,
+                    "match_score": 0,
+                    "review_recommended": false
+                  }
+                },
+                "status": "completed",
+                "task_id": "e2ab7221-0a94-4982-ac9e-201ef5cc0bba",
+                "task_type": "compare.face_compare"
+              },
+              {
+                "key": "key14",
+                "resources": [
+                  "nil.nil.name.0.nil",
+                  "nil.ind_pan.nil.2.nil"
+                ],
+                "result": {
+                  "automated_response": {},
+                  "manual_response": {
+                    "change_log": [],
+                    "changed": false
+                  }
+                },
+                "status": "failed",
+                "task_id": "fcdf9bf0-c5f8-4f4a-99c7-90b2171a1c21",
+                "task_type": "extract.ind_pan"
+              }
+            ]
+          },
+          {
+            "tasks": [
+              {
+                "key": "key40",
+                "question": "Do the faces match?",
+                "resources": [],
+                "result": {
+                  "automated_response": null,
+                  "manual_response": {
+                    "value": "Pass"
+                  }
+                },
+                "status": "completed",
+                "task_id": "77956eaa-cf58-4b41-96b1-f424e05eeb5d",
+                "task_type": "verify.qa"
+              }
+            ]
+          },
+          {
+            "tasks": [
+              {
+                "key": "key31",
+                "question": "Do the Names match?",
+                "resources": [],
+                "result": {
+                  "automated_response": null,
+                  "manual_response": {
+                    "value": "Pass"
+                  }
+                },
+                "status": "completed",
+                "task_id": "2c9405ab-a7b5-4458-80a9-3f2b52501802",
+                "task_type": "verify.qa"
+              },
+              {
+                "key": "key33",
+                "question": "Do the Date of Birth Match?",
+                "resources": [],
+                "result": {
+                  "automated_response": null,
+                  "manual_response": {
+                    "value": "Pass"
+                  }
+                },
+                "status": "completed",
+                "task_id": "bc7bbd0d-0a29-4fa2-bf64-b29c0df4f5b5",
+                "task_type": "verify.qa"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "version": "v1.1"
+  }
+}

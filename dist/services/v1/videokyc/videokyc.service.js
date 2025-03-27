@@ -377,8 +377,23 @@ let VideokycService = VideokycService_1 = class VideokycService {
             },
         };
         console.log(vkycDataResources);
-        const isCompleted = responseData.status === "completed";
-        const v_kyc_status = isCompleted ? "completed" : "pending";
+        const isCompleted = responseData.status == "completed";
+        const isRejected = responseData.reviewer_action == "rejected";
+        const isInProgress = responseData.status == "in_progress" &&
+            responseData.reviewer_action == null;
+        let v_kyc_status;
+        if (responseData.reviewer_action == "rejected") {
+            v_kyc_status = "rejected";
+        }
+        else if (isCompleted && responseData.reviewer_action == "approved") {
+            v_kyc_status = "completed";
+        }
+        else if (isInProgress) {
+            v_kyc_status = "in_progress";
+        }
+        else {
+            v_kyc_status = "pending";
+        }
         const v_kyc_completed_by_customer = isCompleted;
         const v_kyc_customer_completion_date = ((_o = responseData.profile_data) === null || _o === void 0 ? void 0 : _o.completed_at)
             ? new Date(responseData.profile_data.completed_at)
@@ -388,13 +403,12 @@ let VideokycService = VideokycService_1 = class VideokycService {
             this.logger.error(`Invalid completed_at value: ${responseData.profile_data.completed_at}`);
             throw new common_1.HttpException("Invalid completed_at timestamp", common_1.HttpStatus.BAD_REQUEST);
         }
-        const v_kyc_link_status = responseData.status === "completed" ? "completed" : "pending";
         const vkycData = {
             reference_id: responseData.reference_id || null,
             profile_id: v_kyc_profile_id,
             partner_order_id: partner_order_id,
             v_kyc_status,
-            v_kyc_link_status,
+            v_kyc_link_status: "active",
             v_kyc_comments: ((_p = responseData.status_description) === null || _p === void 0 ? void 0 : _p.comments) || null,
             v_kyc_doc_completion_date: v_kyc_customer_completion_date,
             v_kyc_completed_by_customer,
@@ -414,15 +428,24 @@ let VideokycService = VideokycService_1 = class VideokycService {
         };
         console.log(vkycData);
         const existingVkyc = await vkyc_model_1.Vkyc.findOne({
-            where: { partner_order_id: vkycData.partner_order_id, profile_id: vkycData.profile_id }
+            where: {
+                partner_order_id: vkycData.partner_order_id,
+                profile_id: vkycData.profile_id,
+            },
         });
         if (existingVkyc) {
             await existingVkyc.update(vkycData);
-            console.log("Event: v-KYC data updated successfully", { partner_order_id, vkycData });
+            console.log("Event: v-KYC data updated successfully", {
+                partner_order_id,
+                vkycData,
+            });
         }
         else {
             await vkyc_model_1.Vkyc.create(vkycData);
-            console.log("Event: v-KYC data stored successfully", { partner_order_id, vkycData });
+            console.log("Event: v-KYC data stored successfully", {
+                partner_order_id,
+                vkycData,
+            });
         }
         await order.update({
             v_kyc_status,

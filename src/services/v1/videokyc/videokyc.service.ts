@@ -83,18 +83,18 @@ export class VideokycService {
     folder: string
   ): Promise<string | null> {
     if (!base64Data) return null; // Skip if no data
-  
+
     const buffer = Buffer.from(base64Data, "base64");
     const fileExtension = fileType.split("/")[1];
     const fileName = `${folder}/${uuidv4()}.${fileExtension}`;
-  
+
     const uploadParams = {
       Bucket: process.env.AWS_S3_BUCKET_NAME!,
       Key: fileName,
       Body: buffer,
       ContentType: fileType,
     };
-  
+
     const maxRetries = 3;
     let attempt = 0;
     while (attempt < maxRetries) {
@@ -112,7 +112,6 @@ export class VideokycService {
       }
     }
   }
-  
 
   async processAndUploadVKYCFiles(resources: any) {
     // Extract profile report document
@@ -181,7 +180,7 @@ export class VideokycService {
               return null; // Continue even if one fails
             }
           })
-        ),        
+        ),
       },
       videos: {
         agent: vkycVideosAgent?.value
@@ -586,8 +585,35 @@ export class VideokycService {
 
     // await this.processAndUploadVKYCFiles(vkycDataResources);
 
-    const isCompleted = responseData.status === "completed";
-    const v_kyc_status = isCompleted ? "completed" : "pending";
+    const isCompleted = responseData.status == "completed";
+    const isRejected = responseData.reviewer_action == "rejected";
+    const isInProgress =
+      responseData.status == "in_progress" &&
+      responseData.reviewer_action == null;
+
+    // // Determine v_kyc_status based on conditions
+    // let v_kyc_status: string;
+    // if (isRejected && isCompleted) {
+    //   v_kyc_status = "rejected";
+    // } else if (isCompleted && responseData.reviewer_action == "approved") {
+    //   v_kyc_status = "completed";
+    // } else if (isInProgress) {
+    //   v_kyc_status = "in_progress"; // Or "pending" if that's your preference
+    // } else {
+    //   v_kyc_status = "pending"; // Default case
+    // }
+    // Determine v_kyc_status based on conditions
+    let v_kyc_status: string;
+    if (responseData.reviewer_action == "rejected") {
+      v_kyc_status = "rejected";
+    } else if (isCompleted && responseData.reviewer_action == "approved") {
+      v_kyc_status = "completed";
+    } else if (isInProgress) {
+      v_kyc_status = "in_progress"; // Or "pending" if that's your preference
+    } else {
+      v_kyc_status = "pending"; // Default case
+    }
+    // "reviewer_action": "rejected",
     const v_kyc_completed_by_customer = isCompleted;
     const v_kyc_customer_completion_date = responseData.profile_data
       ?.completed_at
@@ -606,15 +632,12 @@ export class VideokycService {
         HttpStatus.BAD_REQUEST
       );
     }
-    const v_kyc_link_status =
-      responseData.status === "completed" ? "completed" : "pending";
-
     const vkycData = {
       reference_id: responseData.reference_id || null,
       profile_id: v_kyc_profile_id,
-      partner_order_id:partner_order_id,
+      partner_order_id: partner_order_id,
       v_kyc_status,
-      v_kyc_link_status,
+      v_kyc_link_status:"active",
       v_kyc_comments: responseData.status_description?.comments || null,
       v_kyc_doc_completion_date: v_kyc_customer_completion_date,
       v_kyc_completed_by_customer,
@@ -636,26 +659,34 @@ export class VideokycService {
     };
 
     console.log(vkycData);
-// // Use upsert with partner_order_id as part of the unique constraint
-// await Vkyc.upsert(vkycData, {
-//   fields: Object.keys(vkycData) as (keyof Vkyc)[],
-//   conflictFields: ["partner_order_id", "profile_id"],
-// });
+    // // Use upsert with partner_order_id as part of the unique constraint
+    // await Vkyc.upsert(vkycData, {
+    //   fields: Object.keys(vkycData) as (keyof Vkyc)[],
+    //   conflictFields: ["partner_order_id", "profile_id"],
+    // });
 
-const existingVkyc = await Vkyc.findOne({
-  where: { partner_order_id: vkycData.partner_order_id, profile_id: vkycData.profile_id }
-});
+    const existingVkyc = await Vkyc.findOne({
+      where: {
+        partner_order_id: vkycData.partner_order_id,
+        profile_id: vkycData.profile_id,
+      },
+    });
 
-if (existingVkyc) {
-  // Update existing record
-  await existingVkyc.update(vkycData);
-  console.log("Event: v-KYC data updated successfully", { partner_order_id, vkycData });
-} else {
-  // Create new record
-  await Vkyc.create(vkycData);
-  console.log("Event: v-KYC data stored successfully", { partner_order_id, vkycData });
-}
-
+    if (existingVkyc) {
+      // Update existing record
+      await existingVkyc.update(vkycData);
+      console.log("Event: v-KYC data updated successfully", {
+        partner_order_id,
+        vkycData,
+      });
+    } else {
+      // Create new record
+      await Vkyc.create(vkycData);
+      console.log("Event: v-KYC data stored successfully", {
+        partner_order_id,
+        vkycData,
+      });
+    }
 
     await order.update({
       v_kyc_status,
