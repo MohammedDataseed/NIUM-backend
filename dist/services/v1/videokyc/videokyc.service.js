@@ -53,14 +53,76 @@ let VideokycService = VideokycService_1 = class VideokycService {
             Body: buffer,
             ContentType: fileType,
         };
-        try {
-            await this.s3.send(new client_s3_1.PutObjectCommand(uploadParams));
-            return `https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
+        const maxRetries = 3;
+        let attempt = 0;
+        while (attempt < maxRetries) {
+            try {
+                await this.s3.send(new client_s3_1.PutObjectCommand(uploadParams));
+                return `https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
+            }
+            catch (error) {
+                attempt++;
+                console.error(`S3 Upload Attempt ${attempt} Failed:`, error);
+                if (attempt === maxRetries) {
+                    console.error("S3 Upload Failed after retries:", error);
+                    return null;
+                }
+                await new Promise((resolve) => setTimeout(resolve, attempt * 1000));
+            }
         }
-        catch (error) {
-            console.error("Error uploading to S3:", error);
-            return null;
-        }
+    }
+    async processAndUploadVKYCFiles(resources) {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
+        const vkycDocumentsProfileReport = ((_a = resources.documents) === null || _a === void 0 ? void 0 : _a.find((doc) => doc.type === "profile_report")) || null;
+        const vkycDocuments = (vkycDocumentsProfileReport === null || vkycDocumentsProfileReport === void 0 ? void 0 : vkycDocumentsProfileReport.value) || null;
+        const vkycImagesDataSelfie = ((_b = resources.images) === null || _b === void 0 ? void 0 : _b.find((img) => img.type === "selfie")) || null;
+        const vkycImagesDataPan = ((_c = resources.images) === null || _c === void 0 ? void 0 : _c.find((img) => img.type === "ind_pan")) || null;
+        const vkycImagesDataOthers = ((_d = resources.images) === null || _d === void 0 ? void 0 : _d.filter((img) => img.type === "others")) || [];
+        const vkycVideosAgent = ((_e = resources.videos) === null || _e === void 0 ? void 0 : _e.find((video) => video.attr === "agent")) || null;
+        const vkycVideosCustomer = ((_f = resources.videos) === null || _f === void 0 ? void 0 : _f.find((video) => video.attr === "customer")) || null;
+        const vkycLocation = ((_h = (_g = resources.text) === null || _g === void 0 ? void 0 : _g.find((txt) => txt.attr === "location")) === null || _h === void 0 ? void 0 : _h.value) || null;
+        const vkycName = ((_l = (_k = (_j = resources.text) === null || _j === void 0 ? void 0 : _j.find((txt) => txt.attr === "name")) === null || _k === void 0 ? void 0 : _k.value) === null || _l === void 0 ? void 0 : _l.first_name) ||
+            null;
+        const vkycDob = ((_o = (_m = resources.text) === null || _m === void 0 ? void 0 : _m.find((txt) => txt.attr === "dob")) === null || _o === void 0 ? void 0 : _o.value) || null;
+        const uploadedFiles = {
+            documents: vkycDocuments
+                ? await this.uploadToS3(vkycDocuments, "application/pdf", "documents")
+                : null,
+            images: {
+                selfie: (vkycImagesDataSelfie === null || vkycImagesDataSelfie === void 0 ? void 0 : vkycImagesDataSelfie.value)
+                    ? await this.uploadToS3(vkycImagesDataSelfie.value, "image/jpeg", "images")
+                    : null,
+                pan: (vkycImagesDataPan === null || vkycImagesDataPan === void 0 ? void 0 : vkycImagesDataPan.value)
+                    ? await this.uploadToS3(vkycImagesDataPan.value, "image/jpeg", "images")
+                    : null,
+                others: await Promise.all(vkycImagesDataOthers.map(async (img) => {
+                    try {
+                        return img.value
+                            ? await this.uploadToS3(img.value, "image/jpeg", "images")
+                            : null;
+                    }
+                    catch (error) {
+                        console.error("Error uploading other image:", error);
+                        return null;
+                    }
+                })),
+            },
+            videos: {
+                agent: (vkycVideosAgent === null || vkycVideosAgent === void 0 ? void 0 : vkycVideosAgent.value)
+                    ? await this.uploadToS3(vkycVideosAgent.value, "video/mp4", "videos")
+                    : null,
+                customer: (vkycVideosCustomer === null || vkycVideosCustomer === void 0 ? void 0 : vkycVideosCustomer.value)
+                    ? await this.uploadToS3(vkycVideosCustomer.value, "video/mp4", "videos")
+                    : null,
+            },
+            text: {
+                location: vkycLocation,
+                name: vkycName,
+                dob: vkycDob,
+            },
+        };
+        console.log("Uploaded Files:", uploadedFiles);
+        return uploadedFiles;
     }
     async sendVideokycRequest(orderId) {
         var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
@@ -227,7 +289,10 @@ let VideokycService = VideokycService_1 = class VideokycService {
         }
         catch (error) {
             this.logger.error(`Error fetching order details: ${error.message}`, error.stack);
-            console.log("Event: Error fetching order details", { orderId, error: error.message });
+            console.log("Event: Error fetching order details", {
+                orderId,
+                error: error.message,
+            });
             if (error.response) {
                 console.error("Error Response:", error.response.data);
             }
@@ -239,7 +304,7 @@ let VideokycService = VideokycService_1 = class VideokycService {
         }
     }
     async handleEkycRetrieveWebhook(partner_order_id) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x;
         const token = process.env.API_KEY;
         if (!token) {
             throw new common_1.HttpException("Missing API key", common_1.HttpStatus.BAD_REQUEST);
@@ -282,22 +347,24 @@ let VideokycService = VideokycService_1 = class VideokycService {
             throw new common_1.HttpException("VKYC data retrieval returned empty response", common_1.HttpStatus.INTERNAL_SERVER_ERROR);
         }
         const resources = (responseData === null || responseData === void 0 ? void 0 : responseData.resources) || {};
-        const vkycDocumentsProfileReport = ((_c = resources.documents) === null || _c === void 0 ? void 0 : _c.find(doc => doc.type === "profile_report")) || null;
+        const vkycDocumentsProfileReport = ((_c = resources.documents) === null || _c === void 0 ? void 0 : _c.find((doc) => doc.type === "profile_report")) || null;
         const vkycDocuments = (vkycDocumentsProfileReport === null || vkycDocumentsProfileReport === void 0 ? void 0 : vkycDocumentsProfileReport.value) || null;
-        const vkycImagesDataSelfie = ((_d = resources.images) === null || _d === void 0 ? void 0 : _d.find(img => img.type === "selfie")) || null;
-        const vkycImagesDataPan = ((_e = resources.images) === null || _e === void 0 ? void 0 : _e.find(img => img.type === "ind_pan")) || null;
-        const vkycImagesDataOthers = ((_f = resources.images) === null || _f === void 0 ? void 0 : _f.filter(img => img.type === "others")) || [];
-        const vkycVideosAgent = ((_g = resources.videos) === null || _g === void 0 ? void 0 : _g.find(video => video.attr === "agent")) || null;
-        const vkycVideosCustomer = ((_h = resources.videos) === null || _h === void 0 ? void 0 : _h.find(video => video.attr === "customer")) || null;
-        const vkycLocation = ((_k = (_j = resources.text) === null || _j === void 0 ? void 0 : _j.find(txt => txt.attr === "location")) === null || _k === void 0 ? void 0 : _k.value) || null;
-        const vkycName = ((_o = (_m = (_l = resources.text) === null || _l === void 0 ? void 0 : _l.find(txt => txt.attr === "name")) === null || _m === void 0 ? void 0 : _m.value) === null || _o === void 0 ? void 0 : _o.first_name) || null;
-        const vkycDob = ((_q = (_p = resources.text) === null || _p === void 0 ? void 0 : _p.find(txt => txt.attr === "dob")) === null || _q === void 0 ? void 0 : _q.value) || null;
+        const vkycImagesDataSelfie = ((_d = resources.images) === null || _d === void 0 ? void 0 : _d.find((img) => img.type === "selfie")) || null;
+        const vkycImagesDataPan = ((_e = resources.images) === null || _e === void 0 ? void 0 : _e.find((img) => img.type === "ind_pan")) || null;
+        const vkycImagesDataOthers = ((_f = resources.images) === null || _f === void 0 ? void 0 : _f.filter((img) => img.type === "others")) || [];
+        const vkycVideosAgent = ((_g = resources.videos) === null || _g === void 0 ? void 0 : _g.find((video) => video.attr === "agent")) || null;
+        const vkycVideosCustomer = ((_h = resources.videos) === null || _h === void 0 ? void 0 : _h.find((video) => video.attr === "customer")) || null;
+        const textResources = Array.isArray(resources.text) ? resources.text : [];
+        const vkycLocation = ((_j = textResources.find((txt) => txt.attr === "location")) === null || _j === void 0 ? void 0 : _j.value) || null;
+        const vkycName = ((_l = (_k = textResources.find((txt) => txt.attr === "name")) === null || _k === void 0 ? void 0 : _k.value) === null || _l === void 0 ? void 0 : _l.first_name) ||
+            null;
+        const vkycDob = ((_m = textResources.find((txt) => txt.attr === "dob")) === null || _m === void 0 ? void 0 : _m.value) || null;
         const vkycDataResources = {
             documents: vkycDocuments,
             images: {
                 selfie: (vkycImagesDataSelfie === null || vkycImagesDataSelfie === void 0 ? void 0 : vkycImagesDataSelfie.value) || null,
                 pan: (vkycImagesDataPan === null || vkycImagesDataPan === void 0 ? void 0 : vkycImagesDataPan.value) || null,
-                others: vkycImagesDataOthers.map(img => img.value) || [],
+                others: vkycImagesDataOthers.map((img) => img.value) || [],
             },
             videos: {
                 agent: (vkycVideosAgent === null || vkycVideosAgent === void 0 ? void 0 : vkycVideosAgent.value) || null,
@@ -307,16 +374,17 @@ let VideokycService = VideokycService_1 = class VideokycService {
                 location: vkycLocation,
                 name: vkycName,
                 dob: vkycDob,
-            }
+            },
         };
         console.log(vkycDataResources);
         const isCompleted = responseData.status === "completed";
         const v_kyc_status = isCompleted ? "completed" : "pending";
         const v_kyc_completed_by_customer = isCompleted;
-        const v_kyc_customer_completion_date = ((_r = responseData.profile_data) === null || _r === void 0 ? void 0 : _r.completed_at)
+        const v_kyc_customer_completion_date = ((_o = responseData.profile_data) === null || _o === void 0 ? void 0 : _o.completed_at)
             ? new Date(responseData.profile_data.completed_at)
             : null;
-        if (v_kyc_customer_completion_date && isNaN(v_kyc_customer_completion_date.getTime())) {
+        if (v_kyc_customer_completion_date &&
+            isNaN(v_kyc_customer_completion_date.getTime())) {
             this.logger.error(`Invalid completed_at value: ${responseData.profile_data.completed_at}`);
             throw new common_1.HttpException("Invalid completed_at timestamp", common_1.HttpStatus.BAD_REQUEST);
         }
@@ -324,19 +392,20 @@ let VideokycService = VideokycService_1 = class VideokycService {
         const vkycData = {
             reference_id: responseData.reference_id || null,
             profile_id: v_kyc_profile_id,
+            partner_order_id: partner_order_id,
             v_kyc_status,
             v_kyc_link_status,
-            v_kyc_comments: ((_s = responseData.status_description) === null || _s === void 0 ? void 0 : _s.comments) || null,
+            v_kyc_comments: ((_p = responseData.status_description) === null || _p === void 0 ? void 0 : _p.comments) || null,
             v_kyc_doc_completion_date: v_kyc_customer_completion_date,
             v_kyc_completed_by_customer,
             device_info: responseData.device_info || null,
             profile_data: responseData.profile_data || null,
-            performed_by: ((_t = responseData.profile_data) === null || _t === void 0 ? void 0 : _t.performed_by) || null,
-            resources_documents: ((_u = responseData.resources) === null || _u === void 0 ? void 0 : _u.documents) || null,
-            resources_images: ((_v = responseData.resources) === null || _v === void 0 ? void 0 : _v.images) || null,
-            resources_videos: ((_w = responseData.resources) === null || _w === void 0 ? void 0 : _w.videos) || null,
-            resources_text: ((_x = responseData.resources) === null || _x === void 0 ? void 0 : _x.text) || null,
-            location_info: ((_0 = (_z = (_y = responseData.resources) === null || _y === void 0 ? void 0 : _y.text) === null || _z === void 0 ? void 0 : _z.find((t) => t.attr === "location")) === null || _0 === void 0 ? void 0 : _0.value) || null,
+            performed_by: ((_q = responseData.profile_data) === null || _q === void 0 ? void 0 : _q.performed_by) || null,
+            resources_documents: ((_r = responseData.resources) === null || _r === void 0 ? void 0 : _r.documents) || null,
+            resources_images: ((_s = responseData.resources) === null || _s === void 0 ? void 0 : _s.images) || null,
+            resources_videos: ((_t = responseData.resources) === null || _t === void 0 ? void 0 : _t.videos) || null,
+            resources_text: ((_u = responseData.resources) === null || _u === void 0 ? void 0 : _u.text) || null,
+            location_info: ((_x = (_w = (_v = responseData.resources) === null || _v === void 0 ? void 0 : _v.text) === null || _w === void 0 ? void 0 : _w.find((t) => t.attr === "location")) === null || _x === void 0 ? void 0 : _x.value) || null,
             reviewer_action: responseData.reviewer_action || null,
             tasks: responseData.tasks || null,
             status: responseData.status || null,
@@ -344,46 +413,28 @@ let VideokycService = VideokycService_1 = class VideokycService {
             status_detail: responseData.status_detail || null,
         };
         console.log(vkycData);
-        await vkyc_model_1.Vkyc.upsert(vkycData);
+        const existingVkyc = await vkyc_model_1.Vkyc.findOne({
+            where: { partner_order_id: vkycData.partner_order_id, profile_id: vkycData.profile_id }
+        });
+        if (existingVkyc) {
+            await existingVkyc.update(vkycData);
+            console.log("Event: v-KYC data updated successfully", { partner_order_id, vkycData });
+        }
+        else {
+            await vkyc_model_1.Vkyc.create(vkycData);
+            console.log("Event: v-KYC data stored successfully", { partner_order_id, vkycData });
+        }
         await order.update({
             v_kyc_status,
             v_kyc_customer_completion_date,
             v_kyc_completed_by_customer,
         });
         this.logger.log(`Updated Order for partner_order_id: ${partner_order_id} with VKYC status: ${v_kyc_status}`);
-        return { success: true, message: "Webhook processed successfully", data: responseData };
-    }
-    async processAndUploadVKYCFiles(resources) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
-        const vkycDocumentsProfileReport = ((_a = resources.documents) === null || _a === void 0 ? void 0 : _a.find(doc => doc.type === "profile_report")) || null;
-        const vkycDocuments = (vkycDocumentsProfileReport === null || vkycDocumentsProfileReport === void 0 ? void 0 : vkycDocumentsProfileReport.value) || null;
-        const vkycImagesDataSelfie = ((_b = resources.images) === null || _b === void 0 ? void 0 : _b.find(img => img.type === "selfie")) || null;
-        const vkycImagesDataPan = ((_c = resources.images) === null || _c === void 0 ? void 0 : _c.find(img => img.type === "ind_pan")) || null;
-        const vkycImagesDataOthers = ((_d = resources.images) === null || _d === void 0 ? void 0 : _d.filter(img => img.type === "others")) || [];
-        const vkycVideosAgent = ((_e = resources.videos) === null || _e === void 0 ? void 0 : _e.find(video => video.attr === "agent")) || null;
-        const vkycVideosCustomer = ((_f = resources.videos) === null || _f === void 0 ? void 0 : _f.find(video => video.attr === "customer")) || null;
-        const vkycLocation = ((_h = (_g = resources.text) === null || _g === void 0 ? void 0 : _g.find(txt => txt.attr === "location")) === null || _h === void 0 ? void 0 : _h.value) || null;
-        const vkycName = ((_l = (_k = (_j = resources.text) === null || _j === void 0 ? void 0 : _j.find(txt => txt.attr === "name")) === null || _k === void 0 ? void 0 : _k.value) === null || _l === void 0 ? void 0 : _l.first_name) || null;
-        const vkycDob = ((_o = (_m = resources.text) === null || _m === void 0 ? void 0 : _m.find(txt => txt.attr === "dob")) === null || _o === void 0 ? void 0 : _o.value) || null;
-        const uploadedFiles = {
-            documents: vkycDocuments ? await this.uploadToS3(vkycDocuments, "application/pdf", "documents") : null,
-            images: {
-                selfie: (vkycImagesDataSelfie === null || vkycImagesDataSelfie === void 0 ? void 0 : vkycImagesDataSelfie.value) ? await this.uploadToS3(vkycImagesDataSelfie.value, "image/jpeg", "images") : null,
-                pan: (vkycImagesDataPan === null || vkycImagesDataPan === void 0 ? void 0 : vkycImagesDataPan.value) ? await this.uploadToS3(vkycImagesDataPan.value, "image/jpeg", "images") : null,
-                others: await Promise.all(vkycImagesDataOthers.map(async (img) => img.value ? await this.uploadToS3(img.value, "image/jpeg", "images") : null)),
-            },
-            videos: {
-                agent: (vkycVideosAgent === null || vkycVideosAgent === void 0 ? void 0 : vkycVideosAgent.value) ? await this.uploadToS3(vkycVideosAgent.value, "video/mp4", "videos") : null,
-                customer: (vkycVideosCustomer === null || vkycVideosCustomer === void 0 ? void 0 : vkycVideosCustomer.value) ? await this.uploadToS3(vkycVideosCustomer.value, "video/mp4", "videos") : null,
-            },
-            text: {
-                location: vkycLocation,
-                name: vkycName,
-                dob: vkycDob,
-            }
+        return {
+            success: true,
+            message: "Webhook processed successfully",
+            data: responseData,
         };
-        console.log("Uploaded Files:", uploadedFiles);
-        return uploadedFiles;
     }
     async retrieveVideokycData(requestData) {
         try {
