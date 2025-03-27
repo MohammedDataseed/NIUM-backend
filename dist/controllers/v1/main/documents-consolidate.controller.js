@@ -136,6 +136,24 @@ let PdfController = class PdfController {
             throw new common_1.HttpException('File not found', common_1.HttpStatus.NOT_FOUND);
         }
     }
+    async getVkycFiles(folder, filename, res) {
+        const bucket = 'docnest';
+        const key = `${folder}/${filename}`;
+        try {
+            const command = new client_s3_1.GetObjectCommand({ Bucket: bucket, Key: key });
+            const s3Response = await s3.send(command);
+            if (!s3Response.Body) {
+                throw new common_1.HttpException('File not found', common_1.HttpStatus.NOT_FOUND);
+            }
+            res.setHeader('Content-Type', 'application/pdf');
+            res.setHeader('Content-Disposition', `inline; filename=${filename}`);
+            s3Response.Body.pipe(res);
+        }
+        catch (error) {
+            console.error('Error fetching file from S3:', error);
+            throw new common_1.HttpException('File not found', common_1.HttpStatus.NOT_FOUND);
+        }
+    }
 };
 exports.PdfController = PdfController;
 __decorate([
@@ -337,6 +355,15 @@ __decorate([
     __metadata("design:paramtypes", [String, String, Object]),
     __metadata("design:returntype", Promise)
 ], PdfController.prototype, "getMergedPdf", null);
+__decorate([
+    (0, common_1.Get)('vkyc/:folder/:filename'),
+    __param(0, (0, common_1.Param)('folder')),
+    __param(1, (0, common_1.Param)('filename')),
+    __param(2, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, Object]),
+    __metadata("design:returntype", Promise)
+], PdfController.prototype, "getVkycFiles", null);
 exports.PdfController = PdfController = __decorate([
     (0, swagger_1.ApiTags)("Document Management"),
     (0, common_1.Controller)("documents"),

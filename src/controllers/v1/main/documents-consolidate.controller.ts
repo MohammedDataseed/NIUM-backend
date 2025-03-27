@@ -351,22 +351,6 @@ export class PdfController {
     return await this.pdfService.deleteFile(fileKey);
   }
 
-  // @Get(':folderName/:fileName')
-  // async serveDocument(
-  //   @Param('folderName') folderName: string,
-  //   @Param('fileName') fileName: string,
-  //   @Res() res: Response,
-  // ) {
-  //   const fileStream = await this.pdfService.serveDocument(folderName, fileName);
-  //   res.setHeader('Content-Type', 'application/pdf');
-  //   fileStream.pipe(res);
-  // }
-  // @Get(':folder/:filename')
-  // async getMergedPdf(@Param('folder') folder: string, @Param('filename') filename: string, @Res() res: Response) {
-  //   const fileUrl = `https://docnest.s3.ap-south-1.amazonaws.com/${folder}/${filename}`;
-    
-  //   return res.redirect(fileUrl); // Redirect to S3
-  // }
   @Get('esign/:folder/:filename')
   async getMergedPdf(
     @Param('folder') folder: string,
@@ -395,5 +379,35 @@ export class PdfController {
       throw new HttpException('File not found', HttpStatus.NOT_FOUND);
     }
   }
+
+  @Get('vkyc/:folder/:filename')
+  async getVkycFiles(
+    @Param('folder') folder: string,
+    @Param('filename') filename: string,
+    @Res() res: Response
+  ) {
+    const bucket = 'docnest';
+    const key = `${folder}/${filename}`;
+  
+    try {
+      const command = new GetObjectCommand({ Bucket: bucket, Key: key });
+      const s3Response: GetObjectCommandOutput = await s3.send(command);
+  
+      if (!s3Response.Body) {
+        throw new HttpException('File not found', HttpStatus.NOT_FOUND);
+      }
+  
+      // Set correct headers for PDF
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `inline; filename=${filename}`);
+  
+      // Stream directly from S3 to response
+      (s3Response.Body as Readable).pipe(res);
+    } catch (error) {
+      console.error('Error fetching file from S3:', error);
+      throw new HttpException('File not found', HttpStatus.NOT_FOUND);
+    }
+  }
+
 
 }

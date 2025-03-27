@@ -43,4 +43,5 @@ export declare class PdfController {
         message: string;
     }>;
     getMergedPdf(folder: string, filename: string, res: Response): Promise<void>;
+    getVkycFiles(folder: string, filename: string, res: Response): Promise<void>;
 }

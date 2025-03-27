@@ -505,13 +505,6 @@ async handleEkycRetrieveWebhook(partner_order_id: string): Promise<any> {
   return { success: true, message: "Webhook processed successfully", data: responseData };
 }
 
-// const s3 = new AWS.S3({
-//   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-//   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-//   region: process.env.AWS_REGION,
-// });
-
-
 
 async processAndUploadVKYCFiles(resources: any) {
   // Extract profile report document
