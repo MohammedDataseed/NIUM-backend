@@ -5,6 +5,12 @@ import {
   HttpStatus,
   Logger,
 } from "@nestjs/common";
+// import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, ObjectCannedACL } from "@aws-sdk/client-s3";
+
+import { v4 as uuidv4 } from "uuid";
+
+
 import axios, { AxiosError } from "axios";
 import * as opentracing from "opentracing";
 import { Vkyc } from "src/database/models/vkyc.model";
@@ -36,6 +42,7 @@ interface VideoKycResponseOld {
   data: any;
 }
 
+
 @Injectable()
 export class VideokycService {
   private readonly REQUEST_API_URL = "https://api.kyc.idfy.com/sync/profiles";
@@ -51,14 +58,56 @@ export class VideokycService {
   private readonly ACCOUNT_ID =
     "e1628d9a6e50/7afd3aae-730e-41ff-aa4c-0914ef4dbbe0";
   private readonly logger = new Logger(VideokycService.name);
+  private readonly s3: S3Client;
 
   constructor(
     @Inject("ORDER_REPOSITORY")
     private readonly orderRepository: typeof Order,
     @Inject("V_KYC_REPOSITORY")
     private readonly vkycRepository: typeof Vkyc,
-    private readonly orderService: OrdersService
-  ) {}
+    private readonly orderService: OrdersService,
+  ) {
+        this.s3 = new S3Client({
+          region: process.env.AWS_REGION,
+          credentials: {
+            accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+            secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+          },
+        });
+  }
+
+  
+async uploadToS3(base64Data: string, fileType: string, folder: string): Promise<string | null> {
+  if (!base64Data) return null; // Skip if no data
+
+  const buffer = Buffer.from(base64Data, "base64");
+  const fileExtension = fileType.split("/")[1];
+  const fileName = `${folder}/${uuidv4()}.${fileExtension}`;
+
+  // const uploadParams = {
+  //   Bucket: process.env.AWS_S3_BUCKET_NAME!,
+  //   Key: fileName,
+  //   Body: buffer,
+  //   ContentType: fileType,
+  //   ACL: ObjectCannedACL.PUBLIC_READ, // ✅ Use enum instead of string
+  //   // ACL: "public-read",
+  // };
+  const uploadParams = {
+    Bucket: process.env.AWS_S3_BUCKET_NAME!,
+    Key: fileName,
+    Body: buffer,
+    ContentType: fileType,
+  };
+  
+
+  try {
+    await this.s3.send(new PutObjectCommand(uploadParams));
+    return `https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
+  } catch (error) {
+    console.error("Error uploading to S3:", error);
+    return null;
+  }
+}
 
   // Send Video KYC request
   async sendVideokycRequest( orderId: string): Promise<any> {
@@ -240,7 +289,7 @@ export class VideokycService {
       try {
         console.log("Event: Updating order with v-kyc details", { orderId });
         await this.orderService.updateOrder(childSpan, orderId, {
-          v_kyc_link: response.data.capture_link, // v-KYC link from response
+          v_kyc_link: response.data.capture_link ||null, // v-KYC link from response
           v_kyc_link_expires: new Date(
             response.data.capture_expires_at
           ).toISOString(), // Convert expiration time to Date
@@ -306,136 +355,210 @@ export class VideokycService {
     );
   }
 }
-  async handleEkycRetrieveWebhook(partner_order_id: string): Promise<any> {
-    const token = process.env.API_KEY; // Fetch from .env
-    if (!token || typeof token !== "string") {
-      throw new HttpException(
-        "Invalid or missing API key in configuration",
-        HttpStatus.BAD_REQUEST
-      );
-    }
-    if (!partner_order_id) {
-      throw new HttpException(
-        "Missing required field: partner_order_id",
-        HttpStatus.BAD_REQUEST
-      );
-    }
 
-    this.logger.log(
-      `Processing e-KYC retrieve webhook for partner_order_id: ${partner_order_id}`
-    );
-    // Fetch order details including partner_id and esign_doc_id
-    const order = await this.orderRepository.findOne({
-      where: { partner_order_id },
-      include: [{ model: Vkyc, as: "vkycs" }],
-    });
-
-    if (!order) {
-      this.logger.warn(
-        `No order found for partner_order_id: ${partner_order_id}`
-      );
-      throw new HttpException("Order not found", HttpStatus.NOT_FOUND);
-    }
-
-    const vkycRecords = order?.dataValues?.vkycs || [];
-
-    if (!vkycRecords.length) {
-      this.logger.warn(
-        `No ESign records found for partner_order_id: ${partner_order_id}`
-      );
-      throw new HttpException("No vkyc Records found", HttpStatus.NOT_FOUND);
-    }
-// console.log(order)
-// console.log(order?.dataValues)
-    const v_kyc_profile_id = order?.dataValues?.v_kyc_profile_id; // Adjust field name if different
-
-    if (!v_kyc_profile_id) {
-      this.logger.warn(
-        `No v_kyc_profile_id found in order for partner_order_id: ${partner_order_id}`
-      );
-      throw new HttpException(
-        "v_kyc_profile_id not available",
-        HttpStatus.BAD_REQUEST
-      );
-    }
-
-    // Prepare request payload
-    const requestData = { request_id: v_kyc_profile_id }; // Creating requestData object with profile_id
-
-    const responseData = await this.retrieveVideokycData(requestData); // Call the function to retrieve data
-
-    if (!responseData) {
-      throw new HttpException(
-        "Failed to retrieve VKYC data",
-        HttpStatus.INTERNAL_SERVER_ERROR
-      );
-    }
-
-    // Extract eSign URL from resources.documents if available (post-VKYC)
-    // const v_kyc_link_status = responseData.status || 'pending';
-    // Set v_kyc_link_status to 'completed' if present, otherwise 'pending'
-    const v_kyc_link_status =
-      responseData.status === "completed" ? "completed" : "pending";
-    const v_kyc_completed_by_customer =
-      v_kyc_link_status === "completed" ? "completed" : "pending";
-    const esignDoc = responseData.resources?.documents?.find(
-      (doc) => doc.type === "profile_report"
-    );
-    const v_kyc_link = esignDoc ? esignDoc.value : null;
-
-    // Map response data to vkycData, setting null for unavailable fields
-    const vkycData = {
-      reference_id: responseData.reference_id || null,
-      profile_id: v_kyc_profile_id,
-      v_kyc_status:v_kyc_completed_by_customer,
-      v_kyc_link_status,
-      v_kyc_comments: responseData.status_description?.comments || null,
-      v_kyc_doc_completion_date: responseData.profile_data?.completed_at
-        ? new Date(responseData.profile_data.completed_at)
-        : null,
-      device_info: responseData.device_info || null,
-      profile_data: responseData.profile_data || null,
-      performed_by: responseData.profile_data?.performed_by || null,
-      resources_documents: responseData.resources?.documents || null,
-      resources_images: responseData.resources?.images || null,
-      resources_videos: responseData.resources?.videos || null,
-      resources_text: responseData.resources?.text || null,
-      location_info:
-        responseData.resources?.text?.find((t) => t.attr === "location")
-          ?.value || null,
-      reviewer_action: responseData.reviewer_action || null,
-      tasks: responseData.tasks || null,
-      status: responseData.status || null,
-      status_description: responseData.status_description || null,
-      status_detail: responseData.status_detail || null,
-      v_kyc_completed_by_customer,
-    };
-
-    // Check if Vkyc already exists for the same profile_id
-    let vkycRecord = await Vkyc.findOne({
-      where: { profile_id: v_kyc_profile_id },
-    });
-
-    if (vkycRecord) {
-      await vkycRecord.update(vkycData);
-      this.logger.log(
-        `Updated Vkyc record for profile_id: ${v_kyc_profile_id}`
-      );
-    } else {
-      await Vkyc.create(vkycData);
-      this.logger.log(
-        `Created new Vkyc record for profile_id: ${v_kyc_profile_id}`
-      );
-    }
-
-    return {
-      success: true,
-      message: "Webhook processed successfully",
-      data: responseData,
-    };
+async handleEkycRetrieveWebhook(partner_order_id: string): Promise<any> {
+  const token = process.env.API_KEY;
+  if (!token) {
+    throw new HttpException("Missing API key", HttpStatus.BAD_REQUEST);
   }
-  // Retrieve Video KYC data
-  async retrieveVideokycData(requestData: any) {
+  if (!partner_order_id) {
+    throw new HttpException("Missing required field: partner_order_id", HttpStatus.BAD_REQUEST);
+  }
+
+  this.logger.log(`Processing VKYC webhook for partner_order_id: ${partner_order_id}`);
+
+  const order = await this.orderRepository.findOne({
+    where: { partner_order_id },
+    include: [{ model: Vkyc, as: "vkycs" }],
+  });
+
+  if (!order) {
+    this.logger.warn(`No order found for partner_order_id: ${partner_order_id}`);
+    throw new HttpException("Order not found", HttpStatus.NOT_FOUND);
+  }
+
+  if (!order.is_v_kyc_required) {
+    this.logger.log(`VKYC not required for partner_order_id: ${partner_order_id}`);
+    return { success: true, message: "VKYC not required", data: null };
+  }
+
+  const vkycRecords = order?.dataValues?.vkycs || [];
+  // const vkycRecords = order.vkycs || [];
+  if (!vkycRecords.length) {
+    this.logger.warn(`No VKYC records found for partner_order_id: ${partner_order_id}`);
+    throw new HttpException("No VKYC records found", HttpStatus.NOT_FOUND);
+  }
+
+  const v_kyc_profile_id = order?.dataValues?.v_kyc_profile_id; // Adjust field name if different
+
+  if (!v_kyc_profile_id) {
+    throw new HttpException("v_kyc_profile_id not available", HttpStatus.BAD_REQUEST);
+  }
+   // Prepare request payload
+   const requestData = { request_id: v_kyc_profile_id }; // Creating requestData object with profile_id
+
+   
+   
+   let responseData;
+   try {
+    responseData = await this.retrieveVideokycData(requestData); // Call the function to retrieve data
+    // responseData = await this.retrieveVideokycData({ request_id: v_kyc_profile_id });
+  } catch (error) {
+    this.logger.error(`Failed to retrieve VKYC data: ${error.message}`);
+    throw new HttpException("Failed to retrieve VKYC data", HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+
+  if (!responseData) {
+    throw new HttpException("VKYC data retrieval returned empty response", HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+  const resources = responseData?.resources || {};
+
+  // Extract profile report document
+  const vkycDocumentsProfileReport = resources.documents?.find(doc => doc.type === "profile_report") || null;
+  const vkycDocuments = vkycDocumentsProfileReport?.value || null;
+  
+  // Extract images
+  const vkycImagesDataSelfie = resources.images?.find(img => img.type === "selfie") || null;
+  const vkycImagesDataPan = resources.images?.find(img => img.type === "ind_pan") || null;
+  const vkycImagesDataOthers = resources.images?.filter(img => img.type === "others") || [];
+  
+  // Extract videos
+  const vkycVideosAgent = resources.videos?.find(video => video.attr === "agent") || null;
+  const vkycVideosCustomer = resources.videos?.find(video => video.attr === "customer") || null;
+  
+  // Extract location, name, and DOB
+  const vkycLocation = resources.text?.find(txt => txt.attr === "location")?.value || null;
+  const vkycName = resources.text?.find(txt => txt.attr === "name")?.value?.first_name || null;
+  const vkycDob = resources.text?.find(txt => txt.attr === "dob")?.value || null;
+  
+
+  // Consolidating extracted data into an object
+  const vkycDataResources = {
+    documents: vkycDocuments,
+    images: {
+      selfie: vkycImagesDataSelfie?.value || null,
+      pan: vkycImagesDataPan?.value || null,
+      others: vkycImagesDataOthers.map(img => img.value) || [],
+    },
+    videos: {
+      agent: vkycVideosAgent?.value || null,
+      customer: vkycVideosCustomer?.value || null,
+    },
+    text: {
+      location: vkycLocation,
+      name: vkycName,
+      dob: vkycDob,
+    }
+  };
+  
+  console.log(vkycDataResources);
+  
+  const isCompleted = responseData.status === "completed";
+  const v_kyc_status = isCompleted ? "completed" : "pending";
+  const v_kyc_completed_by_customer = isCompleted;
+  const v_kyc_customer_completion_date = responseData.profile_data?.completed_at
+    ? new Date(responseData.profile_data.completed_at)
+    : null;
+
+  if (v_kyc_customer_completion_date && isNaN(v_kyc_customer_completion_date.getTime())) {
+    this.logger.error(`Invalid completed_at value: ${responseData.profile_data.completed_at}`);
+    throw new HttpException("Invalid completed_at timestamp", HttpStatus.BAD_REQUEST);
+  }
+  const v_kyc_link_status =
+      responseData.status === "completed" ? "completed" : "pending";
+   
+  const vkycData = {
+    reference_id: responseData.reference_id || null,
+    profile_id: v_kyc_profile_id,
+    v_kyc_status,
+    v_kyc_link_status,
+    v_kyc_comments: responseData.status_description?.comments || null,
+    v_kyc_doc_completion_date: v_kyc_customer_completion_date,
+    v_kyc_completed_by_customer,
+    device_info: responseData.device_info || null,
+    profile_data: responseData.profile_data || null,
+    performed_by: responseData.profile_data?.performed_by || null,
+    resources_documents: responseData.resources?.documents || null,
+    resources_images: responseData.resources?.images || null,
+    resources_videos: responseData.resources?.videos || null,
+    resources_text: responseData.resources?.text || null,
+    location_info: responseData.resources?.text?.find((t) => t.attr === "location")?.value || null,
+    reviewer_action: responseData.reviewer_action || null,
+    tasks: responseData.tasks || null,
+    status: responseData.status || null,
+    status_description: responseData.status_description || null,
+    status_detail: responseData.status_detail || null,
+  };
+
+  console.log(vkycData)
+
+  await Vkyc.upsert(vkycData);
+
+  await order.update({
+    v_kyc_status,
+    v_kyc_customer_completion_date,
+    v_kyc_completed_by_customer,
+  });
+
+  this.logger.log(`Updated Order for partner_order_id: ${partner_order_id} with VKYC status: ${v_kyc_status}`);
+
+  return { success: true, message: "Webhook processed successfully", data: responseData };
+}
+
+// const s3 = new AWS.S3({
+//   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+//   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+//   region: process.env.AWS_REGION,
+// });
+
+
+
+async processAndUploadVKYCFiles(resources: any) {
+  // Extract profile report document
+  const vkycDocumentsProfileReport = resources.documents?.find(doc => doc.type === "profile_report") || null;
+  const vkycDocuments = vkycDocumentsProfileReport?.value || null;
+
+  // Extract images
+  const vkycImagesDataSelfie = resources.images?.find(img => img.type === "selfie") || null;
+  const vkycImagesDataPan = resources.images?.find(img => img.type === "ind_pan") || null;
+  const vkycImagesDataOthers = resources.images?.filter(img => img.type === "others") || [];
+
+  // Extract videos
+  const vkycVideosAgent = resources.videos?.find(video => video.attr === "agent") || null;
+  const vkycVideosCustomer = resources.videos?.find(video => video.attr === "customer") || null;
+
+  // Extract location, name, and DOB
+  const vkycLocation = resources.text?.find(txt => txt.attr === "location")?.value || null;
+  const vkycName = resources.text?.find(txt => txt.attr === "name")?.value?.first_name || null;
+  const vkycDob = resources.text?.find(txt => txt.attr === "dob")?.value || null;
+
+  // Upload files to S3
+  const uploadedFiles = {
+    documents: vkycDocuments ? await this.uploadToS3(vkycDocuments, "application/pdf", "documents") : null,
+    images: {
+      selfie: vkycImagesDataSelfie?.value ? await this.uploadToS3(vkycImagesDataSelfie.value, "image/jpeg", "images") : null,
+      pan: vkycImagesDataPan?.value ? await this.uploadToS3(vkycImagesDataPan.value, "image/jpeg", "images") : null,
+      others: await Promise.all(
+        vkycImagesDataOthers.map(async (img) => img.value ? await this.uploadToS3(img.value, "image/jpeg", "images") : null)
+      ),
+    },
+    videos: {
+      agent: vkycVideosAgent?.value ? await this.uploadToS3(vkycVideosAgent.value, "video/mp4", "videos") : null,
+      customer: vkycVideosCustomer?.value ? await this.uploadToS3(vkycVideosCustomer.value, "video/mp4", "videos") : null,
+    },
+    text: {
+      location: vkycLocation,
+      name: vkycName,
+      dob: vkycDob,
+    }
+  };
+
+  console.log("Uploaded Files:", uploadedFiles);
+
+  return uploadedFiles;
+}
+
+async retrieveVideokycData(requestData: any) {
     try {
       // Construct the URL with the request_id
       const url = `https://api.kyc.idfy.com/profiles/${requestData.request_id}`;
@@ -450,8 +573,8 @@ export class VideokycService {
         },
       });
 
-      console.log(response.data);
-
+      console.log("VKYC API Response:", JSON.stringify(response.data, null, 2)); // Log full response
+   
       return response.data;
     } catch (error) {
       this.handleError(error);
