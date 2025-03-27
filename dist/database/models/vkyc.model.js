@@ -100,11 +100,23 @@ __decorate([
 __decorate([
     (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.JSONB, allowNull: true }),
     __metadata("design:type", Array)
+], Vkyc.prototype, "resources_documents_files", void 0);
+__decorate([
+    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.JSONB, allowNull: true }),
+    __metadata("design:type", Array)
 ], Vkyc.prototype, "resources_images", void 0);
 __decorate([
     (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.JSONB, allowNull: true }),
     __metadata("design:type", Array)
+], Vkyc.prototype, "resources_images_files", void 0);
+__decorate([
+    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.JSONB, allowNull: true }),
+    __metadata("design:type", Array)
 ], Vkyc.prototype, "resources_videos", void 0);
+__decorate([
+    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.JSONB, allowNull: true }),
+    __metadata("design:type", Array)
+], Vkyc.prototype, "resources_videos_files", void 0);
 __decorate([
     (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.JSONB, allowNull: true }),
     __metadata("design:type", Array)

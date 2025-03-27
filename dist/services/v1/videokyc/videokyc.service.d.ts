@@ -14,7 +14,9 @@ export declare class VideokycService {
     private readonly logger;
     private readonly s3;
     constructor(orderRepository: typeof Order, vkycRepository: typeof Vkyc, orderService: OrdersService);
-    uploadToS3(base64Data: string, fileType: string, folder: string): Promise<string | null>;
+    sendVideokycRequest(orderId: string): Promise<any>;
+    handleEkycRetrieveWebhook(partner_order_id: string): Promise<any>;
+    uploadToS3(base64Data: string, fileType: string, folder: string, fileName?: string): Promise<string | null>;
     processAndUploadVKYCFiles(resources: any, pathString: string): Promise<{
         documents: string;
         images: {
@@ -27,8 +29,6 @@ export declare class VideokycService {
             customer: string;
         };
     }>;
-    sendVideokycRequest(orderId: string): Promise<any>;
-    handleEkycRetrieveWebhook(partner_order_id: string): Promise<any>;
     retrieveVideokycData(requestData: any): Promise<any>;
     getTaskDetails(token: string, requestId: string): Promise<any>;
     private handleError;

@@ -78,18 +78,36 @@ export class Vkyc extends Model<Vkyc> {
   @Column({ type: DataType.JSONB, allowNull: true })
   performed_by: any[];  // stores actions performed by various accounts
 
-  @Column({ type: DataType.JSONB, allowNull: true })
-  resources_documents: any[];  // stores the document resources
+  // @Column({ type: DataType.JSONB, allowNull: true })
+  // resources_documents: any[];  // stores the document resources
+
+  // @Column({ type: DataType.JSONB, allowNull: true })
+  // resources_images: any[];  // stores the image resources
+
+  // @Column({ type: DataType.JSONB, allowNull: true })
+  // resources_videos: any[];  // stores video resources
 
   @Column({ type: DataType.JSONB, allowNull: true })
-  resources_images: any[];  // stores the image resources
+resources_documents: any[];  // Stores document metadata
 
-  @Column({ type: DataType.JSONB, allowNull: true })
-  resources_videos: any[];  // stores video resources
+@Column({ type: DataType.JSONB, allowNull: true })
+resources_documents_files: any[];  // Stores document file URLs
 
-  @Column({ type: DataType.JSONB, allowNull: true })
-  resources_text: any[];  // stores text resources such as location, name, dob
-  
+@Column({ type: DataType.JSONB, allowNull: true })
+resources_images: any[];  // Stores image metadata
+
+@Column({ type: DataType.JSONB, allowNull: true })
+resources_images_files: any[];  // Stores image file URLs
+
+@Column({ type: DataType.JSONB, allowNull: true })
+resources_videos: any[];  // Stores video metadata
+
+@Column({ type: DataType.JSONB, allowNull: true })
+resources_videos_files: any[];  // Stores video file URLs
+
+@Column({ type: DataType.JSONB, allowNull: true })
+resources_text: any[];  // Stores text resources (location, name, DOB)
+
   @Column({ type: DataType.JSONB, allowNull: true })
   location_info: any;  // stores location data like address and coordinates
 

@@ -18,8 +18,11 @@ export declare class Vkyc extends Model<Vkyc> {
     profile_data: any;
     performed_by: any[];
     resources_documents: any[];
+    resources_documents_files: any[];
     resources_images: any[];
+    resources_images_files: any[];
     resources_videos: any[];
+    resources_videos_files: any[];
     resources_text: any[];
     location_info: any;
     first_name: string;

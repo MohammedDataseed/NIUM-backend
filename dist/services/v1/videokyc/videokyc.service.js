@@ -41,105 +41,6 @@ let VideokycService = VideokycService_1 = class VideokycService {
             },
         });
     }
-    async uploadToS3(base64Data, fileType, folder) {
-        if (!base64Data)
-            return null;
-        const buffer = Buffer.from(base64Data, "base64");
-        const fileExtension = fileType.split("/")[1];
-        const fileName = `${folder}/${(0, uuid_1.v4)()}.${fileExtension}`;
-        const uploadParams = {
-            Bucket: process.env.AWS_S3_BUCKET_NAME,
-            Key: fileName,
-            Body: buffer,
-            ContentType: fileType,
-        };
-        const maxRetries = 3;
-        let attempt = 0;
-        while (attempt < maxRetries) {
-            try {
-                await this.s3.send(new client_s3_1.PutObjectCommand(uploadParams));
-                return `https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
-            }
-            catch (error) {
-                attempt++;
-                console.error(`S3 Upload Attempt ${attempt} Failed:`, error);
-                if (attempt === maxRetries) {
-                    console.error("S3 Upload Failed after retries:", error);
-                    return null;
-                }
-                await new Promise((resolve) => setTimeout(resolve, attempt * 1000));
-            }
-        }
-    }
-    async processAndUploadVKYCFiles(resources, pathString) {
-        var _a, _b, _c, _d, _e, _f, _g, _h;
-        console.log(pathString);
-        const downloadAndUpload = async (url, fileType, folder) => {
-            if (!url || typeof url !== 'string')
-                return null;
-            try {
-                const urlObj = new URL(url);
-                const expires = urlObj.searchParams.get('Expires');
-                const expirationTimestamp = expires ? parseInt(expires, 10) * 1000 : null;
-                const currentTimestamp = Date.now();
-                if (expirationTimestamp && expirationTimestamp <= currentTimestamp) {
-                    this.logger.warn(`URL expired: ${url}`);
-                    return null;
-                }
-                const response = await axios_1.default.get(url, {
-                    responseType: 'arraybuffer',
-                });
-                const fileBuffer = Buffer.from(response.data);
-                const base64Data = fileBuffer.toString('base64');
-                return await this.uploadToS3(base64Data, fileType, folder);
-            }
-            catch (error) {
-                this.logger.error(`Failed to process URL ${url}: ${error.message}`);
-                return null;
-            }
-        };
-        const vkycDocuments = typeof resources.documents === 'string' ? resources.documents : null;
-        const vkycImagesDataSelfie = ((_a = resources.images) === null || _a === void 0 ? void 0 : _a.selfie) || null;
-        const vkycImagesDataPan = ((_b = resources.images) === null || _b === void 0 ? void 0 : _b.pan) || null;
-        const vkycImagesDataOthers = Array.isArray((_c = resources.images) === null || _c === void 0 ? void 0 : _c.others) ? resources.images.others : [];
-        const vkycVideosAgent = ((_d = resources.videos) === null || _d === void 0 ? void 0 : _d.agent) || null;
-        const vkycVideosCustomer = ((_e = resources.videos) === null || _e === void 0 ? void 0 : _e.customer) || null;
-        const vkycLocation = ((_f = resources.text) === null || _f === void 0 ? void 0 : _f.location) || null;
-        const vkycName = ((_g = resources.text) === null || _g === void 0 ? void 0 : _g.name) || null;
-        const vkycDob = ((_h = resources.text) === null || _h === void 0 ? void 0 : _h.dob) || null;
-        const uploadedFiles = {
-            documents: vkycDocuments
-                ? await downloadAndUpload(vkycDocuments, 'application/pdf', `${pathString}/documents`)
-                : null,
-            images: {
-                selfie: vkycImagesDataSelfie
-                    ? await downloadAndUpload(vkycImagesDataSelfie, 'image/jpeg', `${pathString}/images`)
-                    : null,
-                pan: vkycImagesDataPan
-                    ? await downloadAndUpload(vkycImagesDataPan, 'image/jpeg', `${pathString}/images`)
-                    : null,
-                others: await Promise.all(vkycImagesDataOthers.map(async (url) => {
-                    try {
-                        return url ? await downloadAndUpload(url, 'image/jpeg', `${pathString}/images`) : null;
-                    }
-                    catch (error) {
-                        this.logger.error(`Error uploading other image: ${error.message}`);
-                        return null;
-                    }
-                })),
-            },
-            videos: {
-                agent: vkycVideosAgent
-                    ? await downloadAndUpload(vkycVideosAgent, 'video/mp4', `${pathString}/videos`)
-                    : null,
-                customer: vkycVideosCustomer
-                    ? await downloadAndUpload(vkycVideosCustomer, 'video/mp4', `${pathString}/videos`)
-                    : null,
-            }
-        };
-        console.log('Uploaded Files:', uploadedFiles);
-        return uploadedFiles;
-    }
     async sendVideokycRequest(orderId) {
         var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
         this.logger.log(`Processing v-KYC request for order: ${orderId}`);
@@ -320,7 +221,7 @@ let VideokycService = VideokycService_1 = class VideokycService {
         }
     }
     async handleEkycRetrieveWebhook(partner_order_id) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u;
         const token = process.env.API_KEY;
         if (!token) {
             throw new common_1.HttpException("Missing API key", common_1.HttpStatus.BAD_REQUEST);
@@ -377,20 +278,20 @@ let VideokycService = VideokycService_1 = class VideokycService {
             null;
         const vkycDob = ((_m = textResources.find((txt) => txt.attr === "dob")) === null || _m === void 0 ? void 0 : _m.value) || null;
         const vkycDataResources = {
-            "partner_order_id": partner_order_id,
-            "documents": vkycDocuments,
-            "images": {
-                "selfie": (vkycImagesDataSelfie === null || vkycImagesDataSelfie === void 0 ? void 0 : vkycImagesDataSelfie.value) || null,
-                "pan": (vkycImagesDataPan === null || vkycImagesDataPan === void 0 ? void 0 : vkycImagesDataPan.value) || null,
-                "others": vkycImagesDataOthers.map((img) => img.value) || [],
+            partner_order_id: partner_order_id,
+            documents: vkycDocuments,
+            images: {
+                selfie: (vkycImagesDataSelfie === null || vkycImagesDataSelfie === void 0 ? void 0 : vkycImagesDataSelfie.value) || null,
+                pan: (vkycImagesDataPan === null || vkycImagesDataPan === void 0 ? void 0 : vkycImagesDataPan.value) || null,
+                others: vkycImagesDataOthers.map((img) => img.value) || [],
             },
-            "videos": {
-                "agent": (vkycVideosAgent === null || vkycVideosAgent === void 0 ? void 0 : vkycVideosAgent.value) || null,
-                "customer": (vkycVideosCustomer === null || vkycVideosCustomer === void 0 ? void 0 : vkycVideosCustomer.value) || null,
-            }
+            videos: {
+                agent: (vkycVideosAgent === null || vkycVideosAgent === void 0 ? void 0 : vkycVideosAgent.value) || null,
+                customer: (vkycVideosCustomer === null || vkycVideosCustomer === void 0 ? void 0 : vkycVideosCustomer.value) || null,
+            },
         };
         console.log(JSON.stringify(vkycDataResources, null, 2));
-        await this.processAndUploadVKYCFiles(vkycDataResources, `${partner_order_id}/vkyc_documents`);
+        const uploadedFiles = await this.processAndUploadVKYCFiles(vkycDataResources, `${partner_order_id}/vkyc_documents`);
         const isCompleted = responseData.status == "completed";
         const isRejected = responseData.reviewer_action == "rejected";
         const isInProgress = responseData.status == "in_progress" &&
@@ -429,11 +330,21 @@ let VideokycService = VideokycService_1 = class VideokycService {
             device_info: responseData.device_info || null,
             profile_data: responseData.profile_data || null,
             performed_by: ((_q = responseData.profile_data) === null || _q === void 0 ? void 0 : _q.performed_by) || null,
-            resources_documents: ((_r = responseData.resources) === null || _r === void 0 ? void 0 : _r.documents) || null,
-            resources_images: ((_s = responseData.resources) === null || _s === void 0 ? void 0 : _s.images) || null,
-            resources_videos: ((_t = responseData.resources) === null || _t === void 0 ? void 0 : _t.videos) || null,
+            resources_documents: ((_r = responseData.resources) === null || _r === void 0 ? void 0 : _r.documents) || [],
+            resources_documents_files: uploadedFiles.documents ? [uploadedFiles.documents] : [],
+            resources_images: ((_s = responseData.resources) === null || _s === void 0 ? void 0 : _s.images) || [],
+            resources_images_files: [
+                uploadedFiles.images.selfie,
+                uploadedFiles.images.pan,
+                ...uploadedFiles.images.others,
+            ].filter(Boolean),
+            resources_videos: ((_t = responseData.resources) === null || _t === void 0 ? void 0 : _t.videos) || [],
+            resources_videos_files: [
+                uploadedFiles.videos.agent,
+                uploadedFiles.videos.customer,
+            ].filter(Boolean),
             resources_text: ((_u = responseData.resources) === null || _u === void 0 ? void 0 : _u.text) || null,
-            location_info: ((_x = (_w = (_v = responseData.resources) === null || _v === void 0 ? void 0 : _v.text) === null || _w === void 0 ? void 0 : _w.find((t) => t.attr === "location")) === null || _x === void 0 ? void 0 : _x.value) || null,
+            location_info: vkycLocation || null,
             reviewer_action: responseData.reviewer_action || null,
             tasks: responseData.tasks || null,
             status: responseData.status || null,
@@ -472,6 +383,110 @@ let VideokycService = VideokycService_1 = class VideokycService {
             message: "Webhook processed successfully",
             data: responseData,
         };
+    }
+    async uploadToS3(base64Data, fileType, folder, fileName) {
+        if (!base64Data)
+            return null;
+        const buffer = Buffer.from(base64Data, "base64");
+        const fileExtension = fileType.split("/")[1];
+        const finalFileName = fileName
+            ? `${folder}/${fileName}`
+            : `${folder}/${(0, uuid_1.v4)()}.${fileExtension}`;
+        const uploadParams = {
+            Bucket: process.env.AWS_S3_BUCKET_NAME,
+            Key: finalFileName,
+            Body: buffer,
+            ContentType: fileType,
+        };
+        const maxRetries = 3;
+        let attempt = 0;
+        while (attempt < maxRetries) {
+            try {
+                await this.s3.send(new client_s3_1.PutObjectCommand(uploadParams));
+                return `https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${finalFileName}`;
+            }
+            catch (error) {
+                attempt++;
+                console.error(`S3 Upload Attempt ${attempt} Failed:`, error);
+                if (attempt === maxRetries) {
+                    console.error("S3 Upload Failed after retries:", error);
+                    return null;
+                }
+                await new Promise((resolve) => setTimeout(resolve, attempt * 1000));
+            }
+        }
+    }
+    async processAndUploadVKYCFiles(resources, pathString) {
+        var _a, _b, _c, _d, _e;
+        console.log(pathString);
+        const downloadAndUpload = async (url, fileType, folder, fileName) => {
+            if (!url || typeof url !== "string")
+                return null;
+            try {
+                const urlObj = new URL(url);
+                const expires = urlObj.searchParams.get("Expires");
+                const expirationTimestamp = expires
+                    ? parseInt(expires, 10) * 1000
+                    : null;
+                const currentTimestamp = Date.now();
+                if (expirationTimestamp && expirationTimestamp <= currentTimestamp) {
+                    this.logger.warn(`URL expired: ${url}`);
+                    return null;
+                }
+                const response = await axios_1.default.get(url, {
+                    responseType: "arraybuffer",
+                });
+                const fileBuffer = Buffer.from(response.data);
+                const base64Data = fileBuffer.toString("base64");
+                return await this.uploadToS3(base64Data, fileType, folder, fileName);
+            }
+            catch (error) {
+                this.logger.error(`Failed to process URL ${url}: ${error.message}`);
+                return null;
+            }
+        };
+        const vkycDocuments = typeof resources.documents === "string" ? resources.documents : null;
+        const vkycImagesDataSelfie = ((_a = resources.images) === null || _a === void 0 ? void 0 : _a.selfie) || null;
+        const vkycImagesDataPan = ((_b = resources.images) === null || _b === void 0 ? void 0 : _b.pan) || null;
+        const vkycImagesDataOthers = Array.isArray((_c = resources.images) === null || _c === void 0 ? void 0 : _c.others)
+            ? resources.images.others
+            : [];
+        const vkycVideosAgent = ((_d = resources.videos) === null || _d === void 0 ? void 0 : _d.agent) || null;
+        const vkycVideosCustomer = ((_e = resources.videos) === null || _e === void 0 ? void 0 : _e.customer) || null;
+        const uploadedFiles = {
+            documents: vkycDocuments
+                ? await downloadAndUpload(vkycDocuments, "application/pdf", `${pathString}/documents`, "profile_report.pdf")
+                : null,
+            images: {
+                selfie: vkycImagesDataSelfie
+                    ? await downloadAndUpload(vkycImagesDataSelfie, "image/jpeg", `${pathString}/images`, "selfie.jpg")
+                    : null,
+                pan: vkycImagesDataPan
+                    ? await downloadAndUpload(vkycImagesDataPan, "image/jpeg", `${pathString}/images`, "ind_pan.jpg")
+                    : null,
+                others: await Promise.all(vkycImagesDataOthers.map(async (url, index) => {
+                    try {
+                        return url
+                            ? await downloadAndUpload(url, "image/jpeg", `${pathString}/images`, `others_${index + 1}.jpg`)
+                            : null;
+                    }
+                    catch (error) {
+                        this.logger.error(`Error uploading other image: ${error.message}`);
+                        return null;
+                    }
+                })),
+            },
+            videos: {
+                agent: vkycVideosAgent
+                    ? await downloadAndUpload(vkycVideosAgent, "video/mp4", `${pathString}/videos`, "agent.mp4")
+                    : null,
+                customer: vkycVideosCustomer
+                    ? await downloadAndUpload(vkycVideosCustomer, "video/mp4", `${pathString}/videos`, "customer.mp4")
+                    : null,
+            },
+        };
+        console.log("Uploaded Files:", uploadedFiles);
+        return uploadedFiles;
     }
     async retrieveVideokycData(requestData) {
         try {

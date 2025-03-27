@@ -50,132 +50,6 @@ export class VideokycService {
     });
   }
 
-  async uploadToS3(
-    base64Data: string,
-    fileType: string,
-    folder: string
-  ): Promise<string | null> {
-    if (!base64Data) return null; // Skip if no data
-
-    const buffer = Buffer.from(base64Data, "base64");
-    const fileExtension = fileType.split("/")[1];
-    const fileName = `${folder}/${uuidv4()}.${fileExtension}`;
-
-    const uploadParams = {
-      Bucket: process.env.AWS_S3_BUCKET_NAME!,
-      Key: fileName,
-      Body: buffer,
-      ContentType: fileType,
-    };
-
-    const maxRetries = 3;
-    let attempt = 0;
-    while (attempt < maxRetries) {
-      try {
-        await this.s3.send(new PutObjectCommand(uploadParams));
-        return `https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
-      } catch (error) {
-        attempt++;
-        console.error(`S3 Upload Attempt ${attempt} Failed:`, error);
-        if (attempt === maxRetries) {
-          console.error("S3 Upload Failed after retries:", error);
-          return null;
-        }
-        await new Promise((resolve) => setTimeout(resolve, attempt * 1000)); // Exponential backoff
-      }
-    }
-  }
-
-
-  async processAndUploadVKYCFiles(resources: any, pathString: string) {
-    console.log(pathString)
-    // Helper function to download and upload a file from a URL
-    const downloadAndUpload = async (url: string, fileType: string, folder: string): Promise<string | null> => {
-      if (!url || typeof url !== 'string') return null;
-  
-      try {
-        // Check expiration
-        const urlObj = new URL(url);
-        const expires = urlObj.searchParams.get('Expires');
-        const expirationTimestamp = expires ? parseInt(expires, 10) * 1000 : null; // Convert to milliseconds
-        const currentTimestamp = Date.now();
-  
-        if (expirationTimestamp && expirationTimestamp <= currentTimestamp) {
-          this.logger.warn(`URL expired: ${url}`);
-          return null;
-        }
-  
-        // Download the file
-        const response = await axios.get(url, {
-          responseType: 'arraybuffer', // Handle binary data (PDFs, images, videos)
-        });
-        const fileBuffer = Buffer.from(response.data);
-        const base64Data = fileBuffer.toString('base64');
-  
-        // Upload to S3
-        return await this.uploadToS3(base64Data, fileType, folder);
-      } catch (error) {
-        this.logger.error(`Failed to process URL ${url}: ${error.message}`);
-        return null;
-      }
-    };
-  
-    // Extract and process documents
-    const vkycDocuments = typeof resources.documents === 'string' ? resources.documents : null;
-  
-    // Extract images
-    const vkycImagesDataSelfie = resources.images?.selfie || null;
-    const vkycImagesDataPan = resources.images?.pan || null;
-    const vkycImagesDataOthers = Array.isArray(resources.images?.others) ? resources.images.others : [];
-  
-    // Extract videos
-    const vkycVideosAgent = resources.videos?.agent || null;
-    const vkycVideosCustomer = resources.videos?.customer || null;
-  
-    // Extract text (no upload needed, just pass through)
-    const vkycLocation = resources.text?.location || null;
-    const vkycName = resources.text?.name || null;
-    const vkycDob = resources.text?.dob || null;
-  
-    // Upload files to S3
-    const uploadedFiles = {
-      documents: vkycDocuments
-        ? await downloadAndUpload(vkycDocuments, 'application/pdf', `${pathString}/documents`)
-        : null,
-      images: {
-        selfie: vkycImagesDataSelfie
-          ? await downloadAndUpload(vkycImagesDataSelfie, 'image/jpeg', `${pathString}/images`)
-          : null,
-        pan: vkycImagesDataPan
-          ? await downloadAndUpload(vkycImagesDataPan, 'image/jpeg', `${pathString}/images`)
-          : null,
-        others: await Promise.all(
-          vkycImagesDataOthers.map(async (url: string) => {
-            try {
-              return url ? await downloadAndUpload(url, 'image/jpeg', `${pathString}/images`) : null;
-            } catch (error) {
-              this.logger.error(`Error uploading other image: ${error.message}`);
-              return null;
-            }
-          }),
-        ),
-      },
-      videos: {
-        agent: vkycVideosAgent
-          ? await downloadAndUpload(vkycVideosAgent, 'video/mp4', `${pathString}/videos`)
-          : null,
-        customer: vkycVideosCustomer
-          ? await downloadAndUpload(vkycVideosCustomer, 'video/mp4', `${pathString}/videos`)
-          : null,
-      }
-    };
-  
-    console.log('Uploaded Files:', uploadedFiles);
-  
-    return uploadedFiles;
-  }
-
- 
   async sendVideokycRequest(orderId: string): Promise<any> {
     // if (!token || typeof token !== "string") {
     //   console.log("Token Validation Failed:", {
@@ -504,40 +378,41 @@ export class VideokycService {
     // Extract profile report document
     // const vkycDocumentsProfileReport =
     //   resources.documents?.find((doc) => doc.type === "profile_report") || null;
-    
+
     // Extract profile report document URL
-    const vkycDocumentsProfileReport = resources.documents?.find((doc) => doc.type === "profile_report") || null;
+    const vkycDocumentsProfileReport =
+      resources.documents?.find((doc) => doc.type === "profile_report") || null;
     const vkycDocuments = vkycDocumentsProfileReport?.value || null;
-  const profileReportUrl = vkycDocumentsProfileReport?.value || null;
+    const profileReportUrl = vkycDocumentsProfileReport?.value || null;
 
-  // // Check expiration and upload to S3 if not expired
-  // let profileReportUrlS3: string | null = null;
-  // if (profileReportUrl) {
-  //   try {
-  //     const url = new URL(profileReportUrl);
-  //     const expires = url.searchParams.get("Expires");
-  //     const expirationTimestamp = expires ? parseInt(expires, 10) * 1000 : null; // Convert to milliseconds
-  //     const currentTimestamp = Date.now();
+    // // Check expiration and upload to S3 if not expired
+    // let profileReportUrlS3: string | null = null;
+    // if (profileReportUrl) {
+    //   try {
+    //     const url = new URL(profileReportUrl);
+    //     const expires = url.searchParams.get("Expires");
+    //     const expirationTimestamp = expires ? parseInt(expires, 10) * 1000 : null; // Convert to milliseconds
+    //     const currentTimestamp = Date.now();
 
-  //     if (expirationTimestamp && expirationTimestamp > currentTimestamp) {
-  //       // Download the file
-  //       const fileResponse = await axios.get(profileReportUrl, {
-  //         responseType: "arraybuffer", // Handle binary data
-  //       });
-  //       const fileBuffer = Buffer.from(fileResponse.data);
+    //     if (expirationTimestamp && expirationTimestamp > currentTimestamp) {
+    //       // Download the file
+    //       const fileResponse = await axios.get(profileReportUrl, {
+    //         responseType: "arraybuffer", // Handle binary data
+    //       });
+    //       const fileBuffer = Buffer.from(fileResponse.data);
 
-  //       // Upload to S3
-  //       profileReportUrlS3 = await this.uploadToS3(fileBuffer.toString("base64"), "application/pdf", `${partner_order_id}/vkyc_documents`);
-  //       this.logger.log(`Uploaded profile report to S3: ${profileReportUrlS3}`);
-  //     } else {
-  //       this.logger.warn(`Profile report URL expired: ${profileReportUrl}`);
-  //     }
-  //   } catch (error) {
-  //     this.logger.error(`Failed to process profile report URL: ${error.message}`);
-  //   }
-  // }
+    //       // Upload to S3
+    //       profileReportUrlS3 = await this.uploadToS3(fileBuffer.toString("base64"), "application/pdf", `${partner_order_id}/vkyc_documents`);
+    //       this.logger.log(`Uploaded profile report to S3: ${profileReportUrlS3}`);
+    //     } else {
+    //       this.logger.warn(`Profile report URL expired: ${profileReportUrl}`);
+    //     }
+    //   } catch (error) {
+    //     this.logger.error(`Failed to process profile report URL: ${error.message}`);
+    //   }
+    // }
 
-  // console.log(profileReportUrlS3)
+    // console.log(profileReportUrlS3)
 
     // Extract images
     const vkycImagesDataSelfie =
@@ -567,22 +442,28 @@ export class VideokycService {
 
     // Consolidating extracted data into an object
     const vkycDataResources = {
-      "partner_order_id":partner_order_id,
-      "documents": vkycDocuments,
-      "images": {
-        "selfie": vkycImagesDataSelfie?.value || null,
-        "pan": vkycImagesDataPan?.value || null,
-        "others": vkycImagesDataOthers.map((img) => img.value) || [],
+      partner_order_id: partner_order_id,
+      documents: vkycDocuments,
+      images: {
+        selfie: vkycImagesDataSelfie?.value || null,
+        pan: vkycImagesDataPan?.value || null,
+        others: vkycImagesDataOthers.map((img) => img.value) || [],
       },
-      "videos": {
-        "agent": vkycVideosAgent?.value || null,
-        "customer": vkycVideosCustomer?.value || null,
-      }
+      videos: {
+        agent: vkycVideosAgent?.value || null,
+        customer: vkycVideosCustomer?.value || null,
+      },
     };
 
-    console.log(JSON.stringify(vkycDataResources,null,2));
+    console.log(JSON.stringify(vkycDataResources, null, 2));
 
-    await this.processAndUploadVKYCFiles(vkycDataResources,`${partner_order_id}/vkyc_documents`);
+    // await this.processAndUploadVKYCFiles(vkycDataResources,`${partner_order_id}/vkyc_documents`);
+
+    // Upload files and get S3 URLs
+    const uploadedFiles = await this.processAndUploadVKYCFiles(
+      vkycDataResources,
+      `${partner_order_id}/vkyc_documents`
+    );
 
     const isCompleted = responseData.status == "completed";
     const isRejected = responseData.reviewer_action == "rejected";
@@ -590,8 +471,7 @@ export class VideokycService {
       responseData.status == "in_progress" &&
       responseData.reviewer_action == null;
 
-   
-      let v_kyc_status: string;
+    let v_kyc_status: string;
     if (responseData.reviewer_action == "rejected") {
       v_kyc_status = "rejected";
     } else if (isCompleted && responseData.reviewer_action == "approved") {
@@ -620,32 +500,98 @@ export class VideokycService {
         HttpStatus.BAD_REQUEST
       );
     }
+    // const vkycData = {
+    //   reference_id: responseData.reference_id || null,
+    //   profile_id: v_kyc_profile_id,
+    //   partner_order_id: partner_order_id,
+    //   v_kyc_status,
+    //   v_kyc_link_status: "active",
+    //   v_kyc_comments: responseData.status_description?.comments || null,
+    //   v_kyc_doc_completion_date: v_kyc_customer_completion_date,
+    //   v_kyc_completed_by_customer,
+    //   device_info: responseData.device_info || null,
+    //   profile_data: responseData.profile_data || null,
+    //   performed_by: responseData.profile_data?.performed_by || null,
+    //   // resources_documents: responseData.resources?.documents || null,
+    //   // resources_images: responseData.resources?.images || null,
+    //   // resources_videos: responseData.resources?.videos || null,
+    //   resources_documents: uploadedFiles.documents
+    //     ? [uploadedFiles.documents]
+    //     : [],
+    //   resources_images: [
+    //     uploadedFiles.images.selfie,
+    //     uploadedFiles.images.pan,
+    //     ...uploadedFiles.images.others,
+    //   ].filter(Boolean), // Remove null/undefined values
+    //   resources_videos: {
+    //     agent: uploadedFiles.videos.agent,
+    //     customer: uploadedFiles.videos.customer,
+    //   },
+    //   //     resources_documents: uploadedFiles.documents , // S3 URL for document
+    //   // resources_images: {
+    //   //   selfie: uploadedFiles.images.selfie, // S3 URL for selfie
+    //   //   pan: uploadedFiles.images.pan, // S3 URL for PAN
+    //   //   others: uploadedFiles.images.others, // S3 URLs for other images
+    //   // },
+    //   // resources_videos: {
+    //   //   agent: uploadedFiles.videos.agent, // S3 URL for agent video
+    //   //   customer: uploadedFiles.videos.customer, // S3 URL for customer video
+    //   // },
+    //   resources_text: responseData.resources?.text || null,
+    //   location_info:
+    //     responseData.resources?.text?.find((t) => t.attr === "location")
+    //       ?.value || null,
+    //   reviewer_action: responseData.reviewer_action || null,
+    //   tasks: responseData.tasks || null,
+    //   status: responseData.status || null,
+    //   status_description: responseData.status_description || null,
+    //   status_detail: responseData.status_detail || null,
+    // };
+
+
     const vkycData = {
       reference_id: responseData.reference_id || null,
       profile_id: v_kyc_profile_id,
       partner_order_id: partner_order_id,
       v_kyc_status,
-      v_kyc_link_status:"active",
+      v_kyc_link_status: "active",
       v_kyc_comments: responseData.status_description?.comments || null,
       v_kyc_doc_completion_date: v_kyc_customer_completion_date,
       v_kyc_completed_by_customer,
       device_info: responseData.device_info || null,
       profile_data: responseData.profile_data || null,
       performed_by: responseData.profile_data?.performed_by || null,
-      resources_documents: responseData.resources?.documents || null,
-      resources_images: responseData.resources?.images || null,
-      resources_videos: responseData.resources?.videos || null,
+      // resources_documents: uploadedFiles.documents ? [uploadedFiles.documents] : [],
+      // resources_images: [
+      //   uploadedFiles.images.selfie,
+      //   uploadedFiles.images.pan,
+      //   ...uploadedFiles.images.others,
+      // ].filter(Boolean),
+      // resources_videos: [
+      //   uploadedFiles.videos.agent,
+      //   uploadedFiles.videos.customer,
+      // ].filter(Boolean), // Remove null/undefined values
+      resources_documents: responseData.resources?.documents || [], // Metadata
+  resources_documents_files: uploadedFiles.documents ? [uploadedFiles.documents] : [], // File URLs
+  resources_images: responseData.resources?.images || [], // Metadata
+  resources_images_files: [
+    uploadedFiles.images.selfie,
+    uploadedFiles.images.pan,
+    ...uploadedFiles.images.others,
+  ].filter(Boolean), // File URLs
+  resources_videos: responseData.resources?.videos || [], // Metadata
+  resources_videos_files: [
+    uploadedFiles.videos.agent,
+    uploadedFiles.videos.customer,
+  ].filter(Boolean), // File URLs
       resources_text: responseData.resources?.text || null,
-      location_info:
-        responseData.resources?.text?.find((t) => t.attr === "location")
-          ?.value || null,
+      location_info: vkycLocation || null,
       reviewer_action: responseData.reviewer_action || null,
       tasks: responseData.tasks || null,
       status: responseData.status || null,
       status_description: responseData.status_description || null,
       status_detail: responseData.status_detail || null,
     };
-
     console.log(vkycData);
     // // Use upsert with partner_order_id as part of the unique constraint
     // await Vkyc.upsert(vkycData, {
@@ -691,6 +637,175 @@ export class VideokycService {
       message: "Webhook processed successfully",
       data: responseData,
     };
+  }
+
+  async uploadToS3(
+    base64Data: string,
+    fileType: string,
+    folder: string,
+    fileName?: string // Make filename optional
+  ): Promise<string | null> {
+    if (!base64Data) return null; // Skip if no data
+
+    const buffer = Buffer.from(base64Data, "base64");
+    const fileExtension = fileType.split("/")[1];
+
+    // Use provided filename or generate a UUID-based name
+    const finalFileName = fileName
+      ? `${folder}/${fileName}`
+      : `${folder}/${uuidv4()}.${fileExtension}`;
+
+    const uploadParams = {
+      Bucket: process.env.AWS_S3_BUCKET_NAME!,
+      Key: finalFileName,
+      Body: buffer,
+      ContentType: fileType,
+    };
+
+    const maxRetries = 3;
+    let attempt = 0;
+    while (attempt < maxRetries) {
+      try {
+        await this.s3.send(new PutObjectCommand(uploadParams));
+        return `https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${finalFileName}`;
+      } catch (error) {
+        attempt++;
+        console.error(`S3 Upload Attempt ${attempt} Failed:`, error);
+        if (attempt === maxRetries) {
+          console.error("S3 Upload Failed after retries:", error);
+          return null;
+        }
+        await new Promise((resolve) => setTimeout(resolve, attempt * 1000)); // Exponential backoff
+      }
+    }
+  }
+
+  async processAndUploadVKYCFiles(resources: any, pathString: string) {
+    console.log(pathString);
+
+    // Helper function to download and upload a file from a URL
+    const downloadAndUpload = async (
+      url: string,
+      fileType: string,
+      folder: string,
+      fileName: string
+    ): Promise<string | null> => {
+      if (!url || typeof url !== "string") return null;
+
+      try {
+        // Check expiration
+        const urlObj = new URL(url);
+        const expires = urlObj.searchParams.get("Expires");
+        const expirationTimestamp = expires
+          ? parseInt(expires, 10) * 1000
+          : null;
+        const currentTimestamp = Date.now();
+
+        if (expirationTimestamp && expirationTimestamp <= currentTimestamp) {
+          this.logger.warn(`URL expired: ${url}`);
+          return null;
+        }
+
+        // Download the file
+        const response = await axios.get(url, {
+          responseType: "arraybuffer",
+        });
+        const fileBuffer = Buffer.from(response.data);
+        const base64Data = fileBuffer.toString("base64");
+
+        // Upload to S3 with specified filename
+        return await this.uploadToS3(base64Data, fileType, folder, fileName);
+      } catch (error) {
+        this.logger.error(`Failed to process URL ${url}: ${error.message}`);
+        return null;
+      }
+    };
+
+    // Extract and process documents
+    const vkycDocuments =
+      typeof resources.documents === "string" ? resources.documents : null;
+
+    // Extract images
+    const vkycImagesDataSelfie = resources.images?.selfie || null;
+    const vkycImagesDataPan = resources.images?.pan || null;
+    const vkycImagesDataOthers = Array.isArray(resources.images?.others)
+      ? resources.images.others
+      : [];
+
+    // Extract videos
+    const vkycVideosAgent = resources.videos?.agent || null;
+    const vkycVideosCustomer = resources.videos?.customer || null;
+
+    // Upload files to S3 with specific filenames
+    const uploadedFiles = {
+      documents: vkycDocuments
+        ? await downloadAndUpload(
+            vkycDocuments,
+            "application/pdf",
+            `${pathString}/documents`,
+            "profile_report.pdf"
+          )
+        : null,
+      images: {
+        selfie: vkycImagesDataSelfie
+          ? await downloadAndUpload(
+              vkycImagesDataSelfie,
+              "image/jpeg",
+              `${pathString}/images`,
+              "selfie.jpg"
+            )
+          : null,
+        pan: vkycImagesDataPan
+          ? await downloadAndUpload(
+              vkycImagesDataPan,
+              "image/jpeg",
+              `${pathString}/images`,
+              "ind_pan.jpg"
+            )
+          : null,
+        others: await Promise.all(
+          vkycImagesDataOthers.map(async (url: string, index: number) => {
+            try {
+              return url
+                ? await downloadAndUpload(
+                    url,
+                    "image/jpeg",
+                    `${pathString}/images`,
+                    `others_${index + 1}.jpg`
+                  )
+                : null;
+            } catch (error) {
+              this.logger.error(
+                `Error uploading other image: ${error.message}`
+              );
+              return null;
+            }
+          })
+        ),
+      },
+      videos: {
+        agent: vkycVideosAgent
+          ? await downloadAndUpload(
+              vkycVideosAgent,
+              "video/mp4",
+              `${pathString}/videos`,
+              "agent.mp4"
+            )
+          : null,
+        customer: vkycVideosCustomer
+          ? await downloadAndUpload(
+              vkycVideosCustomer,
+              "video/mp4",
+              `${pathString}/videos`,
+              "customer.mp4"
+            )
+          : null,
+      },
+    };
+
+    console.log("Uploaded Files:", uploadedFiles);
+
+    return uploadedFiles;
   }
 
   async retrieveVideokycData(requestData: any) {
