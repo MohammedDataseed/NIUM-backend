@@ -35,7 +35,6 @@ export declare class VideokycService {
         };
     }>;
     retrieveVideokycData(requestData: any): Promise<any>;
-    sendVideokycRequestOld(token: string, referenceId: string): Promise<any>;
     getTaskDetails(token: string, requestId: string): Promise<any>;
     private handleError;
 }

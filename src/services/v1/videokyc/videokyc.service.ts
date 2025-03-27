@@ -17,32 +17,6 @@ import { Vkyc } from "src/database/models/vkyc.model";
 import { OrdersService } from "../order/order.service";
 import { Order } from "src/database/models/order.model";
 
-// Define interfaces for request and response payloads
-interface VideoKycRequestPayload {
-  reference_id: string;
-  config: {
-    id: string;
-    overrides: Record<string, any>;
-  };
-  data: {
-    addresses: any[];
-  };
-}
-
-interface VideoKycResponse {
-  success: boolean; // Add this field
-  status: string;
-  message: string;
-  data: any;
-}
-
-interface VideoKycResponseOld {
-  // Define the expected structure of the response data
-  status: string;
-  data: any;
-}
-
-
 @Injectable()
 export class VideokycService {
   private readonly REQUEST_API_URL = "https://api.kyc.idfy.com/sync/profiles";
@@ -50,9 +24,6 @@ export class VideokycService {
   private readonly RETRIEVE_API_URL =
     "https://eve.idfy.com/v3/tasks/sync/generate/esign_retrieve";
 
-  // private readonly API_URL = process.env.VKYC_REQUEST_API_URL;  // Get from .env
-  // private readonly API_KEY=process.env.VKYC_REQUEST_API_KEY
-  // private readonly ACCOUNT_ID = process.env.VKYC_ACCOUNT_ID; // Get from .env
   private readonly CONFIG_ID = process.env.VKYC_CONFIG_ID; // Get from .env
   private readonly API_KEY = "fbb65739-9015-4d88-b2f5-5057e1b1f07e";
   private readonly ACCOUNT_ID =
@@ -84,14 +55,6 @@ async uploadToS3(base64Data: string, fileType: string, folder: string): Promise<
   const fileExtension = fileType.split("/")[1];
   const fileName = `${folder}/${uuidv4()}.${fileExtension}`;
 
-  // const uploadParams = {
-  //   Bucket: process.env.AWS_S3_BUCKET_NAME!,
-  //   Key: fileName,
-  //   Body: buffer,
-  //   ContentType: fileType,
-  //   ACL: ObjectCannedACL.PUBLIC_READ, // ✅ Use enum instead of string
-  //   // ACL: "public-read",
-  // };
   const uploadParams = {
     Bucket: process.env.AWS_S3_BUCKET_NAME!,
     Key: fileName,
@@ -568,41 +531,6 @@ async retrieveVideokycData(requestData: any) {
 
       console.log("VKYC API Response:", JSON.stringify(response.data, null, 2)); // Log full response
    
-      return response.data;
-    } catch (error) {
-      this.handleError(error);
-    }
-  }
-
-  async sendVideokycRequestOld(
-    token: string,
-    referenceId: string
-  ): Promise<any> {
-    try {
-      const requestData: VideoKycRequestPayload = {
-        reference_id: referenceId,
-        config: {
-          id: this.CONFIG_ID,
-          overrides: {},
-        },
-        data: {
-          addresses: [],
-        },
-      };
-
-      const response = await axios.post<VideoKycResponseOld>(
-        this.REQUEST_API_URL,
-        requestData,
-        {
-          headers: {
-            "api-key": this.API_KEY,
-            "account-id": this.ACCOUNT_ID,
-            "Content-Type": "application/json",
-            "X-API-Key": token,
-          },
-        }
-      );
-
       return response.data;
     } catch (error) {
       this.handleError(error);

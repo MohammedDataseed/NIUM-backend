@@ -402,32 +402,6 @@ let VideokycService = VideokycService_1 = class VideokycService {
             this.handleError(error);
         }
     }
-    async sendVideokycRequestOld(token, referenceId) {
-        try {
-            const requestData = {
-                reference_id: referenceId,
-                config: {
-                    id: this.CONFIG_ID,
-                    overrides: {},
-                },
-                data: {
-                    addresses: [],
-                },
-            };
-            const response = await axios_1.default.post(this.REQUEST_API_URL, requestData, {
-                headers: {
-                    "api-key": this.API_KEY,
-                    "account-id": this.ACCOUNT_ID,
-                    "Content-Type": "application/json",
-                    "X-API-Key": token,
-                },
-            });
-            return response.data;
-        }
-        catch (error) {
-            this.handleError(error);
-        }
-    }
     async getTaskDetails(token, requestId) {
         try {
             if (!requestId) {
