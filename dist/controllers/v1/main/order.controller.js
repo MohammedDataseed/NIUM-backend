@@ -41,7 +41,7 @@ let OrdersController = class OrdersController {
         const span = tracer.startSpan('create-order-controller');
         try {
             await this.ordersService.validatePartnerHeaders(partner_id, api_key);
-            const order = await this.ordersService.createOrder(span, createOrderDto, partner_id);
+            const order = await this.ordersService.createOrder(span, createOrderDto, partner_id, api_key);
             return order;
         }
         catch (error) {

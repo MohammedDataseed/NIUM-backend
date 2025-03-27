@@ -37,7 +37,7 @@ let OrdersService = class OrdersService {
         this.purposeTypeRepository = purposeTypeRepository;
         this.transactionTypeRepository = transactionTypeRepository;
     }
-    async createOrder(span, createOrderDto, partnerId) {
+    async createOrder(span, createOrderDto, partnerId, api_key) {
         const childSpan = span
             .tracer()
             .startSpan('create-order', { childOf: span });
@@ -50,7 +50,7 @@ let OrdersService = class OrdersService {
             }
             const partner = await this.partnerRepository.findOne({
                 where: { hashed_key: partnerId },
-                attributes: ['id', 'api_key'],
+                attributes: ['id', 'api_key', 'hashed_key'],
             });
             console.log('parter_id', partner === null || partner === void 0 ? void 0 : partner.id);
             if (!partner) {
@@ -74,6 +74,8 @@ let OrdersService = class OrdersService {
             const orderData = {
                 partner_id: partner === null || partner === void 0 ? void 0 : partner.id,
                 partner_order_id: createOrderDto.partner_order_id,
+                partner_hashed_api_key: partner === null || partner === void 0 ? void 0 : partner.api_key,
+                partner_hashed_key: partner === null || partner === void 0 ? void 0 : partner.hashed_key,
                 transaction_type: createOrderDto.transaction_type_id,
                 is_esign_required: createOrderDto.is_e_sign_required,
                 is_v_kyc_required: createOrderDto.is_v_kyc_required,
@@ -83,8 +85,8 @@ let OrdersService = class OrdersService {
                 customer_phone: createOrderDto.customer_phone,
                 customer_pan: createOrderDto.customer_pan,
                 order_status: 'pending',
-                e_sign_status: 'pending',
-                v_kyc_status: 'pending',
+                e_sign_status: createOrderDto.is_e_sign_required ? 'pending' : 'not required',
+                v_kyc_status: createOrderDto.is_v_kyc_required ? 'pending' : 'not required',
                 created_by: partner === null || partner === void 0 ? void 0 : partner.id,
                 updated_by: partner === null || partner === void 0 ? void 0 : partner.id,
             };
@@ -177,10 +179,8 @@ let OrdersService = class OrdersService {
         }
     }
     async findOneByOrderId(span, orderId) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p;
-        const childSpan = span
-            .tracer()
-            .startSpan('find-one-order', { childOf: span });
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
+        const childSpan = span.tracer().startSpan('find-one-order', { childOf: span });
         try {
             const order = await this.orderRepository.findOne({
                 where: { partner_order_id: orderId },
@@ -189,70 +189,47 @@ let OrdersService = class OrdersService {
             if (!order) {
                 throw new common_1.NotFoundException(`Order with ID ${orderId} not found`);
             }
-            const transactionTypes = await this.transactionTypeRepository.findAll({
-                attributes: ['id', 'hashed_key', 'name'],
-                raw: true,
-            });
-            const purposeTypes = await this.purposeTypeRepository.findAll({
-                attributes: ['id', 'hashed_key', 'purposeName'],
-                raw: true,
-            });
-            const transactionTypeMap = Object.fromEntries(transactionTypes.map(({ id, hashed_key, name }) => [
-                hashed_key,
-                { id, text: name },
-            ]));
-            const purposeTypeMap = Object.fromEntries(purposeTypes.map(({ id, hashed_key, purposeName }) => [
-                hashed_key,
-                { id, text: purposeName },
-            ]));
-            const latestEsign = ((_b = (_a = order.esigns) === null || _a === void 0 ? void 0 : _a.sort((a, b) => b.attempt_number - a.attempt_number)) === null || _b === void 0 ? void 0 : _b[0]) || null;
-            const latestVkyc = ((_d = (_c = order.vkycs) === null || _c === void 0 ? void 0 : _c.sort((a, b) => b.attempt_number - a.attempt_number)) === null || _d === void 0 ? void 0 : _d[0]) ||
-                null;
-            const regeneratedVkycCount = order.is_video_kyc_link_regenerated_details
-                ? order.is_video_kyc_link_regenerated_details.length
-                : 0;
-            const regeneratedEsignCount = ((_e = order.esigns) === null || _e === void 0 ? void 0 : _e.length) > 1 ? order.esigns.length - 1 : 0;
-            const extractBaseUrl = (url) => {
-                return url ? url.split('?')[0] : null;
-            };
+            const [transactionTypes, purposeTypes] = await Promise.all([
+                this.transactionTypeRepository.findAll({
+                    attributes: ['id', 'hashed_key', 'name'],
+                    raw: true,
+                }),
+                this.purposeTypeRepository.findAll({
+                    attributes: ['id', 'hashed_key', 'purposeName'],
+                    raw: true,
+                }),
+            ]);
+            const transactionTypeMap = Object.fromEntries(transactionTypes.map(({ id, hashed_key, name }) => [hashed_key, { id, text: name }]));
+            const purposeTypeMap = Object.fromEntries(purposeTypes.map(({ id, hashed_key, purposeName }) => [hashed_key, { id, text: purposeName }]));
+            const latestEsign = (_a = order.esigns) === null || _a === void 0 ? void 0 : _a.reduce((latest, current) => current.attempt_number > latest.attempt_number ? current : latest, ((_b = order.esigns) === null || _b === void 0 ? void 0 : _b[0]) || null);
+            console.log(latestEsign);
+            const latestVkyc = (_c = order.vkycs) === null || _c === void 0 ? void 0 : _c.reduce((latest, current) => current.attempt_number > latest.attempt_number ? current : latest, ((_d = order.vkycs) === null || _d === void 0 ? void 0 : _d[0]) || null);
+            const regeneratedVkycCount = ((_e = order.is_video_kyc_link_regenerated_details) === null || _e === void 0 ? void 0 : _e.length) || 0;
+            const regeneratedEsignCount = Math.max((((_f = order.esigns) === null || _f === void 0 ? void 0 : _f.length) || 1) - 1, 0);
+            const extractBaseUrl = (url) => (url === null || url === void 0 ? void 0 : url.split('?')[0]) || null;
+            const latestEsignDetails = (_g = latestEsign === null || latestEsign === void 0 ? void 0 : latestEsign.esign_details) === null || _g === void 0 ? void 0 : _g[0];
             const requestDetail = {
-                is_active: ((_f = latestEsign === null || latestEsign === void 0 ? void 0 : latestEsign.request_details[0]) === null || _f === void 0 ? void 0 : _f.is_active) || false,
+                is_active: ((_j = (_h = latestEsign === null || latestEsign === void 0 ? void 0 : latestEsign.request_details) === null || _h === void 0 ? void 0 : _h[0]) === null || _j === void 0 ? void 0 : _j.is_active) || false,
                 is_signed: (latestEsign === null || latestEsign === void 0 ? void 0 : latestEsign.is_signed) || false,
-                is_expired: (latestEsign === null || latestEsign === void 0 ? void 0 : latestEsign.esign_expiry)
-                    ? new Date(latestEsign.esign_expiry) < new Date()
-                    : false,
-                is_rejected: ((_g = latestEsign === null || latestEsign === void 0 ? void 0 : latestEsign.request_details[0]) === null || _g === void 0 ? void 0 : _g.is_rejected) || false,
+                is_expired: (latestEsign === null || latestEsign === void 0 ? void 0 : latestEsign.esign_expiry) ? new Date(latestEsign.esign_expiry) < new Date() : false,
+                is_rejected: ((_l = (_k = latestEsign === null || latestEsign === void 0 ? void 0 : latestEsign.request_details) === null || _k === void 0 ? void 0 : _k[0]) === null || _l === void 0 ? void 0 : _l.is_rejected) || false,
             };
-            let eSignStatus;
-            const { is_active, is_signed, is_expired, is_rejected } = requestDetail;
-            if (is_active && is_signed) {
-                eSignStatus = 'completed';
-            }
-            else if (is_active && !is_expired && !is_rejected && !is_signed) {
-                eSignStatus = 'pending';
-            }
-            else if (is_expired && !is_rejected) {
-                eSignStatus = 'expired';
-            }
-            else if (is_rejected || (is_active && is_expired)) {
-                eSignStatus = 'rejected';
-            }
-            else {
-                eSignStatus = 'pending';
-            }
-            const result = Object.assign({ partner_order_id: order.partner_order_id, nium_order_id: order.nium_order_id, order_status: order.order_status, is_esign_required: order.is_esign_required, is_v_kyc_required: order.is_v_kyc_required, transaction_type: transactionTypeMap[order.transaction_type] || {
-                    id: null,
-                    text: order.transaction_type,
-                }, purpose_type: purposeTypeMap[order.purpose_type] || {
-                    id: null,
-                    text: order.purpose_type,
-                }, e_sign_status: eSignStatus, e_sign_link: ((_j = (_h = latestEsign === null || latestEsign === void 0 ? void 0 : latestEsign.esign_details) === null || _h === void 0 ? void 0 : _h[0]) === null || _j === void 0 ? void 0 : _j.esign_url) || order.e_sign_link, e_sign_link_status: (_l = (_k = latestEsign === null || latestEsign === void 0 ? void 0 : latestEsign.esign_details) === null || _k === void 0 ? void 0 : _k[0]) === null || _l === void 0 ? void 0 : _l.url_status, e_sign_link_expires: ((_o = (_m = latestEsign === null || latestEsign === void 0 ? void 0 : latestEsign.esign_details) === null || _m === void 0 ? void 0 : _m[0]) === null || _o === void 0 ? void 0 : _o.esign_expiry) ||
-                    order.e_sign_link_expires, e_sign_completed_by_customer: latestEsign === null || latestEsign === void 0 ? void 0 : latestEsign.is_signed, e_sign_customer_completion_date: order.e_sign_customer_completion_date, e_sign_doc_comments: order.e_sign_doc_comments, is_e_sign_regenerated: regeneratedEsignCount > 1, e_sign_regenerated_count: regeneratedEsignCount, v_kyc_status: (latestVkyc === null || latestVkyc === void 0 ? void 0 : latestVkyc.status) || order.v_kyc_status, v_kyc_link: (latestVkyc === null || latestVkyc === void 0 ? void 0 : latestVkyc.v_kyc_link) || order.v_kyc_link, v_kyc_link_status: (latestVkyc === null || latestVkyc === void 0 ? void 0 : latestVkyc.v_kyc_link_status) || order.v_kyc_link_status, v_kyc_link_expires: (latestVkyc === null || latestVkyc === void 0 ? void 0 : latestVkyc.v_kyc_link_expires) || order.v_kyc_link_expires, v_kyc_completed_by_customer: order.v_kyc_completed_by_customer, v_kyc_customer_completion_date: order.v_kyc_customer_completion_date, v_kyc_comments: order.v_kyc_comments, is_v_kyc_link_regenerated: order.is_video_kyc_link_regenerated, v_kyc_regenerated_count: regeneratedVkycCount }, ((order === null || order === void 0 ? void 0 : order.merged_document) && {
-                merged_document: extractBaseUrl((_p = order.merged_document) === null || _p === void 0 ? void 0 : _p.url),
-            }));
-            return result;
+            const eSignStatus = order.is_esign_required
+                ? requestDetail.is_signed
+                    ? 'completed'
+                    : requestDetail.is_expired
+                        ? 'expired'
+                        : requestDetail.is_rejected
+                            ? 'rejected'
+                            : 'pending'
+                : 'not required';
+            const vKycStatus = order.is_v_kyc_required
+                ? (latestVkyc === null || latestVkyc === void 0 ? void 0 : latestVkyc.status) || order.v_kyc_status
+                : 'not required';
+            return Object.assign({ partner_order_id: order.partner_order_id, nium_order_id: order.nium_order_id, order_status: order.order_status, is_esign_required: order.is_esign_required, is_v_kyc_required: order.is_v_kyc_required, transaction_type: transactionTypeMap[order.transaction_type] || { id: null, text: order.transaction_type }, purpose_type: purposeTypeMap[order.purpose_type] || { id: null, text: order.purpose_type }, e_sign_status: eSignStatus, e_sign_link: (latestEsignDetails === null || latestEsignDetails === void 0 ? void 0 : latestEsignDetails.esign_url) || order.e_sign_link, e_sign_link_status: latestEsignDetails === null || latestEsignDetails === void 0 ? void 0 : latestEsignDetails.url_status, e_sign_link_expires: (latestEsignDetails === null || latestEsignDetails === void 0 ? void 0 : latestEsignDetails.esign_expiry) || order.e_sign_link_expires, e_sign_completed_by_customer: latestEsign === null || latestEsign === void 0 ? void 0 : latestEsign.is_signed, e_sign_customer_completion_date: (latestEsign === null || latestEsign === void 0 ? void 0 : latestEsign.is_signed) ? order.e_sign_customer_completion_date : null, e_sign_doc_comments: order.e_sign_doc_comments, is_e_sign_regenerated: regeneratedEsignCount > 1, e_sign_regenerated_count: regeneratedEsignCount, v_kyc_status: vKycStatus, v_kyc_link: (latestVkyc === null || latestVkyc === void 0 ? void 0 : latestVkyc.v_kyc_link) || order.v_kyc_link, v_kyc_link_status: (latestVkyc === null || latestVkyc === void 0 ? void 0 : latestVkyc.v_kyc_link_status) || order.v_kyc_link_status, v_kyc_link_expires: (latestVkyc === null || latestVkyc === void 0 ? void 0 : latestVkyc.v_kyc_link_expires) || order.v_kyc_link_expires, v_kyc_completed_by_customer: order.v_kyc_completed_by_customer, v_kyc_customer_completion_date: order.v_kyc_customer_completion_date, v_kyc_comments: order.v_kyc_comments, is_v_kyc_link_regenerated: order.is_video_kyc_link_regenerated, v_kyc_regenerated_count: regeneratedVkycCount }, (order.merged_document && { merged_document: extractBaseUrl((_m = order.merged_document) === null || _m === void 0 ? void 0 : _m.url) }));
         }
         catch (error) {
+            console.log(error);
             throw error;
         }
         finally {

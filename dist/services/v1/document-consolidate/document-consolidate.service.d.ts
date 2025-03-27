@@ -1,3 +1,4 @@
+import { ConfigService } from "@nestjs/config";
 import { Buffer } from "buffer";
 import { PDFDocument } from "pdf-lib";
 import { Order } from "src/database/models/order.model";
@@ -7,9 +8,10 @@ export declare class PdfService {
     private readonly documentRepository;
     private readonly orderRepository;
     private readonly documentTypeRepository;
+    private readonly configService;
     private readonly s3;
     private readonly MAX_FILE_SIZE;
-    constructor(documentRepository: typeof Documents, orderRepository: typeof Order, documentTypeRepository: typeof DocumentType);
+    constructor(documentRepository: typeof Documents, orderRepository: typeof Order, documentTypeRepository: typeof DocumentType, configService: ConfigService);
     listFilesByFolder(folderName: string): Promise<{
         order_id: string;
         files: {

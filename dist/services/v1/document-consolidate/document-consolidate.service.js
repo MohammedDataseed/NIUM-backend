@@ -14,6 +14,7 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PdfService = void 0;
 const common_1 = require("@nestjs/common");
+const config_1 = require("@nestjs/config");
 const fs = require("fs");
 const sharp = require("sharp");
 const util_1 = require("util");
@@ -25,10 +26,11 @@ const s3_request_presigner_1 = require("@aws-sdk/s3-request-presigner");
 const pdf_lib_1 = require("pdf-lib");
 const axios_1 = require("axios");
 let PdfService = class PdfService {
-    constructor(documentRepository, orderRepository, documentTypeRepository) {
+    constructor(documentRepository, orderRepository, documentTypeRepository, configService) {
         this.documentRepository = documentRepository;
         this.orderRepository = orderRepository;
         this.documentTypeRepository = documentTypeRepository;
+        this.configService = configService;
         this.MAX_FILE_SIZE = 50 * 1024 * 1024;
         this.s3 = new client_s3_1.S3Client({
             region: process.env.AWS_REGION,
@@ -449,8 +451,10 @@ let PdfService = class PdfService {
         mergedBytes = await this.compressPdfWithPdfLib(buffer_1.Buffer.from(mergedBytes), this.MAX_FILE_SIZE);
         const mergedKey = `${prefix}merged_document_${folderName}.pdf`;
         await this.uploadLargeFileToS3(mergedKey, buffer_1.Buffer.from(mergedBytes), "application/pdf");
+        const apiBaseUrl = this.configService.get("API_BASE_URL");
+        const maskedUrl = `${apiBaseUrl}/v1/api/documents/esign/${mergedKey}`;
         return {
-            files: [{ buffer: buffer_1.Buffer.from(mergedBytes), url: `https://${process.env.AWS_S3_BUCKET_NAME}.s3.amazonaws.com/${mergedKey}`, s3Key: mergedKey }],
+            files: [{ buffer: buffer_1.Buffer.from(mergedBytes), url: maskedUrl, s3Key: mergedKey }],
         };
     }
     async mergeFilesByFolder1(folderName, newFileBuffer, newFileMimeType) {
@@ -532,6 +536,6 @@ exports.PdfService = PdfService = __decorate([
     __param(0, (0, common_1.Inject)("DOCUMENTS_REPOSITORY")),
     __param(1, (0, common_1.Inject)("ORDER_REPOSITORY")),
     __param(2, (0, common_1.Inject)("DOCUMENT_TYPE_REPOSITORY")),
-    __metadata("design:paramtypes", [Object, Object, Object])
+    __metadata("design:paramtypes", [Object, Object, Object, config_1.ConfigService])
 ], PdfService);
 //# sourceMappingURL=document-consolidate.service.js.map

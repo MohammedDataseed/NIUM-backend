@@ -82,6 +82,7 @@ export class OrdersController {
         span,
         createOrderDto,
         partner_id,
+        api_key
       );
       return order;
     } catch (error) {

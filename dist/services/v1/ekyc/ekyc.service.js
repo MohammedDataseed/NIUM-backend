@@ -355,6 +355,8 @@ let EkycService = EkycService_1 = class EkycService {
                     e_sign_link_expires: validEsign.esign_expiry
                         ? new Date(validEsign.esign_expiry).toISOString()
                         : null,
+                    e_sign_completed_by_customer: is_signed ? true : false,
+                    e_sign_customer_completion_date: is_signed ? new Date().toISOString() : null,
                     e_sign_link_doc_id: (_x = (_w = responseData.result) === null || _w === void 0 ? void 0 : _w.source_output) === null || _x === void 0 ? void 0 : _x.esign_doc_id,
                     e_sign_link_request_id: responseData === null || responseData === void 0 ? void 0 : responseData.request_id,
                     partner_hashed_api_key: partnerHashedApiKey,
@@ -789,9 +791,11 @@ let EkycService = EkycService_1 = class EkycService {
         }
         const { source_output } = responseData.result;
         const requestDetail = source_output.request_details[0];
+        console.log("responseData:", responseData === null || responseData === void 0 ? void 0 : responseData.completed_at);
         const ESigncompletedAt = (responseData === null || responseData === void 0 ? void 0 : responseData.completed_at)
-            ? responseData === null || responseData === void 0 ? void 0 : responseData.completed_at
+            ? new Date(responseData.completed_at).toISOString()
             : null;
+        console.log("ESigncompletedAt:", ESigncompletedAt);
         let esignExpiry = esignRecord.esign_expiry;
         if (requestDetail.expiry_date) {
             const rawExpiry = requestDetail.expiry_date;
@@ -799,7 +803,7 @@ let EkycService = EkycService_1 = class EkycService {
             const formattedExpiry = `${year}-${month}-${day}T${hours || "00"}:${minutes || "00"}:${seconds || "00"}Z`;
             esignExpiry = new Date(formattedExpiry);
         }
-        if (ESigncompletedAt) {
+        if (ESigncompletedAt && isNaN(new Date(ESigncompletedAt).getTime())) {
             this.logger.error(`Invalid completed_at value: ${responseData.completed_at}`);
             throw new common_1.HttpException("Invalid completed_at timestamp", common_1.HttpStatus.BAD_REQUEST);
         }
@@ -809,7 +813,10 @@ let EkycService = EkycService_1 = class EkycService {
         }
         let eSignStatus;
         const { is_active, is_signed, is_expired, is_rejected } = requestDetail;
-        if (is_active && is_signed) {
+        if (orderData.e_sign_status === "not required") {
+            eSignStatus = "not required";
+        }
+        else if (is_active && is_signed) {
             eSignStatus = "completed";
         }
         else if (is_active && !is_expired && !is_rejected && !is_signed) {
@@ -848,7 +855,7 @@ let EkycService = EkycService_1 = class EkycService {
         });
         await orderData.update({
             e_sign_status: eSignStatus,
-            e_sign_customer_completion_date: ESigncompletedAt
+            e_sign_customer_completion_date: ESigncompletedAt ? new Date(ESigncompletedAt) : null
         });
         this.logger.log(`Updated Order record for task_id: ${task_id}, e_sign_status: ${eSignStatus}`);
         this.logger.log(`Updated ESign record for task_id: ${task_id}, esign_doc_id: ${esign_doc_id}`);

@@ -542,6 +542,9 @@ export class EkycService {
           e_sign_link_expires: validEsign.esign_expiry
             ? new Date(validEsign.esign_expiry).toISOString() // Use actual expiry
             : null,
+              // Update these values based on is_signed
+  e_sign_completed_by_customer: is_signed ? true : false,
+  e_sign_customer_completion_date: is_signed ? new Date().toISOString() : null,
           e_sign_link_doc_id: responseData.result?.source_output?.esign_doc_id,
           e_sign_link_request_id: responseData?.request_id,
           partner_hashed_api_key: partnerHashedApiKey,
@@ -1134,11 +1137,11 @@ export class EkycService {
 
     const { source_output } = responseData.result;
     const requestDetail = source_output.request_details[0];
-
+    console.log("responseData:", responseData?.completed_at);
     const ESigncompletedAt = responseData?.completed_at
-      ? responseData?.completed_at
-      : null;
-
+  ? new Date(responseData.completed_at).toISOString()
+  : null;
+      console.log("ESigncompletedAt:", ESigncompletedAt);
     // Manually parse `esign_expiry` if it exists
     let esignExpiry = esignRecord.esign_expiry; // Default to existing expiry
 
@@ -1153,7 +1156,7 @@ export class EkycService {
     }
 
     // Validate `completedAt`
-    if (ESigncompletedAt ) {
+    if (ESigncompletedAt && isNaN(new Date(ESigncompletedAt).getTime())) {
       this.logger.error(
         `Invalid completed_at value: ${responseData.completed_at}`
       );
@@ -1162,6 +1165,7 @@ export class EkycService {
         HttpStatus.BAD_REQUEST
       );
     }
+    
 
     // Validate `esignExpiry`
     if (esignExpiry && isNaN(esignExpiry.getTime())) {
@@ -1174,21 +1178,39 @@ export class EkycService {
       );
     }
 
-    // Determine e_sign_status
-    let eSignStatus: string;
-    const { is_active, is_signed, is_expired, is_rejected } = requestDetail;
+    // // Determine e_sign_status
+    // let eSignStatus: string;
+    // const { is_active, is_signed, is_expired, is_rejected } = requestDetail;
 
-    if (is_active && is_signed) {
-      eSignStatus = "completed";
-    } else if (is_active && !is_expired && !is_rejected && !is_signed) {
-      eSignStatus = "pending";
-    } else if (is_expired && !is_rejected) {
-      eSignStatus = "expired";
-    } else if (is_rejected || (is_active && is_expired)) {
-      eSignStatus = "rejected";
-    } else {
-      eSignStatus = "pending"; // Default case
-    }
+    // if (is_active && is_signed) {
+    //   eSignStatus = "completed";
+    // } else if (is_active && !is_expired && !is_rejected && !is_signed) {
+    //   eSignStatus = "pending";
+    // } else if (is_expired && !is_rejected) {
+    //   eSignStatus = "expired";
+    // } else if (is_rejected || (is_active && is_expired)) {
+    //   eSignStatus = "rejected";
+    // } else {
+    //   eSignStatus = "pending"; // Default case
+    // }
+    // Determine e_sign_status
+let eSignStatus: string;
+const { is_active, is_signed, is_expired, is_rejected } = requestDetail;
+
+if (orderData.e_sign_status === "not required") {
+  eSignStatus = "not required"; // Retain "not required" if it was originally set
+} else if (is_active && is_signed) {
+  eSignStatus = "completed";
+} else if (is_active && !is_expired && !is_rejected && !is_signed) {
+  eSignStatus = "pending";
+} else if (is_expired && !is_rejected) {
+  eSignStatus = "expired";
+} else if (is_rejected || (is_active && is_expired)) {
+  eSignStatus = "rejected";
+} else {
+  eSignStatus = "pending"; // Default case
+}
+
 
     await esignRecord.update({
       status: responseData.status,
@@ -1219,7 +1241,7 @@ export class EkycService {
 
     await orderData.update({
       e_sign_status: eSignStatus,
-      e_sign_customer_completion_date:ESigncompletedAt
+      e_sign_customer_completion_date: ESigncompletedAt ? new Date(ESigncompletedAt) : null
     });
 
     this.logger.log(

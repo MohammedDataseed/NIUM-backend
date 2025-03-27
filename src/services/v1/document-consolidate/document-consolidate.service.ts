@@ -7,6 +7,7 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import * as fs from "fs";
 import * as path from "path";
 import * as sharp from "sharp";
@@ -15,7 +16,6 @@ import { promisify } from "util";
 const writeFile = promisify(fs.writeFile);
 const unlink = promisify(fs.unlink);
 import { Buffer } from "buffer";
-import { ConfigService } from "@nestjs/config";
 import { Readable } from "stream";
 import {
   S3Client,
@@ -57,6 +57,7 @@ export class PdfService {
     private readonly orderRepository: typeof Order,
     @Inject("DOCUMENT_TYPE_REPOSITORY")
     private readonly documentTypeRepository: typeof DocumentType,
+    private readonly configService: ConfigService
    ) {
     this.s3 = new S3Client({
       region: process.env.AWS_REGION,
@@ -581,9 +582,14 @@ export class PdfService {
     const mergedKey = `${prefix}merged_document_${folderName}.pdf`;
     await this.uploadLargeFileToS3(mergedKey, Buffer.from(mergedBytes), "application/pdf");
   
+    const apiBaseUrl = this.configService.get<string>("API_BASE_URL");
+    const maskedUrl = `${apiBaseUrl}/v1/api/documents/esign/${mergedKey}`; // Masked URL using API_BASE_URL
     return {
-      files: [{ buffer: Buffer.from(mergedBytes), url: `https://${process.env.AWS_S3_BUCKET_NAME}.s3.amazonaws.com/${mergedKey}`, s3Key: mergedKey }],
+      files: [{ buffer: Buffer.from(mergedBytes), url: maskedUrl, s3Key: mergedKey }],
     };
+    // return {
+    //   files: [{ buffer: Buffer.from(mergedBytes), url: `https://${process.env.AWS_S3_BUCKET_NAME}.s3.amazonaws.com/${mergedKey}`, s3Key: mergedKey }],
+    // };
   }
   async mergeFilesByFolder1(folderName: string, newFileBuffer?: Buffer, newFileMimeType?: string) {
     const prefix = `${folderName}/`;

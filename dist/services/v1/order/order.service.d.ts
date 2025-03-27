@@ -49,7 +49,7 @@ export declare class OrdersService {
     private readonly purposeTypeRepository;
     private readonly transactionTypeRepository;
     constructor(orderRepository: typeof Order, partnerRepository: typeof Partner, userRepository: typeof User, purposeTypeRepository: typeof Purpose, transactionTypeRepository: typeof transaction_type);
-    createOrder(span: opentracing.Span, createOrderDto: CreateOrderDto, partnerId: string): Promise<{
+    createOrder(span: opentracing.Span, createOrderDto: CreateOrderDto, partnerId: string, api_key: string): Promise<{
         message: string;
         partner_order_id: string;
         nium_forex_order_id: string;
