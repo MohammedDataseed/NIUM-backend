@@ -105,6 +105,27 @@ let VideokycController = class VideokycController {
                 : new common_1.HttpException("Failed to retrieve video KYC data", common_1.HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+    async uploadVkycResources(resources) {
+        try {
+            if (!resources || typeof resources !== 'object' || !resources.partner_order_id) {
+                throw new common_1.HttpException('Invalid input: partner_order_id is required', common_1.HttpStatus.BAD_REQUEST);
+            }
+            const pathString = `${resources.partner_order_id}/vkyc_documents`;
+            const uploadedFiles = await this.videokycService.processAndUploadVKYCFiles(resources, pathString);
+            return {
+                success: true,
+                message: 'VKYC resources uploaded successfully',
+                data: uploadedFiles,
+            };
+        }
+        catch (error) {
+            throw new common_1.HttpException({
+                success: false,
+                message: error.message || 'Failed to upload VKYC resources',
+                details: error.stack || 'Unknown error',
+            }, error.status || common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 };
 exports.VideokycController = VideokycController;
 __decorate([
@@ -276,6 +297,18 @@ __decorate([
     __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
 ], VideokycController.prototype, "retrieveVideokyc", null);
+__decorate([
+    (0, common_1.Post)('upload-resources'),
+    (0, swagger_1.ApiOperation)({ summary: 'Upload VKYC resources to S3' }),
+    (0, swagger_1.ApiBody)({ type: video_kyc_dto_1.VkycResourcesDto, description: 'VKYC resources to upload' }),
+    (0, swagger_1.ApiResponse)({ status: 201, description: 'Resources uploaded successfully' }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'Invalid input' }),
+    (0, swagger_1.ApiResponse)({ status: 500, description: 'Server error' }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [video_kyc_dto_1.VkycResourcesDto]),
+    __metadata("design:returntype", Promise)
+], VideokycController.prototype, "uploadVkycResources", null);
 exports.VideokycController = VideokycController = __decorate([
     (0, swagger_1.ApiTags)("V-KYC"),
     (0, common_1.Controller)("videokyc"),

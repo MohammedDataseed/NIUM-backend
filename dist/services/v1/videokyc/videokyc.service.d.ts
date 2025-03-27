@@ -15,7 +15,7 @@ export declare class VideokycService {
     private readonly s3;
     constructor(orderRepository: typeof Order, vkycRepository: typeof Vkyc, orderService: OrdersService);
     uploadToS3(base64Data: string, fileType: string, folder: string): Promise<string | null>;
-    processAndUploadVKYCFiles(resources: any): Promise<{
+    processAndUploadVKYCFiles(resources: any, pathString: string): Promise<{
         documents: string;
         images: {
             selfie: string;
@@ -25,11 +25,6 @@ export declare class VideokycService {
         videos: {
             agent: string;
             customer: string;
-        };
-        text: {
-            location: any;
-            name: any;
-            dob: any;
         };
     }>;
     sendVideokycRequest(orderId: string): Promise<any>;

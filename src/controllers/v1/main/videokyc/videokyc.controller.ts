@@ -25,7 +25,7 @@ import {
   ApiQuery,
   ApiResponse,
 } from "@nestjs/swagger";
-import { AddressDto, SyncProfileDto } from "src/dto/video-kyc.dto";
+import { AddressDto, SyncProfileDto,VkycResourcesDto } from "src/dto/video-kyc.dto";
 
 @ApiTags("V-KYC")
 @Controller("videokyc")
@@ -350,4 +350,93 @@ if (!partner_order_id) {
           );
     }
   }
+
+// @Post('upload-resources')
+//   @ApiOperation({ summary: 'Upload VKYC resources to S3' })
+//   @ApiBody({ type: VkycResourcesDto, description: 'VKYC resources to upload' })
+//   @ApiResponse({ status: 201, description: 'Resources uploaded successfully' })
+//   @ApiResponse({ status: 400, description: 'Invalid input' })
+//   @ApiResponse({ status: 500, description: 'Server error' })
+//   async uploadVkycResources(@Body() resources: VkycResourcesDto) {
+//     try {
+//       // Validate input
+//       if (!resources || typeof resources !== 'object') {
+//         throw new HttpException(
+//           'Invalid or missing resources in request body',
+//           HttpStatus.BAD_REQUEST,
+//         );
+//       }
+
+//       // Basic structure validation
+//       if (!resources.documents && !resources.images && !resources.videos) {
+//         throw new HttpException(
+//           'At least one of documents, images, or videos must be provided',
+//           HttpStatus.BAD_REQUEST,
+//         );
+//       }
+
+//       // Process and upload VKYC files
+//       const uploadedFiles = await this.videokycService.processAndUploadVKYCFiles(resources);
+
+//       // Return success response with uploaded file paths
+//       return {
+//         success: true,
+//         message: 'VKYC resources uploaded successfully',
+//         data: uploadedFiles,
+//       };
+//     } catch (error) {
+//       throw new HttpException(
+//         {
+//           success: false,
+//           message: error.message || 'Failed to upload VKYC resources',
+//           details: error.stack || 'Unknown error',
+//         },
+//         error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+//       );
+//     }
+//   }
+
+@Post('upload-resources')
+@ApiOperation({ summary: 'Upload VKYC resources to S3' })
+@ApiBody({ type: VkycResourcesDto, description: 'VKYC resources to upload' })
+@ApiResponse({ status: 201, description: 'Resources uploaded successfully' })
+@ApiResponse({ status: 400, description: 'Invalid input' })
+@ApiResponse({ status: 500, description: 'Server error' })
+async uploadVkycResources(@Body() resources: VkycResourcesDto) {
+  try {
+    // Validate input
+    if (!resources || typeof resources !== 'object' || !resources.partner_order_id) {
+      throw new HttpException(
+        'Invalid input: partner_order_id is required',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    // Construct path string
+    const pathString = `${resources.partner_order_id}/vkyc_documents`;
+
+    // Process and upload VKYC files
+    const uploadedFiles = await this.videokycService.processAndUploadVKYCFiles(
+      resources,
+      pathString,
+    );
+
+    // Return success response with uploaded file paths
+    return {
+      success: true,
+      message: 'VKYC resources uploaded successfully',
+      data: uploadedFiles,
+    };
+  } catch (error) {
+    throw new HttpException(
+      {
+        success: false,
+        message: error.message || 'Failed to upload VKYC resources',
+        details: error.stack || 'Unknown error',
+      },
+      error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+    );
+  }
+}
+
 }

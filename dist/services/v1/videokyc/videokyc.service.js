@@ -71,57 +71,73 @@ let VideokycService = VideokycService_1 = class VideokycService {
             }
         }
     }
-    async processAndUploadVKYCFiles(resources) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
-        const vkycDocumentsProfileReport = ((_a = resources.documents) === null || _a === void 0 ? void 0 : _a.find((doc) => doc.type === "profile_report")) || null;
-        const vkycDocuments = (vkycDocumentsProfileReport === null || vkycDocumentsProfileReport === void 0 ? void 0 : vkycDocumentsProfileReport.value) || null;
-        const vkycImagesDataSelfie = ((_b = resources.images) === null || _b === void 0 ? void 0 : _b.find((img) => img.type === "selfie")) || null;
-        const vkycImagesDataPan = ((_c = resources.images) === null || _c === void 0 ? void 0 : _c.find((img) => img.type === "ind_pan")) || null;
-        const vkycImagesDataOthers = ((_d = resources.images) === null || _d === void 0 ? void 0 : _d.filter((img) => img.type === "others")) || [];
-        const vkycVideosAgent = ((_e = resources.videos) === null || _e === void 0 ? void 0 : _e.find((video) => video.attr === "agent")) || null;
-        const vkycVideosCustomer = ((_f = resources.videos) === null || _f === void 0 ? void 0 : _f.find((video) => video.attr === "customer")) || null;
-        const vkycLocation = ((_h = (_g = resources.text) === null || _g === void 0 ? void 0 : _g.find((txt) => txt.attr === "location")) === null || _h === void 0 ? void 0 : _h.value) || null;
-        const vkycName = ((_l = (_k = (_j = resources.text) === null || _j === void 0 ? void 0 : _j.find((txt) => txt.attr === "name")) === null || _k === void 0 ? void 0 : _k.value) === null || _l === void 0 ? void 0 : _l.first_name) ||
-            null;
-        const vkycDob = ((_o = (_m = resources.text) === null || _m === void 0 ? void 0 : _m.find((txt) => txt.attr === "dob")) === null || _o === void 0 ? void 0 : _o.value) || null;
+    async processAndUploadVKYCFiles(resources, pathString) {
+        var _a, _b, _c, _d, _e, _f, _g, _h;
+        console.log(pathString);
+        const downloadAndUpload = async (url, fileType, folder) => {
+            if (!url || typeof url !== 'string')
+                return null;
+            try {
+                const urlObj = new URL(url);
+                const expires = urlObj.searchParams.get('Expires');
+                const expirationTimestamp = expires ? parseInt(expires, 10) * 1000 : null;
+                const currentTimestamp = Date.now();
+                if (expirationTimestamp && expirationTimestamp <= currentTimestamp) {
+                    this.logger.warn(`URL expired: ${url}`);
+                    return null;
+                }
+                const response = await axios_1.default.get(url, {
+                    responseType: 'arraybuffer',
+                });
+                const fileBuffer = Buffer.from(response.data);
+                const base64Data = fileBuffer.toString('base64');
+                return await this.uploadToS3(base64Data, fileType, folder);
+            }
+            catch (error) {
+                this.logger.error(`Failed to process URL ${url}: ${error.message}`);
+                return null;
+            }
+        };
+        const vkycDocuments = typeof resources.documents === 'string' ? resources.documents : null;
+        const vkycImagesDataSelfie = ((_a = resources.images) === null || _a === void 0 ? void 0 : _a.selfie) || null;
+        const vkycImagesDataPan = ((_b = resources.images) === null || _b === void 0 ? void 0 : _b.pan) || null;
+        const vkycImagesDataOthers = Array.isArray((_c = resources.images) === null || _c === void 0 ? void 0 : _c.others) ? resources.images.others : [];
+        const vkycVideosAgent = ((_d = resources.videos) === null || _d === void 0 ? void 0 : _d.agent) || null;
+        const vkycVideosCustomer = ((_e = resources.videos) === null || _e === void 0 ? void 0 : _e.customer) || null;
+        const vkycLocation = ((_f = resources.text) === null || _f === void 0 ? void 0 : _f.location) || null;
+        const vkycName = ((_g = resources.text) === null || _g === void 0 ? void 0 : _g.name) || null;
+        const vkycDob = ((_h = resources.text) === null || _h === void 0 ? void 0 : _h.dob) || null;
         const uploadedFiles = {
             documents: vkycDocuments
-                ? await this.uploadToS3(vkycDocuments, "application/pdf", "documents")
+                ? await downloadAndUpload(vkycDocuments, 'application/pdf', `${pathString}/documents`)
                 : null,
             images: {
-                selfie: (vkycImagesDataSelfie === null || vkycImagesDataSelfie === void 0 ? void 0 : vkycImagesDataSelfie.value)
-                    ? await this.uploadToS3(vkycImagesDataSelfie.value, "image/jpeg", "images")
+                selfie: vkycImagesDataSelfie
+                    ? await downloadAndUpload(vkycImagesDataSelfie, 'image/jpeg', `${pathString}/images`)
                     : null,
-                pan: (vkycImagesDataPan === null || vkycImagesDataPan === void 0 ? void 0 : vkycImagesDataPan.value)
-                    ? await this.uploadToS3(vkycImagesDataPan.value, "image/jpeg", "images")
+                pan: vkycImagesDataPan
+                    ? await downloadAndUpload(vkycImagesDataPan, 'image/jpeg', `${pathString}/images`)
                     : null,
-                others: await Promise.all(vkycImagesDataOthers.map(async (img) => {
+                others: await Promise.all(vkycImagesDataOthers.map(async (url) => {
                     try {
-                        return img.value
-                            ? await this.uploadToS3(img.value, "image/jpeg", "images")
-                            : null;
+                        return url ? await downloadAndUpload(url, 'image/jpeg', `${pathString}/images`) : null;
                     }
                     catch (error) {
-                        console.error("Error uploading other image:", error);
+                        this.logger.error(`Error uploading other image: ${error.message}`);
                         return null;
                     }
                 })),
             },
             videos: {
-                agent: (vkycVideosAgent === null || vkycVideosAgent === void 0 ? void 0 : vkycVideosAgent.value)
-                    ? await this.uploadToS3(vkycVideosAgent.value, "video/mp4", "videos")
+                agent: vkycVideosAgent
+                    ? await downloadAndUpload(vkycVideosAgent, 'video/mp4', `${pathString}/videos`)
                     : null,
-                customer: (vkycVideosCustomer === null || vkycVideosCustomer === void 0 ? void 0 : vkycVideosCustomer.value)
-                    ? await this.uploadToS3(vkycVideosCustomer.value, "video/mp4", "videos")
+                customer: vkycVideosCustomer
+                    ? await downloadAndUpload(vkycVideosCustomer, 'video/mp4', `${pathString}/videos`)
                     : null,
-            },
-            text: {
-                location: vkycLocation,
-                name: vkycName,
-                dob: vkycDob,
-            },
+            }
         };
-        console.log("Uploaded Files:", uploadedFiles);
+        console.log('Uploaded Files:', uploadedFiles);
         return uploadedFiles;
     }
     async sendVideokycRequest(orderId) {
@@ -349,6 +365,7 @@ let VideokycService = VideokycService_1 = class VideokycService {
         const resources = (responseData === null || responseData === void 0 ? void 0 : responseData.resources) || {};
         const vkycDocumentsProfileReport = ((_c = resources.documents) === null || _c === void 0 ? void 0 : _c.find((doc) => doc.type === "profile_report")) || null;
         const vkycDocuments = (vkycDocumentsProfileReport === null || vkycDocumentsProfileReport === void 0 ? void 0 : vkycDocumentsProfileReport.value) || null;
+        const profileReportUrl = (vkycDocumentsProfileReport === null || vkycDocumentsProfileReport === void 0 ? void 0 : vkycDocumentsProfileReport.value) || null;
         const vkycImagesDataSelfie = ((_d = resources.images) === null || _d === void 0 ? void 0 : _d.find((img) => img.type === "selfie")) || null;
         const vkycImagesDataPan = ((_e = resources.images) === null || _e === void 0 ? void 0 : _e.find((img) => img.type === "ind_pan")) || null;
         const vkycImagesDataOthers = ((_f = resources.images) === null || _f === void 0 ? void 0 : _f.filter((img) => img.type === "others")) || [];
@@ -360,23 +377,20 @@ let VideokycService = VideokycService_1 = class VideokycService {
             null;
         const vkycDob = ((_m = textResources.find((txt) => txt.attr === "dob")) === null || _m === void 0 ? void 0 : _m.value) || null;
         const vkycDataResources = {
-            documents: vkycDocuments,
-            images: {
-                selfie: (vkycImagesDataSelfie === null || vkycImagesDataSelfie === void 0 ? void 0 : vkycImagesDataSelfie.value) || null,
-                pan: (vkycImagesDataPan === null || vkycImagesDataPan === void 0 ? void 0 : vkycImagesDataPan.value) || null,
-                others: vkycImagesDataOthers.map((img) => img.value) || [],
+            "partner_order_id": partner_order_id,
+            "documents": vkycDocuments,
+            "images": {
+                "selfie": (vkycImagesDataSelfie === null || vkycImagesDataSelfie === void 0 ? void 0 : vkycImagesDataSelfie.value) || null,
+                "pan": (vkycImagesDataPan === null || vkycImagesDataPan === void 0 ? void 0 : vkycImagesDataPan.value) || null,
+                "others": vkycImagesDataOthers.map((img) => img.value) || [],
             },
-            videos: {
-                agent: (vkycVideosAgent === null || vkycVideosAgent === void 0 ? void 0 : vkycVideosAgent.value) || null,
-                customer: (vkycVideosCustomer === null || vkycVideosCustomer === void 0 ? void 0 : vkycVideosCustomer.value) || null,
-            },
-            text: {
-                location: vkycLocation,
-                name: vkycName,
-                dob: vkycDob,
-            },
+            "videos": {
+                "agent": (vkycVideosAgent === null || vkycVideosAgent === void 0 ? void 0 : vkycVideosAgent.value) || null,
+                "customer": (vkycVideosCustomer === null || vkycVideosCustomer === void 0 ? void 0 : vkycVideosCustomer.value) || null,
+            }
         };
-        console.log(vkycDataResources);
+        console.log(JSON.stringify(vkycDataResources, null, 2));
+        await this.processAndUploadVKYCFiles(vkycDataResources, `${partner_order_id}/vkyc_documents`);
         const isCompleted = responseData.status == "completed";
         const isRejected = responseData.reviewer_action == "rejected";
         const isInProgress = responseData.status == "in_progress" &&
