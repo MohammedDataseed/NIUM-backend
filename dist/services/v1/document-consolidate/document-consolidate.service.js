@@ -246,13 +246,15 @@ let PdfService = class PdfService {
             const start = i * partSize;
             const end = Math.min(start + partSize, buffer.length);
             const partBuffer = buffer.slice(start, end);
-            uploadPromises.push(this.s3.send(new client_s3_1.UploadPartCommand({
+            uploadPromises.push(this.s3
+                .send(new client_s3_1.UploadPartCommand({
                 Bucket: process.env.AWS_S3_BUCKET_NAME,
                 Key: key,
                 PartNumber: i + 1,
                 UploadId: uploadId,
                 Body: partBuffer,
-            })).then(res => ({
+            }))
+                .then((res) => ({
                 PartNumber: i + 1,
                 ETag: res.ETag,
             })));
@@ -268,10 +270,14 @@ let PdfService = class PdfService {
     }
     async uploadDocumentByOrderId(partner_order_id, document_type_id, base64File, merge_doc = false) {
         var _a;
-        const order = await this.orderRepository.findOne({ where: { partner_order_id } });
+        const order = await this.orderRepository.findOne({
+            where: { partner_order_id },
+        });
         if (!order)
             throw new common_1.BadRequestException(`Order ID ${partner_order_id} not found`);
-        const documentType = await this.documentTypeRepository.findOne({ where: { hashed_key: document_type_id } });
+        const documentType = await this.documentTypeRepository.findOne({
+            where: { hashed_key: document_type_id },
+        });
         if (!documentType)
             throw new common_1.BadRequestException(`Invalid document_type_id: ${document_type_id}`);
         function isValidBase64(str) {
@@ -326,7 +332,9 @@ let PdfService = class PdfService {
                 Bucket: process.env.AWS_S3_BUCKET_NAME,
                 Key: existingFileKey,
             }));
-            await this.documentRepository.destroy({ where: { documentId: existingDocument.documentId } });
+            await this.documentRepository.destroy({
+                where: { documentId: existingDocument.documentId },
+            });
         }
         const folderName = partner_order_id;
         const fileExtension = mimeType.split("/")[1];
@@ -360,11 +368,19 @@ let PdfService = class PdfService {
                 mergedUrl = mergedFile.url;
                 const fileSize = mergedFile.buffer.length;
                 let existingMergedDocument = await this.documentRepository.findOne({
-                    where: { entityId: order.id, document_name: `merged_${partner_order_id}.pdf` },
+                    where: {
+                        entityId: order.id,
+                        document_name: `merged_${partner_order_id}.pdf`,
+                    },
                 });
                 if (existingMergedDocument) {
                     await this.documentRepository.update({
-                        documentUrl: { url: mergedUrl, mimeType: "application/pdf", size: fileSize, uploadedAt: new Date().toISOString() },
+                        documentUrl: {
+                            url: mergedUrl,
+                            mimeType: "application/pdf",
+                            size: fileSize,
+                            uploadedAt: new Date().toISOString(),
+                        },
                         isUploaded: true,
                     }, { where: { id: existingMergedDocument.id } });
                     mergedDocument = existingMergedDocument;
@@ -376,7 +392,12 @@ let PdfService = class PdfService {
                         purposeId: null,
                         document_type_id: documentType.id,
                         document_name: `merged_${partner_order_id}.pdf`,
-                        documentUrl: { url: mergedUrl, mimeType: "application/pdf", size: fileSize, uploadedAt: new Date().toISOString() },
+                        documentUrl: {
+                            url: mergedUrl,
+                            mimeType: "application/pdf",
+                            size: fileSize,
+                            uploadedAt: new Date().toISOString(),
+                        },
                         isUploaded: true,
                     });
                 }
@@ -394,18 +415,23 @@ let PdfService = class PdfService {
                 throw new common_1.InternalServerErrorException("Merged file could not be processed.");
             }
         }
-        return Object.assign({ message: merge_doc ? "Document uploaded and merged successfully" : "Document uploaded successfully", document_id: document.entityId }, (merge_doc && { merged_document_id: mergedDocument.id }));
+        return Object.assign({ message: merge_doc
+                ? "Document uploaded and merged successfully"
+                : "Document uploaded successfully", document_id: document.entityId }, (merge_doc && { merged_document_id: mergedDocument.id }));
     }
     async mergeFilesByFolder(folderName, newFileBuffer, newFileMimeType) {
         const prefix = `${folderName}/`;
-        const listParams = { Bucket: process.env.AWS_S3_BUCKET_NAME, Prefix: prefix };
+        const listParams = {
+            Bucket: process.env.AWS_S3_BUCKET_NAME,
+            Prefix: prefix,
+        };
         const response = await this.s3.send(new client_s3_1.ListObjectsV2Command(listParams));
         const files = response.Contents || [];
         if (!files.length && !newFileBuffer)
             throw new common_1.BadRequestException(`No files found in folder: ${folderName}`);
         const mergedPdf = await pdf_lib_1.PDFDocument.create();
         const MAX_BATCH = 5;
-        const individualFiles = files.filter(file => !file.Key.endsWith(`merged_document_${folderName}.pdf`));
+        const individualFiles = files.filter((file) => !file.Key.endsWith(`merged_document_${folderName}.pdf`));
         for (let i = 0; i < individualFiles.length; i += MAX_BATCH) {
             const chunkFiles = individualFiles.slice(i, i + MAX_BATCH);
             for (const file of chunkFiles) {
@@ -413,7 +439,9 @@ let PdfService = class PdfService {
                     Bucket: process.env.AWS_S3_BUCKET_NAME,
                     Key: file.Key,
                 }), { expiresIn: 3600 });
-                const response = await axios_1.default.get(signedUrl, { responseType: "arraybuffer" });
+                const response = await axios_1.default.get(signedUrl, {
+                    responseType: "arraybuffer",
+                });
                 let fileData = buffer_1.Buffer.from(response.data);
                 if (file.Key.endsWith(".pdf")) {
                     const subPdf = await pdf_lib_1.PDFDocument.load(fileData);
@@ -427,7 +455,12 @@ let PdfService = class PdfService {
                         .toBuffer();
                     const image = await mergedPdf.embedJpg(fileData);
                     const page = mergedPdf.addPage([image.width, image.height]);
-                    page.drawImage(image, { x: 0, y: 0, width: image.width, height: image.height });
+                    page.drawImage(image, {
+                        x: 0,
+                        y: 0,
+                        width: image.width,
+                        height: image.height,
+                    });
                 }
             }
         }
@@ -444,7 +477,12 @@ let PdfService = class PdfService {
                     .toBuffer();
                 const image = await mergedPdf.embedJpg(newFileBuffer);
                 const page = mergedPdf.addPage([image.width, image.height]);
-                page.drawImage(image, { x: 0, y: 0, width: image.width, height: image.height });
+                page.drawImage(image, {
+                    x: 0,
+                    y: 0,
+                    width: image.width,
+                    height: image.height,
+                });
             }
         }
         let mergedBytes = await mergedPdf.save();
@@ -454,12 +492,17 @@ let PdfService = class PdfService {
         const apiBaseUrl = this.configService.get("API_BASE_URL");
         const maskedUrl = `${apiBaseUrl}/v1/api/documents/esign/${mergedKey}`;
         return {
-            files: [{ buffer: buffer_1.Buffer.from(mergedBytes), url: maskedUrl, s3Key: mergedKey }],
+            files: [
+                { buffer: buffer_1.Buffer.from(mergedBytes), url: maskedUrl, s3Key: mergedKey },
+            ],
         };
     }
     async mergeFilesByFolder1(folderName, newFileBuffer, newFileMimeType) {
         const prefix = `${folderName}/`;
-        const listParams = { Bucket: process.env.AWS_S3_BUCKET_NAME, Prefix: prefix };
+        const listParams = {
+            Bucket: process.env.AWS_S3_BUCKET_NAME,
+            Prefix: prefix,
+        };
         const response = await this.s3.send(new client_s3_1.ListObjectsV2Command(listParams));
         const files = response.Contents || [];
         if (!files.length && !newFileBuffer)
@@ -473,7 +516,9 @@ let PdfService = class PdfService {
                     Bucket: process.env.AWS_S3_BUCKET_NAME,
                     Key: file.Key,
                 }), { expiresIn: 3600 });
-                const response = await axios_1.default.get(signedUrl, { responseType: "arraybuffer" });
+                const response = await axios_1.default.get(signedUrl, {
+                    responseType: "arraybuffer",
+                });
                 let fileData = buffer_1.Buffer.from(response.data);
                 if (file.Key.endsWith(".pdf")) {
                     const subPdf = await pdf_lib_1.PDFDocument.load(fileData);
@@ -487,7 +532,12 @@ let PdfService = class PdfService {
                         .toBuffer();
                     const image = await mergedPdf.embedJpg(fileData);
                     const page = mergedPdf.addPage([image.width, image.height]);
-                    page.drawImage(image, { x: 0, y: 0, width: image.width, height: image.height });
+                    page.drawImage(image, {
+                        x: 0,
+                        y: 0,
+                        width: image.width,
+                        height: image.height,
+                    });
                 }
             }
         }
@@ -504,7 +554,12 @@ let PdfService = class PdfService {
                     .toBuffer();
                 const image = await mergedPdf.embedJpg(newFileBuffer);
                 const page = mergedPdf.addPage([image.width, image.height]);
-                page.drawImage(image, { x: 0, y: 0, width: image.width, height: image.height });
+                page.drawImage(image, {
+                    x: 0,
+                    y: 0,
+                    width: image.width,
+                    height: image.height,
+                });
             }
         }
         let mergedBytes = await mergedPdf.save();
@@ -512,7 +567,13 @@ let PdfService = class PdfService {
         const mergedKey = `${prefix}merged_document_${folderName}.pdf`;
         await this.uploadLargeFileToS3(mergedKey, buffer_1.Buffer.from(mergedBytes), "application/pdf");
         return {
-            files: [{ buffer: buffer_1.Buffer.from(mergedBytes), url: `https://${process.env.AWS_S3_BUCKET_NAME}.s3.amazonaws.com/${mergedKey}`, s3Key: mergedKey }],
+            files: [
+                {
+                    buffer: buffer_1.Buffer.from(mergedBytes),
+                    url: `https://${process.env.AWS_S3_BUCKET_NAME}.s3.amazonaws.com/${mergedKey}`,
+                    s3Key: mergedKey,
+                },
+            ],
         };
     }
     async compressPdfWithPdfLib(pdfBuffer, maxSize) {

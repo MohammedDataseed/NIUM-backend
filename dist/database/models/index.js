@@ -14,6 +14,7 @@ const user_model_1 = require("./user.model");
 const partner_products_model_1 = require("./partner_products.model");
 const order_model_1 = require("./order.model");
 const documentType_model_1 = require("./documentType.model");
+const document_type_log_model_1 = require("./document_type_log.model");
 const transaction_type_model_1 = require("./transaction_type.model");
 const esign_model_1 = require("./esign.model");
 const vkyc_model_1 = require("./vkyc.model");
@@ -30,9 +31,10 @@ exports.models = [
     purpose_model_1.Purpose,
     partner_products_model_1.PartnerProducts,
     documentType_model_1.DocumentType,
+    document_type_log_model_1.DocumentTypeLog,
     transaction_type_model_1.transaction_type,
     order_model_1.Order,
     esign_model_1.ESign,
-    vkyc_model_1.Vkyc
+    vkyc_model_1.Vkyc,
 ];
 //# sourceMappingURL=index.js.map

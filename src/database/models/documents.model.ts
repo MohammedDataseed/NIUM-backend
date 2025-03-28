@@ -37,8 +37,6 @@ export class Documents extends Model<Documents> {
   @Column({ type: DataType.STRING, field: "hashed_key" })
   hashed_key: string;
 
-  
-
   @Column({ type: DataType.UUID, field: "entity_id" })
   entityId: string;
 
@@ -111,7 +109,7 @@ export class Documents extends Model<Documents> {
   @ForeignKey(() => User)
   @Column({ type: DataType.UUID, field: "updated_by" })
   updated_by: string;
- 
+
   /** Generate `publicKey` before creation */
   @BeforeValidate
   static generatePublicKey(instance: Documents) {
@@ -121,7 +119,4 @@ export class Documents extends Model<Documents> {
       instance.hashed_key = `${randomPart}${timestampPart}`; // 16-char random + timestamp
     }
   }
-  
-
-
 }
