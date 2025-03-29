@@ -11,12 +11,18 @@ import {
   Unique,
   AllowNull,
   BeforeCreate,
+  BeforeUpdate,
+  BeforeDestroy,
+  AfterCreate,
+  AfterUpdate,
+  AfterDestroy,
 } from "sequelize-typescript";
 import { User } from "./user.model";
 import { Partner } from "./partner.model";
 import { ESign } from "./esign.model";
 import { Vkyc } from "./vkyc.model";
 import { Optional } from "@nestjs/common";
+import { OrderLog } from "./order_log.model";
 import * as crypto from "crypto";
 
 @Table({
@@ -264,6 +270,219 @@ export class Order extends Model<Order> {
     instance.nium_order_id = `NIUMF${String(newSerialNumber).padStart(6, "0")}`;
   }
  
+  @AfterCreate
+static async logInsert(instance: Order, options: any) {
+  if (options.transaction && options.transaction.finished !== "commit") {
+    console.log(`⏳ Skipping log for Order ID: ${instance.id}, transaction not committed yet.`);
+    return;
+  }
+
+  console.log(`🔵 Logging INSERT for Order ID: ${instance.id}`);
+
+  // 🚨 Prevent duplicate logs
+  const existingLog = await OrderLog.findOne({ where: { id: instance.id } });
+  if (existingLog) {
+    console.log(`⚠️ Log already exists for Order ID: ${instance.id}, skipping duplicate log.`);
+    return;
+  }
+
+  await OrderLog.create(
+    {
+      dml_action: "I",
+      log_timestamp: new Date(),
+      id: instance.id,
+      serial_number: instance.serial_number,
+      nium_order_id: instance.nium_order_id,
+      hashed_key: instance.hashed_key,
+      partner_id: instance.partner_id,
+      partner_hashed_api_key: instance.partner_hashed_api_key,
+      partner_hashed_key: instance.partner_hashed_key,
+      partner_order_id: instance.partner_order_id,
+      transaction_type: instance.transaction_type,
+      purpose_type: instance.purpose_type,
+      is_esign_required: instance.is_esign_required,
+      is_v_kyc_required: instance.is_v_kyc_required,
+      customer_name: instance.customer_name,
+      customer_email: instance.customer_email,
+      customer_phone: instance.customer_phone,
+      customer_pan: instance.customer_pan,
+      order_status: instance.order_status,
+      e_sign_status: instance.e_sign_status,
+      e_sign_link: instance.e_sign_link,
+      e_sign_link_status: instance.e_sign_link_status,
+      e_sign_link_doc_id: instance.e_sign_link_doc_id,
+      e_sign_link_request_id: instance.e_sign_link_request_id,
+      e_sign_link_expires: instance.e_sign_link_expires,
+      e_sign_completed_by_customer: instance.e_sign_completed_by_customer,
+      e_sign_customer_completion_date: instance.e_sign_customer_completion_date,
+      e_sign_doc_comments: instance.e_sign_doc_comments,
+      v_kyc_reference_id: instance.v_kyc_reference_id,
+      v_kyc_profile_id: instance.v_kyc_profile_id,
+      v_kyc_status: instance.v_kyc_status,
+      v_kyc_link: instance.v_kyc_link,
+      v_kyc_link_status: instance.v_kyc_link_status,
+      v_kyc_link_expires: instance.v_kyc_link_expires,
+      v_kyc_completed_by_customer: instance.v_kyc_completed_by_customer,
+      v_kyc_customer_completion_date: instance.v_kyc_customer_completion_date,
+      v_kyc_comments: instance.v_kyc_comments,
+      incident_status: instance.incident_status,
+      incident_checker_comments: instance.incident_checker_comments,
+      nium_invoice_number: instance.nium_invoice_number,
+      date_of_departure: instance.date_of_departure,
+      incident_completion_date: instance.incident_completion_date,
+      is_esign_regenerated: instance.is_esign_regenerated,
+      is_esign_regenerated_details: instance.is_esign_regenerated_details,
+      is_video_kyc_link_regenerated: instance.is_video_kyc_link_regenerated,
+      is_video_kyc_link_regenerated_details: instance.is_video_kyc_link_regenerated_details,
+      created_by: instance.created_by,
+      updated_by: instance.updated_by,
+      checker_id: instance.checker_id,
+      merged_document: instance.merged_document,
+      created_at: instance.createdAt,
+      updated_at: instance.updatedAt ?? new Date(),
+    },
+    { transaction: options.transaction ?? null }
+  );
+}
+
+  
+@AfterUpdate
+static async logUpdate(instance: Order, options: any) {
+  if (options.transaction && options.transaction.finished !== "commit") {
+    console.log(`⏳ Skipping update log for Order ID: ${instance.id}, transaction not committed yet.`);
+    return;
+  }
+
+  console.log(`🟡 Logging UPDATE for Order ID: ${instance.id}`);
+
+  await OrderLog.create(
+    {
+      dml_action: "U",
+      log_timestamp: new Date(),
+      id: instance.id,
+      serial_number: instance.serial_number,
+      nium_order_id: instance.nium_order_id,
+      hashed_key: instance.hashed_key,
+      partner_id: instance.partner_id,
+      partner_hashed_api_key: instance.partner_hashed_api_key,
+      partner_hashed_key: instance.partner_hashed_key,
+      partner_order_id: instance.partner_order_id,
+      transaction_type: instance.transaction_type,
+      purpose_type: instance.purpose_type,
+      is_esign_required: instance.is_esign_required,
+      is_v_kyc_required: instance.is_v_kyc_required,
+      customer_name: instance.customer_name,
+      customer_email: instance.customer_email,
+      customer_phone: instance.customer_phone,
+      customer_pan: instance.customer_pan,
+      order_status: instance.order_status,
+      e_sign_status: instance.e_sign_status,
+      e_sign_link: instance.e_sign_link,
+      e_sign_link_status: instance.e_sign_link_status,
+      e_sign_link_doc_id: instance.e_sign_link_doc_id,
+      e_sign_link_request_id: instance.e_sign_link_request_id,
+      e_sign_link_expires: instance.e_sign_link_expires,
+      e_sign_completed_by_customer: instance.e_sign_completed_by_customer,
+      e_sign_customer_completion_date: instance.e_sign_customer_completion_date,
+      e_sign_doc_comments: instance.e_sign_doc_comments,
+      v_kyc_reference_id: instance.v_kyc_reference_id,
+      v_kyc_profile_id: instance.v_kyc_profile_id,
+      v_kyc_status: instance.v_kyc_status,
+      v_kyc_link: instance.v_kyc_link,
+      v_kyc_link_status: instance.v_kyc_link_status,
+      v_kyc_link_expires: instance.v_kyc_link_expires,
+      v_kyc_completed_by_customer: instance.v_kyc_completed_by_customer,
+      v_kyc_customer_completion_date: instance.v_kyc_customer_completion_date,
+      v_kyc_comments: instance.v_kyc_comments,
+      incident_status: instance.incident_status,
+      incident_checker_comments: instance.incident_checker_comments,
+      nium_invoice_number: instance.nium_invoice_number,
+      date_of_departure: instance.date_of_departure,
+      incident_completion_date: instance.incident_completion_date,
+      is_esign_regenerated: instance.is_esign_regenerated,
+      is_esign_regenerated_details: instance.is_esign_regenerated_details,
+      is_video_kyc_link_regenerated: instance.is_video_kyc_link_regenerated,
+      is_video_kyc_link_regenerated_details: instance.is_video_kyc_link_regenerated_details,
+      created_by: instance.created_by,
+      updated_by: instance.updated_by,
+      checker_id: instance.checker_id,
+      merged_document: instance.merged_document,
+      created_at: instance.createdAt,
+      updated_at: instance.updatedAt ?? new Date(),
+    },
+    { transaction: options.transaction ?? null }
+  );
+}
+
+@AfterDestroy
+static async logDelete(instance: Order, options: any) {
+  if (options.transaction && options.transaction.finished !== "commit") {
+    console.log(`⏳ Skipping delete log for Order ID: ${instance.id}, transaction not committed yet.`);
+    return;
+  }
+
+  console.log(`🔴 Logging DELETE for Order ID: ${instance.id}`);
+
+  await OrderLog.create(
+    {
+      dml_action: "D",
+      log_timestamp: new Date(),
+      id: instance.id,
+      serial_number: instance.serial_number,
+      nium_order_id: instance.nium_order_id,
+      hashed_key: instance.hashed_key,
+      partner_id: instance.partner_id,
+      partner_hashed_api_key: instance.partner_hashed_api_key,
+      partner_hashed_key: instance.partner_hashed_key,
+      partner_order_id: instance.partner_order_id,
+      transaction_type: instance.transaction_type,
+      purpose_type: instance.purpose_type,
+      is_esign_required: instance.is_esign_required,
+      is_v_kyc_required: instance.is_v_kyc_required,
+      customer_name: instance.customer_name,
+      customer_email: instance.customer_email,
+      customer_phone: instance.customer_phone,
+      customer_pan: instance.customer_pan,
+      order_status: instance.order_status,
+      e_sign_status: instance.e_sign_status,
+      e_sign_link: instance.e_sign_link,
+      e_sign_link_status: instance.e_sign_link_status,
+      e_sign_link_doc_id: instance.e_sign_link_doc_id,
+      e_sign_link_request_id: instance.e_sign_link_request_id,
+      e_sign_link_expires: instance.e_sign_link_expires,
+      e_sign_completed_by_customer: instance.e_sign_completed_by_customer,
+      e_sign_customer_completion_date: instance.e_sign_customer_completion_date,
+      e_sign_doc_comments: instance.e_sign_doc_comments,
+      v_kyc_reference_id: instance.v_kyc_reference_id,
+      v_kyc_profile_id: instance.v_kyc_profile_id,
+      v_kyc_status: instance.v_kyc_status,
+      v_kyc_link: instance.v_kyc_link,
+      v_kyc_link_status: instance.v_kyc_link_status,
+      v_kyc_link_expires: instance.v_kyc_link_expires,
+      v_kyc_completed_by_customer: instance.v_kyc_completed_by_customer,
+      v_kyc_customer_completion_date: instance.v_kyc_customer_completion_date,
+      v_kyc_comments: instance.v_kyc_comments,
+      incident_status: instance.incident_status,
+      incident_checker_comments: instance.incident_checker_comments,
+      nium_invoice_number: instance.nium_invoice_number,
+      date_of_departure: instance.date_of_departure,
+      incident_completion_date: instance.incident_completion_date,
+      is_esign_regenerated: instance.is_esign_regenerated,
+      is_esign_regenerated_details: instance.is_esign_regenerated_details,
+      is_video_kyc_link_regenerated: instance.is_video_kyc_link_regenerated,
+      is_video_kyc_link_regenerated_details: instance.is_video_kyc_link_regenerated_details,
+      created_by: instance.created_by,
+      updated_by: instance.updated_by,
+      checker_id: instance.checker_id,
+      merged_document: instance.merged_document,
+      created_at: instance.createdAt,
+      updated_at: instance.updatedAt ?? new Date(),
+    },
+    { transaction: options.transaction ?? null }
+  );
+}
+
+
   }
  
 

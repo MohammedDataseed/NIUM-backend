@@ -73,28 +73,8 @@ export class Role extends Model<Role> {
     const timestampPart = Date.now().toString(36); // Convert timestamp to base36 for compactness
     instance.hashed_key = `${randomPart}${timestampPart}`; // 16-char random + timestamp
   }
-
   @AfterCreate
   static async logInsert(instance: Role, options: any) {
-    if (options.transaction && options.transaction.finished !== 'commit') {
-      console.log(
-        `⏳ Skipping log for ${instance.id}, transaction not committed yet.`,
-      );
-      return;
-    }
-
-    const existingLog = await RoleLog.findOne({
-      where: { id: instance.id, dml_action: 'I' },
-      transaction: options.transaction ?? null,
-    });
-
-    if (existingLog) {
-      console.log(
-        `⚠️ Insert log for ${instance.id} already exists, skipping duplicate entry.`,
-      );
-      return;
-    }
-
     console.log(`🔵 Logging INSERT for Role ID: ${instance.id}`);
 
     await RoleLog.create(
@@ -103,39 +83,19 @@ export class Role extends Model<Role> {
         log_timestamp: new Date(),
         id: instance.id,
         hashed_key: instance.hashed_key,
-        name: instance.name,
+        name: instance.name,  // Ensure ENUM consistency
         status: instance.status,
         created_by: instance.created_by,
         updated_by: instance.updated_by,
         createdAt: instance.createdAt,
         updatedAt: instance.updatedAt ?? new Date(),
       },
-      { transaction: options.transaction ?? null },
+      { transaction: options.transaction ?? null } // Ensure same transaction is used
     );
   }
 
-  /** ✅ Log Update */
   @AfterUpdate
   static async logUpdate(instance: Role, options: any) {
-    if (options.transaction && options.transaction.finished !== 'commit') {
-      console.log(
-        `⏳ Skipping update log for ${instance.id}, transaction not committed yet.`,
-      );
-      return;
-    }
-
-    const existingLog = await RoleLog.findOne({
-      where: { id: instance.id, dml_action: 'U' },
-      transaction: options.transaction ?? null,
-    });
-
-    if (existingLog) {
-      console.log(
-        `⚠️ Update log for ${instance.id} already exists, skipping duplicate entry.`,
-      );
-      return;
-    }
-
     console.log(`🟡 Logging UPDATE for Role ID: ${instance.id}`);
 
     await RoleLog.create(
@@ -151,32 +111,12 @@ export class Role extends Model<Role> {
         createdAt: instance.createdAt,
         updatedAt: instance.updatedAt,
       },
-      { transaction: options.transaction ?? null },
+      { transaction: options.transaction ?? null }
     );
   }
 
-  /** ✅ Log Delete */
   @AfterDestroy
   static async logDelete(instance: Role, options: any) {
-    if (options.transaction && options.transaction.finished !== 'commit') {
-      console.log(
-        `⏳ Skipping delete log for ${instance.id}, transaction not committed yet.`,
-      );
-      return;
-    }
-
-    const existingLog = await RoleLog.findOne({
-      where: { id: instance.id, dml_action: 'D' },
-      transaction: options.transaction ?? null,
-    });
-
-    if (existingLog) {
-      console.log(
-        `⚠️ Delete log for ${instance.id} already exists, skipping duplicate entry.`,
-      );
-      return;
-    }
-
     console.log(`🔴 Logging DELETE for Role ID: ${instance.id}`);
 
     await RoleLog.create(
@@ -192,7 +132,129 @@ export class Role extends Model<Role> {
         createdAt: instance.createdAt,
         updatedAt: instance.updatedAt,
       },
-      { transaction: options.transaction ?? null },
+      { transaction: options.transaction ?? null }
     );
   }
+
+  // @AfterCreate
+  // static async logInsert(instance: Role, options: any) {
+  //   if (options.transaction && options.transaction.finished !== 'commit') {
+  //     console.log(
+  //       `⏳ Skipping log for ${instance.id}, transaction not committed yet.`,
+  //     );
+  //     return;
+  //   }
+
+  //   const existingLog = await RoleLog.findOne({
+  //     where: { id: instance.id, dml_action: 'I' },
+  //     transaction: options.transaction ?? null,
+  //   });
+
+  //   if (existingLog) {
+  //     console.log(
+  //       `⚠️ Insert log for ${instance.id} already exists, skipping duplicate entry.`,
+  //     );
+  //     return;
+  //   }
+
+  //   console.log(`🔵 Logging INSERT for Role ID: ${instance.id}`);
+
+  //   await RoleLog.create(
+  //     {
+  //       dml_action: 'I',
+  //       log_timestamp: new Date(),
+  //       id: instance.id,
+  //       hashed_key: instance.hashed_key,
+  //       name: instance.name,
+  //       status: instance.status,
+  //       created_by: instance.created_by,
+  //       updated_by: instance.updated_by,
+  //       createdAt: instance.createdAt,
+  //       updatedAt: instance.updatedAt ?? new Date(),
+  //     },
+  //     { transaction: options.transaction ?? null },
+  //   );
+  // }
+
+  // /** ✅ Log Update */
+  // @AfterUpdate
+  // static async logUpdate(instance: Role, options: any) {
+  //   if (options.transaction && options.transaction.finished !== 'commit') {
+  //     console.log(
+  //       `⏳ Skipping update log for ${instance.id}, transaction not committed yet.`,
+  //     );
+  //     return;
+  //   }
+
+  //   const existingLog = await RoleLog.findOne({
+  //     where: { id: instance.id, dml_action: 'U' },
+  //     transaction: options.transaction ?? null,
+  //   });
+
+  //   if (existingLog) {
+  //     console.log(
+  //       `⚠️ Update log for ${instance.id} already exists, skipping duplicate entry.`,
+  //     );
+  //     return;
+  //   }
+
+  //   console.log(`🟡 Logging UPDATE for Role ID: ${instance.id}`);
+
+  //   await RoleLog.create(
+  //     {
+  //       dml_action: 'U',
+  //       log_timestamp: new Date(),
+  //       id: instance.id,
+  //       hashed_key: instance.hashed_key,
+  //       name: instance.name,
+  //       status: instance.status,
+  //       created_by: instance.created_by,
+  //       updated_by: instance.updated_by,
+  //       createdAt: instance.createdAt,
+  //       updatedAt: instance.updatedAt,
+  //     },
+  //     { transaction: options.transaction ?? null },
+  //   );
+  // }
+
+  // /** ✅ Log Delete */
+  // @AfterDestroy
+  // static async logDelete(instance: Role, options: any) {
+  //   if (options.transaction && options.transaction.finished !== 'commit') {
+  //     console.log(
+  //       `⏳ Skipping delete log for ${instance.id}, transaction not committed yet.`,
+  //     );
+  //     return;
+  //   }
+
+  //   const existingLog = await RoleLog.findOne({
+  //     where: { id: instance.id, dml_action: 'D' },
+  //     transaction: options.transaction ?? null,
+  //   });
+
+  //   if (existingLog) {
+  //     console.log(
+  //       `⚠️ Delete log for ${instance.id} already exists, skipping duplicate entry.`,
+  //     );
+  //     return;
+  //   }
+
+  //   console.log(`🔴 Logging DELETE for Role ID: ${instance.id}`);
+
+  //   await RoleLog.create(
+  //     {
+  //       dml_action: 'D',
+  //       log_timestamp: new Date(),
+  //       id: instance.id,
+  //       hashed_key: instance.hashed_key,
+  //       name: instance.name,
+  //       status: instance.status,
+  //       created_by: instance.created_by,
+  //       updated_by: instance.updated_by,
+  //       createdAt: instance.createdAt,
+  //       updatedAt: instance.updatedAt,
+  //     },
+  //     { transaction: options.transaction ?? null },
+  //   );
+  // }
 }

@@ -91,7 +91,8 @@ export class Branch extends Model<Branch> {
         location: instance.location,
         city: instance.city,
         state: instance.state,
-        business_type: instance.business_type as any, // 🚨 Fix ENUM Issue
+        business_type: instance.business_type.toString(),
+        // business_type: instance.business_type as any, // 🚨 Fix ENUM Issue
         created_by: instance.created_by,
         updated_by: instance.updated_by,
       },
@@ -117,7 +118,8 @@ export class Branch extends Model<Branch> {
         location: instance.location,
         city: instance.city,
         state: instance.state,
-        business_type: instance.business_type as any, // 🚨 Fix ENUM Issue
+        business_type: instance.business_type.toString(),
+        // business_type: instance.business_type as any, // 🚨 Fix ENUM Issue
         created_by: instance.created_by,
         updated_by: instance.updated_by,
       },
@@ -143,7 +145,8 @@ export class Branch extends Model<Branch> {
         location: instance.location,
         city: instance.city,
         state: instance.state,
-        business_type: instance.business_type as any, // 🚨 Fix ENUM Issue
+        business_type: instance.business_type.toString(),
+        // business_type: instance.business_type as any, // 🚨 Fix ENUM Issue
         created_by: instance.created_by,
         updated_by: instance.updated_by,
       },
