@@ -11,9 +11,9 @@ import {
   AutoIncrement,
 } from 'sequelize-typescript';
 import { User } from './user.model';
-const BUSINESS_TYPE_ENUM = ['cash&carry', 'large_enterprise'] as const;
+
 @Table({
-  tableName: 'branch_logs',
+  tableName: 'branch_log',
   timestamps: false, // No need for automatic timestamps as we handle it manually
 })
 export class BranchLog extends Model<BranchLog> {

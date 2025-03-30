@@ -40,16 +40,7 @@ export class RoleLog extends Model<RoleLog> {
   hashed_key: string;
 
   @AllowNull(false)
-  @Column({
-    type: DataType.ENUM(
-      'admin',
-      'co-admin',
-      'maker',
-      'checker',
-      'maker-checker',
-    ),
-    field: 'name',
-  })
+  @Column({ type: DataType.STRING, field: 'name' })
   name: string;
 
   @AllowNull(false)
@@ -57,12 +48,10 @@ export class RoleLog extends Model<RoleLog> {
   status: boolean;
 
   @ForeignKey(() => Role)
-  @AllowNull(false)
   @Column({ type: DataType.UUID, field: 'created_by' })
   created_by: string;
 
   @ForeignKey(() => Role)
-  @AllowNull(false)
   @Column({ type: DataType.UUID, field: 'updated_by' })
   updated_by: string;
 

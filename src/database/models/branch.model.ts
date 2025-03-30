@@ -76,8 +76,24 @@ export class Branch extends Model<Branch> {
   /** ✅ Log Insert */
   @AfterCreate
   static async logInsert(instance: Branch, options: any) {
-    if (options.transaction && options.transaction.finished !== 'commit')
+    if (options.transaction && options.transaction.finished !== 'commit') {
+      console.log(
+        `⏳ Skipping log for ${instance.id}, transaction not committed yet.`,
+      );
       return;
+    }
+
+    const existingLog = await BranchLog.findOne({
+      where: { id: instance.id, dml_action: 'I' },
+      transaction: options.transaction ?? null,
+    });
+
+    if (existingLog) {
+      console.log(
+        `⚠️ Insert log for ${instance.id} already exists, skipping duplicate entry.`,
+      );
+      return;
+    }
 
     console.log(`🔵 Logging INSERT for ID: ${instance.id}`);
 
@@ -94,6 +110,8 @@ export class Branch extends Model<Branch> {
         business_type: instance.business_type as any, // 🚨 Fix ENUM Issue
         created_by: instance.created_by,
         updated_by: instance.updated_by,
+        createdAt: instance.createdAt,
+        updatedAt: instance.updatedAt,
       },
       { transaction: options.transaction ?? null },
     );
@@ -102,8 +120,24 @@ export class Branch extends Model<Branch> {
   /** ✅ Log Update */
   @AfterUpdate
   static async logUpdate(instance: Branch, options: any) {
-    if (options.transaction && options.transaction.finished !== 'commit')
+    if (options.transaction && options.transaction.finished !== 'commit') {
+      console.log(
+        `⏳ Skipping update log for ${instance.id}, transaction not committed yet.`,
+      );
       return;
+    }
+
+    const existingLog = await BranchLog.findOne({
+      where: { id: instance.id, dml_action: 'U' },
+      transaction: options.transaction ?? null,
+    });
+
+    if (existingLog) {
+      console.log(
+        `⚠️ Update log for ${instance.id} already exists, skipping duplicate entry.`,
+      );
+      return;
+    }
 
     console.log(`🟡 Logging UPDATE for ID: ${instance.id}`);
 
@@ -120,6 +154,8 @@ export class Branch extends Model<Branch> {
         business_type: instance.business_type as any, // 🚨 Fix ENUM Issue
         created_by: instance.created_by,
         updated_by: instance.updated_by,
+        createdAt: instance.createdAt,
+        updatedAt: instance.updatedAt,
       },
       { transaction: options.transaction ?? null },
     );
@@ -128,8 +164,24 @@ export class Branch extends Model<Branch> {
   /** ✅ Log Delete */
   @AfterDestroy
   static async logDelete(instance: Branch, options: any) {
-    if (options.transaction && options.transaction.finished !== 'commit')
+    if (options.transaction && options.transaction.finished !== 'commit') {
+      console.log(
+        `⏳ Skipping delete log for ${instance.id}, transaction not committed yet.`,
+      );
       return;
+    }
+
+    // 🚨 Prevent duplicate logs
+    const existingLog = await BranchLog.findOne({
+      where: { id: instance.id, dml_action: 'D' },
+      transaction: options.transaction ?? null,
+    });
+    if (existingLog) {
+      console.log(
+        `⚠️ Delete log already exists for ID: ${instance.id}, skipping duplicate.`,
+      );
+      return;
+    }
 
     console.log(`🔴 Logging DELETE for ID: ${instance.id}`);
 
@@ -146,6 +198,8 @@ export class Branch extends Model<Branch> {
         business_type: instance.business_type as any, // 🚨 Fix ENUM Issue
         created_by: instance.created_by,
         updated_by: instance.updated_by,
+        createdAt: instance.createdAt,
+        updatedAt: instance.updatedAt,
       },
       { transaction: options.transaction ?? null },
     );

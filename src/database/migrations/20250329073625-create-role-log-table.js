@@ -26,13 +26,7 @@ module.exports = {
         allowNull: false,
       },
       name: {
-        type: Sequelize.ENUM(
-          'admin',
-          'co-admin',
-          'maker',
-          'checker',
-          'maker-checker',
-        ),
+        type: Sequelize.STRING,
         allowNull: false,
       },
       status: {
@@ -41,11 +35,11 @@ module.exports = {
       },
       created_by: {
         type: Sequelize.UUID,
-        allowNull: false,
+        allowNull: true,
       },
       updated_by: {
         type: Sequelize.UUID,
-        allowNull: false,
+        allowNull: true,
       },
       createdAt: {
         type: Sequelize.DATE,
@@ -63,13 +57,13 @@ module.exports = {
       BEGIN
         IF TG_OP = 'INSERT' THEN
           INSERT INTO role_log (dml_action, log_timestamp, id, hashed_key, name, status, created_by, updated_by, "createdAt", "updatedAt")
-          VALUES ('I', NOW(), NEW.id, NEW.hashed_key, NEW.name::public.roles.name%TYPE, NEW.status, NEW.created_by, NEW.updated_by, NEW."createdAt", NEW."updatedAt");
+          VALUES ('I', NOW(), NEW.id, NEW.hashed_key, NEW.name, NEW.status, NEW.created_by, NEW.updated_by, NEW."createdAt", NEW."updatedAt");
         ELSIF TG_OP = 'UPDATE' THEN
           INSERT INTO role_log (dml_action, log_timestamp, id, hashed_key, name, status, created_by, updated_by, "createdAt", "updatedAt")
-          VALUES ('U', NOW(), NEW.id, NEW.hashed_key, NEW.name::public.roles.name%TYPE, NEW.status, NEW.created_by, NEW.updated_by, NEW."createdAt", NEW."updatedAt");
+          VALUES ('U', NOW(), NEW.id, NEW.hashed_key, NEW.name, NEW.status, NEW.created_by, NEW.updated_by, NEW."createdAt", NEW."updatedAt");
         ELSIF TG_OP = 'DELETE' THEN
           INSERT INTO role_log (dml_action, log_timestamp, id, hashed_key, name, status, created_by, updated_by, "createdAt", "updatedAt")
-          VALUES ('D', NOW(), OLD.id, OLD.hashed_key, OLD.name::public.roles.name%TYPE, OLD.status, OLD.created_by, OLD.updated_by, OLD."createdAt", OLD."updatedAt");
+          VALUES ('D', NOW(), OLD.id, OLD.hashed_key, OLD.name, OLD.status, OLD.created_by, OLD.updated_by, OLD."createdAt", OLD."updatedAt");
         END IF;
         RETURN NULL;
       END;

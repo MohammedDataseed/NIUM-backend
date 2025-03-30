@@ -42,7 +42,7 @@ module.exports = {
         allowNull: false,
       },
       business_type: {
-        type: Sequelize.ENUM('cash&carry', 'large_enterprise'),
+        type: Sequelize.STRING,
         allowNull: false,
       },
       createdAt: {
