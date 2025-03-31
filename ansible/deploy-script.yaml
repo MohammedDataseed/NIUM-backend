@@ -89,7 +89,7 @@
         cluster: '{{ cluster_name }}'
         task_definition: '{{ td.taskdefinition.family }}:{{ td.taskdefinition.revision }}'
         desired_count: '{{desired_count}}'
-        role: ecsServiceRole
+        role: ecsServiceRoleNiumforex
         placement_strategy:
           - type: spread
             field: attribute:ecs.availability-zone
