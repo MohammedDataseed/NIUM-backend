@@ -10,5 +10,4 @@ export class AppController {
   async getHello(): Promise<object> {
     return this.appService.getHello();
   }
-
 }

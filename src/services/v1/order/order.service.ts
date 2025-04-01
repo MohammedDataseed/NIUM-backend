@@ -84,7 +84,7 @@ export class OrdersService {
     span: opentracing.Span,
     createOrderDto: CreateOrderDto,
     partnerId: string,
-    api_key:string,
+    api_key: string,
   ): Promise<{
     message: string;
     partner_order_id: string;
@@ -107,7 +107,7 @@ export class OrdersService {
 
       const partner = await this.partnerRepository.findOne({
         where: { hashed_key: partnerId },
-        attributes: ['id', 'api_key','hashed_key'], // Fetch only necessary fields
+        attributes: ['id', 'api_key', 'hashed_key'], // Fetch only necessary fields
       });
 
       console.log('parter_id', partner?.id);
@@ -136,12 +136,11 @@ export class OrdersService {
         );
       }
 
-
       const orderData = {
         partner_id: partner?.id,
         partner_order_id: createOrderDto.partner_order_id,
-        partner_hashed_api_key:partner?.api_key,
-        partner_hashed_key:partner?.hashed_key,
+        partner_hashed_api_key: partner?.api_key,
+        partner_hashed_key: partner?.hashed_key,
         transaction_type: createOrderDto.transaction_type_id,
         is_esign_required: createOrderDto.is_e_sign_required,
         is_v_kyc_required: createOrderDto.is_v_kyc_required,
@@ -152,8 +151,12 @@ export class OrdersService {
         customer_pan: createOrderDto.customer_pan,
         // nium_order_id: niumOrderId, // Assigning the generated nium_order_id
         order_status: 'pending', // Default value
-        e_sign_status: createOrderDto.is_e_sign_required ? 'pending' : 'not required',
-        v_kyc_status: createOrderDto.is_v_kyc_required ? 'pending' : 'not required',
+        e_sign_status: createOrderDto.is_e_sign_required
+          ? 'pending'
+          : 'not required',
+        v_kyc_status: createOrderDto.is_v_kyc_required
+          ? 'pending'
+          : 'not required',
         created_by: partner?.id,
         updated_by: partner?.id,
       };
@@ -333,7 +336,7 @@ export class OrdersService {
   //       order.esigns?.sort(
   //         (a, b) => b.attempt_number - a.attempt_number,
   //       )?.[0] || null;
-        
+
   //     const latestVkyc =
   //       order.vkycs?.sort((a, b) => b.attempt_number - a.attempt_number)?.[0] ||
   //       null;
@@ -372,8 +375,6 @@ export class OrdersService {
   // const vKycStatus = order.is_v_kyc_required
   // ? latestVkyc?.status || order.v_kyc_status
   // : 'not required'; // If vKYC is not required, set status to 'not required'
-
-
 
   //     const result: FilteredOrder = {
   //       partner_order_id: order.partner_order_id,
@@ -434,18 +435,20 @@ export class OrdersService {
     span: opentracing.Span,
     orderId: string,
   ): Promise<FilteredOrder> {
-    const childSpan = span.tracer().startSpan('find-one-order', { childOf: span });
-  
+    const childSpan = span
+      .tracer()
+      .startSpan('find-one-order', { childOf: span });
+
     try {
       const order = await this.orderRepository.findOne({
         where: { partner_order_id: orderId },
         include: [{ association: 'esigns' }, { association: 'vkycs' }],
       });
-  
+
       if (!order) {
         throw new NotFoundException(`Order with ID ${orderId} not found`);
       }
-  
+
       // Fetch transaction and purpose types
       const [transactionTypes, purposeTypes] = await Promise.all([
         this.transactionTypeRepository.findAll({
@@ -457,52 +460,69 @@ export class OrdersService {
           raw: true,
         }),
       ]);
-  
+
       const transactionTypeMap = Object.fromEntries(
-        transactionTypes.map(({ id, hashed_key, name }) => [hashed_key, { id, text: name }])
+        transactionTypes.map(({ id, hashed_key, name }) => [
+          hashed_key,
+          { id, text: name },
+        ]),
       );
-  
+
       const purposeTypeMap = Object.fromEntries(
-        purposeTypes.map(({ id, hashed_key, purposeName }) => [hashed_key, { id, text: purposeName }])
+        purposeTypes.map(({ id, hashed_key, purposeName }) => [
+          hashed_key,
+          { id, text: purposeName },
+        ]),
       );
-  
+
       // Get latest eSign and vKYC (optimize sorting)
-      const latestEsign = order.esigns?.reduce((latest, current) =>
-        current.attempt_number > latest.attempt_number ? current : latest, order.esigns?.[0] || null
+      const latestEsign = order.esigns?.reduce(
+        (latest, current) =>
+          current.attempt_number > latest.attempt_number ? current : latest,
+        order.esigns?.[0] || null,
       );
-      console.log(latestEsign)
-      const latestVkyc = order.vkycs?.reduce((latest, current) =>
-        current.attempt_number > latest.attempt_number ? current : latest, order.vkycs?.[0] || null
+      console.log(latestEsign);
+      const latestVkyc = order.vkycs?.reduce(
+        (latest, current) =>
+          current.attempt_number > latest.attempt_number ? current : latest,
+        order.vkycs?.[0] || null,
       );
-  
-      const regeneratedVkycCount = order.is_video_kyc_link_regenerated_details?.length || 0;
-      const regeneratedEsignCount = Math.max((order.esigns?.length || 1) - 1, 0);
-  
-      const extractBaseUrl = (url?: string): string | null => url?.split('?')[0] || null;
-  
+
+      const regeneratedVkycCount =
+        order.is_video_kyc_link_regenerated_details?.length || 0;
+      const regeneratedEsignCount = Math.max(
+        (order.esigns?.length || 1) - 1,
+        0,
+      );
+
+      const extractBaseUrl = (url?: string): string | null =>
+        url?.split('?')[0] || null;
+
       // Extract eSign details
       const latestEsignDetails = latestEsign?.esign_details?.[0];
       const requestDetail = {
         is_active: latestEsign?.request_details?.[0]?.is_active || false,
         is_signed: latestEsign?.is_signed || false,
-        is_expired: latestEsign?.esign_expiry ? new Date(latestEsign.esign_expiry) < new Date() : false,
+        is_expired: latestEsign?.esign_expiry
+          ? new Date(latestEsign.esign_expiry) < new Date()
+          : false,
         is_rejected: latestEsign?.request_details?.[0]?.is_rejected || false,
       };
-  
+
       const eSignStatus = order.is_esign_required
         ? requestDetail.is_signed
           ? 'completed'
           : requestDetail.is_expired
-          ? 'expired'
-          : requestDetail.is_rejected
-          ? 'rejected'
-          : 'pending'
+            ? 'expired'
+            : requestDetail.is_rejected
+              ? 'rejected'
+              : 'pending'
         : 'not required';
-  
+
       const vKycStatus = order.is_v_kyc_required
         ? latestVkyc?.status || order.v_kyc_status
         : 'not required';
-  
+
       // Construct result
       return {
         partner_order_id: order.partner_order_id,
@@ -510,38 +530,50 @@ export class OrdersService {
         order_status: order.order_status,
         is_esign_required: order.is_esign_required,
         is_v_kyc_required: order.is_v_kyc_required,
-        transaction_type: transactionTypeMap[order.transaction_type] || { id: null, text: order.transaction_type },
-        purpose_type: purposeTypeMap[order.purpose_type] || { id: null, text: order.purpose_type },
+        transaction_type: transactionTypeMap[order.transaction_type] || {
+          id: null,
+          text: order.transaction_type,
+        },
+        purpose_type: purposeTypeMap[order.purpose_type] || {
+          id: null,
+          text: order.purpose_type,
+        },
         e_sign_status: eSignStatus,
         e_sign_link: latestEsignDetails?.esign_url || order.e_sign_link,
         e_sign_link_status: latestEsignDetails?.url_status,
-        e_sign_link_expires: latestEsignDetails?.esign_expiry || order.e_sign_link_expires,
+        e_sign_link_expires:
+          latestEsignDetails?.esign_expiry || order.e_sign_link_expires,
         e_sign_completed_by_customer: latestEsign?.is_signed,
-        e_sign_customer_completion_date: latestEsign?.is_signed ? order.e_sign_customer_completion_date : null,
+        e_sign_customer_completion_date: latestEsign?.is_signed
+          ? order.e_sign_customer_completion_date
+          : null,
         // e_sign_customer_completion_date: order.e_sign_customer_completion_date,
         e_sign_doc_comments: order.e_sign_doc_comments,
         is_e_sign_regenerated: regeneratedEsignCount > 1,
         e_sign_regenerated_count: regeneratedEsignCount,
         v_kyc_status: vKycStatus,
         v_kyc_link: latestVkyc?.v_kyc_link || order.v_kyc_link,
-        v_kyc_link_status: latestVkyc?.v_kyc_link_status || order.v_kyc_link_status,
-        v_kyc_link_expires: latestVkyc?.v_kyc_link_expires || order.v_kyc_link_expires,
+        v_kyc_link_status:
+          latestVkyc?.v_kyc_link_status || order.v_kyc_link_status,
+        v_kyc_link_expires:
+          latestVkyc?.v_kyc_link_expires || order.v_kyc_link_expires,
         v_kyc_completed_by_customer: order.v_kyc_completed_by_customer,
         v_kyc_customer_completion_date: order.v_kyc_customer_completion_date,
         v_kyc_comments: order.v_kyc_comments,
         is_v_kyc_link_regenerated: order.is_video_kyc_link_regenerated,
         v_kyc_regenerated_count: regeneratedVkycCount,
-        ...(order.merged_document && { merged_document: extractBaseUrl(order.merged_document?.url) }),
+        ...(order.merged_document && {
+          merged_document: extractBaseUrl(order.merged_document?.url),
+        }),
       };
     } catch (error) {
       // Log error here if necessary
-      console.log(error)
+      console.log(error);
       throw error;
     } finally {
       childSpan.finish();
     }
   }
-  
 
   async updateOrder(
     span: opentracing.Span,

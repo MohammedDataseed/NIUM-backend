@@ -10,19 +10,19 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(private userService: UserService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKey: '123456',  // Use a stronger key in production
+      secretOrKey: '123456', // Use a stronger key in production
     });
   }
 
   async validate(payload: JwtPayload) {
-    console.log('Payload:', payload);  // Log the payload for debugging
+    console.log('Payload:', payload); // Log the payload for debugging
     const { email } = payload;
     const user = await this.userService.findByEmail(email);
-    console.log('User:', user);  // Log the user object for debugging
+    console.log('User:', user); // Log the user object for debugging
 
     if (!user) {
       throw new Error('Invalid token');
     }
-    return user;  // Return the user object
+    return user; // Return the user object
   }
 }

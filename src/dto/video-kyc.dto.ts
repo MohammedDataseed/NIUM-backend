@@ -2,17 +2,20 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsOptional, IsString, IsObject, IsArray } from 'class-validator';
 
-
 export class AddressDto {
-  @ApiProperty({ description: 'Type of address (e.g., current)', example: 'current' })
+  @ApiProperty({
+    description: 'Type of address (e.g., current)',
+    example: 'current',
+  })
   type: string;
 
   @ApiProperty({ description: 'House number', example: '' })
   house_number: string;
 
-  @ApiProperty({ 
-    description: 'Full street address', 
-    example: '26/1, P & T drivers colony,near ammar school, DJ halli, Bengaluru-560045' 
+  @ApiProperty({
+    description: 'Full street address',
+    example:
+      '26/1, P & T drivers colony,near ammar school, DJ halli, Bengaluru-560045',
   })
   street_address: string;
 
@@ -36,21 +39,27 @@ export class AddressDto {
 }
 
 export class SyncProfileDto {
-  @ApiProperty({ 
-    description: 'Unique reference identifier', 
+  @ApiProperty({
+    description: 'Unique reference identifier',
     example: '677',
-    required: true 
+    required: true,
   })
   reference_id: string;
 }
 
 export class VkycImagesDto {
-  @ApiProperty({ description: 'URL to the selfie image', example: 'https://storage.googleapis.com/...' })
+  @ApiProperty({
+    description: 'URL to the selfie image',
+    example: 'https://storage.googleapis.com/...',
+  })
   @IsOptional()
   @IsString()
   selfie?: string;
 
-  @ApiProperty({ description: 'URL to the PAN image', example: 'https://storage.googleapis.com/...' })
+  @ApiProperty({
+    description: 'URL to the PAN image',
+    example: 'https://storage.googleapis.com/...',
+  })
   @IsOptional()
   @IsString()
   pan?: string;
@@ -67,12 +76,18 @@ export class VkycImagesDto {
 }
 
 export class VkycVideosDto {
-  @ApiProperty({ description: 'URL to the agent video', example: 'https://storage.googleapis.com/...' })
+  @ApiProperty({
+    description: 'URL to the agent video',
+    example: 'https://storage.googleapis.com/...',
+  })
   @IsOptional()
   @IsString()
   agent?: string;
 
-  @ApiProperty({ description: 'URL to the customer video', example: 'https://storage.googleapis.com/...' })
+  @ApiProperty({
+    description: 'URL to the customer video',
+    example: 'https://storage.googleapis.com/...',
+  })
   @IsOptional()
   @IsString()
   customer?: string;
@@ -87,7 +102,10 @@ export class VkycTextDto {
   @IsObject()
   location?: object;
 
-  @ApiProperty({ description: 'Name of the individual', example: 'Mohammed Tayibulla' })
+  @ApiProperty({
+    description: 'Name of the individual',
+    example: 'Mohammed Tayibulla',
+  })
   @IsOptional()
   @IsString()
   name?: string;
@@ -102,13 +120,25 @@ export class VkycResourcesDto {
   @ApiProperty({ description: 'Unique partner order ID', example: 'NIUMTEST1' })
   partner_order_id: string;
 
-  @ApiProperty({ description: 'Document resources', type: [String], required: false })
+  @ApiProperty({
+    description: 'Document resources',
+    type: [String],
+    required: false,
+  })
   documents?: string[];
 
-  @ApiProperty({ description: 'Image resources', type: Object, required: false })
+  @ApiProperty({
+    description: 'Image resources',
+    type: Object,
+    required: false,
+  })
   images?: { selfie?: string; pan?: string; others?: string[] };
 
-  @ApiProperty({ description: 'Video resources', type: Object, required: false })
+  @ApiProperty({
+    description: 'Video resources',
+    type: Object,
+    required: false,
+  })
   videos?: { agent?: string; customer?: string };
 }
 

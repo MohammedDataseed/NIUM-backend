@@ -49,7 +49,6 @@ export class OrdersController {
     }
   }
 
-
   // @Get()
   // @ApiResponse({ status: 200, description: 'List of orders' })
   // async findAll(): Promise<Array<Partial<Omit<Order, 'transaction_type' | 'purpose_type'>> & {
@@ -66,7 +65,6 @@ export class OrdersController {
   //   }
   // }
 
-
   @Post('generate-order')
   async createOrder(
     @Headers('api_key') api_key: string,
@@ -82,7 +80,7 @@ export class OrdersController {
         span,
         createOrderDto,
         partner_id,
-        api_key
+        api_key,
       );
       return order;
     } catch (error) {
@@ -113,8 +111,6 @@ export class OrdersController {
     }
   }
 
-
-
   @Delete(':orderId')
   @ApiResponse({ status: 204, description: 'Order deleted successfully' })
   async deleteOrder(@Param('orderId') orderId: string) {
@@ -131,11 +127,13 @@ export class OrdersController {
 
   @Get('unassigned-orders')
   @ApiResponse({ status: 200, description: 'List of orders without a checker' })
-  async getUnassignedOrders(): Promise<Array<{
-    [key: string]: any;
-    transaction_type: { id: string | null; text: string };
-    purpose_type: { id: string | null; text: string };
-  }>> {
+  async getUnassignedOrders(): Promise<
+    Array<{
+      [key: string]: any;
+      transaction_type: { id: string | null; text: string };
+      purpose_type: { id: string | null; text: string };
+    }>
+  > {
     return this.ordersService.getUnassignedOrders();
   }
 
@@ -213,15 +211,15 @@ export class OrdersController {
   //   return this.ordersService.getFilteredOrders(filterDto);
   // }
   @Get('filter')
-async getFilteredOrders(
-  @Query() filterDto: FilterOrdersDto
-): Promise<Array<{
-  [key: string]: any;
-  transaction_type: { id: string | null; text: string };
-  purpose_type: { id: string | null; text: string };
-}>> {
-  return this.ordersService.getFilteredOrders(filterDto);
-}
+  async getFilteredOrders(@Query() filterDto: FilterOrdersDto): Promise<
+    Array<{
+      [key: string]: any;
+      transaction_type: { id: string | null; text: string };
+      purpose_type: { id: string | null; text: string };
+    }>
+  > {
+    return this.ordersService.getFilteredOrders(filterDto);
+  }
 
   @Get(':partnerOrderId')
   @ApiResponse({ status: 200, description: 'Order details' })

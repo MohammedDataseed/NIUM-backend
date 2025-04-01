@@ -1,5 +1,9 @@
 import { ConfigService } from '@nestjs/config';
-import { ClientOptions, ClientProxyFactory, Transport } from '@nestjs/microservices';
+import {
+  ClientOptions,
+  ClientProxyFactory,
+  Transport,
+} from '@nestjs/microservices';
 import { of } from 'rxjs';
 import { NODE_ENV_VALUES } from '../../constants/general.constants';
 

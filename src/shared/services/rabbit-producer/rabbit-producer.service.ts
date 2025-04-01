@@ -1,10 +1,10 @@
-import { Inject, Injectable } from "@nestjs/common";
-import { ClientProxy } from "@nestjs/microservices";
-import { RMQ_PATTERNS } from "../../../constants/general.constants";
+import { Inject, Injectable } from '@nestjs/common';
+import { ClientProxy } from '@nestjs/microservices';
+import { RMQ_PATTERNS } from '../../../constants/general.constants';
 
 @Injectable()
 export class RabbitProducerService {
-  constructor(@Inject("RABBIT_CLIENT_LOG_QUEUE") private client: ClientProxy) {}
+  constructor(@Inject('RABBIT_CLIENT_LOG_QUEUE') private client: ClientProxy) {}
 
   async onModuleInit() {
     await this.client.connect();
