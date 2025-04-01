@@ -72,6 +72,7 @@
     "sequelize": "^6.37.3",
     "sequelize-typescript": "^2.1.6",
     "swagger-ui-express": "^4.6.3",
+    "uuid": "^11.1.0",
     "winston": "^3.8.2"
   },
   "devDependencies": {
