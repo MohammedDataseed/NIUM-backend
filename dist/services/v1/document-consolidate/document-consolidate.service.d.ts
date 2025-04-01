@@ -1,0 +1,56 @@
+import { ConfigService } from "@nestjs/config";
+import { Buffer } from "buffer";
+import { PDFDocument } from "pdf-lib";
+import { Order } from "src/database/models/order.model";
+import { Documents } from "src/database/models/documents.model";
+import { DocumentType } from "src/database/models/documentType.model";
+export declare class PdfService {
+    private readonly documentRepository;
+    private readonly orderRepository;
+    private readonly documentTypeRepository;
+    private readonly configService;
+    private readonly s3;
+    private readonly MAX_FILE_SIZE;
+    constructor(documentRepository: typeof Documents, orderRepository: typeof Order, documentTypeRepository: typeof DocumentType, configService: ConfigService);
+    listFilesByFolder(folderName: string): Promise<{
+        order_id: string;
+        files: {
+            name: string;
+            signed_url: string;
+        }[];
+    }>;
+    optimizePdf(pdfDoc: PDFDocument, aggressive?: boolean): Promise<Uint8Array>;
+    serveDocument(folderName: string, fileName: string): Promise<any>;
+    updateFile(buffer: Buffer, oldFileKey: string, newFileKey: string, contentType?: string): Promise<{
+        message: string;
+        file_url: string;
+    }>;
+    deleteFile(fileKey: string): Promise<{
+        message: string;
+    }>;
+    uploadFile(buffer: Buffer, originalName: string, folderName: string): Promise<{
+        message: string;
+        file_url: string;
+    }>;
+    uploadLargeFileToS3(key: string, buffer: Buffer, mimeType: string): Promise<string>;
+    uploadDocumentByOrderId(partner_order_id: string, document_type_id: string, base64File: string, merge_doc?: boolean): Promise<{
+        merged_document_id: any;
+        message: string;
+        document_id: string;
+    }>;
+    mergeFilesByFolder(folderName: string, newFileBuffer?: Buffer, newFileMimeType?: string): Promise<{
+        files: {
+            buffer: Buffer<Uint8Array<ArrayBufferLike>>;
+            url: string;
+            s3Key: string;
+        }[];
+    }>;
+    mergeFilesByFolder1(folderName: string, newFileBuffer?: Buffer, newFileMimeType?: string): Promise<{
+        files: {
+            buffer: Buffer<Uint8Array<ArrayBufferLike>>;
+            url: string;
+            s3Key: string;
+        }[];
+    }>;
+    compressPdfWithPdfLib(pdfBuffer: Buffer, maxSize: number): Promise<Buffer>;
+}

@@ -1,16 +1,19 @@
-import { Controller, Get, Query, BadRequestException } from "@nestjs/common";
+import { Controller, Get, Query, Headers, BadRequestException } from "@nestjs/common";
 import { PurposeService } from "../../../services/v1/purpose/purpose.service";
 import { DocumentTypeService } from "../../../services/v1/document/documentType.service";
-import { transaction_typeService } from "../../../services/v1/transaction/transaction_type.service";
+import { transaction_typeService} from "../../../services/v1/transaction/transaction_type.service";
+import { OrdersService } from "src/services/v1/order/order.service";
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from "@nestjs/swagger";
+import * as opentracing from "opentracing";
 
-@ApiTags("Config") // This groups the API under "Config" in Swagger UI
+@ApiTags("Config") // Groups API under "Config" in Swagger UI
 @Controller("config")
 export class ConfigController {
   constructor(
     private readonly purposeService: PurposeService,
     private readonly documentTypeService: DocumentTypeService,
-    private readonly transaction_typeService: transaction_typeService
+    private readonly transactionTypeService:  transaction_typeService,  // Fixed naming convention
+    private readonly ordersService: OrdersService
   ) {}
 
   @Get()
@@ -35,22 +38,39 @@ export class ConfigController {
     description:
       "Invalid type provided. Allowed values: purpose_type, document_type, transaction_type",
   })
-  async getConfigDetails(@Query("type") type: string): Promise<any> {
+  async getConfigDetails(
+    @Headers("api_key") apiKey: string,
+    @Headers("partner_id") partnerId: string,
+    @Query("type") type: string
+  ): Promise<any> {
     if (!type) {
       throw new BadRequestException("Type parameter is required");
     }
 
-    switch (type.toLowerCase()) {
-      case "purpose_type":
-        return this.purposeService.findAllConfig();
-      case "document_type":
-        return this.documentTypeService.findAllConfig();
-      case "transaction_type":
-        return this.transaction_typeService.findAllConfig();
-      default:
-        throw new BadRequestException(
-          "Invalid type provided. Allowed values: purpose_type, document_type, transaction_type"
-        );
+    // Start OpenTracing span
+    const tracer = opentracing.globalTracer();
+    const span = tracer.startSpan("get-master-details");
+
+    try {
+      // Validate partner headers using OrdersService
+      await this.ordersService.validatePartnerHeaders(partnerId, apiKey);
+
+      switch (type.toLowerCase()) {
+        case "purpose_type":
+          return this.purposeService.findAllConfig();
+        case "document_type":
+          return this.documentTypeService.findAllConfig();
+        case "transaction_type":
+          return this.transactionTypeService.findAllConfig();
+        default:
+          throw new BadRequestException(
+            "Invalid type provided. Allowed values: purpose_type, document_type, transaction_type"
+          );
+      }
+    } catch (error) {
+      throw error;
+    } finally {
+      span.finish(); 
     }
   }
 }

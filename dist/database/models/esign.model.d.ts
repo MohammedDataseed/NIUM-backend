@@ -1,0 +1,37 @@
+import { Model } from "sequelize-typescript";
+import { Order } from "./order.model";
+export declare class ESign extends Model<ESign> {
+    id: string;
+    hashed_key: string;
+    partner_order_id: string;
+    order_id: string;
+    order: Order;
+    attempt_number: number;
+    task_id: string;
+    group_id: string;
+    esign_file_details: object;
+    esign_stamp_details: object;
+    esign_invitees: object;
+    esign_details: object;
+    esign_doc_id: string;
+    status: string;
+    request_id: string;
+    completed_at: Date;
+    esign_expiry: Date;
+    active: boolean;
+    expired: boolean;
+    rejected: boolean;
+    result: object;
+    esigners: object;
+    file_details: object;
+    request_details: object;
+    esign_irn: string;
+    esign_folder: string;
+    esign_type: string;
+    esign_url: string;
+    esigner_email: string;
+    esigner_phone: string;
+    is_signed: boolean;
+    type: string;
+    static generatehashed_key(instance: ESign): void;
+}

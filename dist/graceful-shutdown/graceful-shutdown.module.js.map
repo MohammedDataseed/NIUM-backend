@@ -1,0 +1,1 @@
+{"version":3,"file":"graceful-shutdown.module.js","sourceRoot":"","sources":["../../src/graceful-shutdown/graceful-shutdown.module.ts"],"names":[],"mappings":";;;;;;;;;AAAA,2CAAwC;AAExC,iEAA6D;AAC7D,2DAAuD;AAMhD,IAAM,sBAAsB,GAA5B,MAAM,sBAAsB;CAAG,CAAA;AAAzB,wDAAsB;iCAAtB,sBAAsB;IAJlC,IAAA,eAAM,EAAC;QACN,OAAO,EAAE,CAAC,gCAAc,EAAE,4BAAY,CAAC;KAExC,CAAC;GACW,sBAAsB,CAAG"}

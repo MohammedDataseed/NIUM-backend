@@ -11,16 +11,20 @@ import {
   Unique,
   AllowNull,
   BeforeCreate,
-} from "sequelize-typescript";
-import { User } from "./user.model";
-import { Partner } from "./partner.model";
-import { ESign } from "./esign.model";
-import { Vkyc } from "./vkyc.model";
-import { Optional } from "@nestjs/common";
-import * as crypto from "crypto";
+  AfterCreate,
+  AfterUpdate,
+  AfterDestroy,
+} from 'sequelize-typescript';
+import { User } from './user.model';
+import { Partner } from './partner.model';
+import { ESign } from './esign.model';
+import { Vkyc } from './vkyc.model';
+import { OrderLog } from './order_log.model';
+import { Optional } from '@nestjs/common';
+import * as crypto from 'crypto';
 
 @Table({
-  tableName: "orders",
+  tableName: 'orders',
   timestamps: true,
 })
 export class Order extends Model<Order> {
@@ -32,15 +36,31 @@ export class Order extends Model<Order> {
   })
   id: string;
 
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: false,
+    unique: true,
+    autoIncrement: true,
+  })
+  serial_number: number; // Sequential order number
+
+  @Column({ type: DataType.STRING, allowNull: true })
+  @Optional()
+  nium_order_id: string;
 
   @Unique
   @AllowNull(false)
-  @Column({ type: DataType.STRING, field: "hashed_key", defaultValue: "" })
+  @Column({ type: DataType.STRING, field: 'hashed_key', defaultValue: '' })
   hashed_key: string;
 
-
-  @Column({ type: DataType.UUID, allowNull: false })
+  @Column({ type: DataType.STRING, allowNull: false })
   partner_id: string;
+
+  @Column({ type: DataType.STRING }) // New field
+  partner_hashed_api_key: string;
+
+  @Column({ type: DataType.STRING }) // New field
+  partner_hashed_key: string;
 
   @Unique // 🔥 Ensure uniqueness
   @Column({ type: DataType.STRING, allowNull: false })
@@ -149,7 +169,7 @@ export class Order extends Model<Order> {
   @Optional()
   v_kyc_comments: string;
 
-  // Incident 
+  // Incident
   @Column({ type: DataType.BOOLEAN, allowNull: true })
   @Optional()
   incident_status: boolean;
@@ -157,10 +177,6 @@ export class Order extends Model<Order> {
   @Column({ type: DataType.STRING, allowNull: true })
   @Optional()
   incident_checker_comments: string;
-
-  @Column({ type: DataType.STRING, allowNull: true })
-  @Optional()
-  nium_order_id: string;
 
   @Column({ type: DataType.STRING, allowNull: true })
   @Optional()
@@ -194,25 +210,25 @@ export class Order extends Model<Order> {
 
   // User Tracking (created_by and updated_by)
   @ForeignKey(() => Partner)
-  @Column({ type: DataType.UUID, field: "created_by" })
+  @Column({ type: DataType.UUID, field: 'created_by' })
   created_by: string;
 
   @ForeignKey(() => Partner)
-  @Column({ type: DataType.UUID, field: "updated_by" })
+  @Column({ type: DataType.UUID, field: 'updated_by' })
   updated_by: string;
 
   @ForeignKey(() => User)
-  @Column({ type: DataType.UUID, field: "checker_id" })
+  @Column({ type: DataType.UUID, field: 'checker_id' })
   checker_id: string; // Added for checker (user) details
 
   // Associations
-  @BelongsTo(() => Partner, { foreignKey: "created_by" })
+  @BelongsTo(() => Partner, { foreignKey: 'created_by' })
   creator: Partner;
 
-  @BelongsTo(() => Partner, { foreignKey: "updated_by" })
+  @BelongsTo(() => Partner, { foreignKey: 'updated_by' })
   updater: Partner;
 
-  @BelongsTo(() => User, { foreignKey: "checker_id" })
+  @BelongsTo(() => User, { foreignKey: 'checker_id' })
   checker: User;
 
   @Column({ type: DataType.JSONB, allowNull: true }) // Store structured data
@@ -226,21 +242,118 @@ export class Order extends Model<Order> {
   };
 
   // Corrected Relationship (One Order -> Many ESigns)
-  @HasMany(() => ESign, { foreignKey: "order_id", sourceKey: "id" })
+  @HasMany(() => ESign, { foreignKey: 'order_id', sourceKey: 'id' })
   esigns: ESign[];
 
   // Corrected Relationship (One Order -> Many ESigns)
-  @HasMany(() => Vkyc, { foreignKey: "order_id", sourceKey: "id" })
+  @HasMany(() => Vkyc, { foreignKey: 'order_id', sourceKey: 'id' })
   vkycs: Vkyc[];
 
   /** Generate `hashed_key` before creation */
   @BeforeCreate
   static generateHashedKey(instance: Order) {
-    console.log("Generating hashed_key..."); // Debugging
-    const randomPart = crypto.randomBytes(16).toString("hex");
+    console.log('Generating hashed_key...'); // Debugging
+    const randomPart = crypto.randomBytes(16).toString('hex');
     const timestampPart = Date.now().toString(36);
     instance.hashed_key = `${randomPart}${timestampPart}`;
-    console.log("Generated hashed_key:", instance.hashed_key); // Debugging
+    console.log('Generated hashed_key:', instance.hashed_key); // Debugging
   }
- 
+
+  // Hook to generate nium_order_id before saving
+  @BeforeCreate
+  static async setSerialNumber(instance: Order) {
+    const latestOrder = await Order.findOne({
+      order: [['serial_number', 'DESC']], // Get the latest serial number
+    });
+
+    const newSerialNumber = latestOrder ? latestOrder.serial_number + 1 : 1;
+    instance.serial_number = newSerialNumber;
+    instance.nium_order_id = `NIUMF${String(newSerialNumber).padStart(6, '0')}`;
+  }
+
+  /** ✅ Log Insert */
+  @AfterCreate
+  static async logInsert(instance: OrderLog, options: any) {
+    if (options.transaction && options.transaction.finished !== 'commit') {
+      console.log(
+        `⏳ Skipping log for ${instance.id}, transaction not committed yet.`,
+      );
+      return;
+    }
+    const existingLog = await OrderLog.findOne({
+      where: { id: instance.id, dml_action: 'I' },
+      transaction: options.transaction ?? null,
+    });
+
+    if (existingLog) {
+      console.log(
+        `⚠️ Insert log for ${instance.id} already exists, skipping duplicate entry.`,
+      );
+      return;
+    }
+
+    console.log(`🔵 Logging INSERT for ID: ${instance.id}`);
+    await OrderLog.create(
+      { ...instance.get(), dml_action: 'I', log_timestamp: new Date() },
+      { transaction: options.transaction ?? null },
+    );
+  }
+
+  /** ✅ Log Update */
+  @AfterUpdate
+  static async logUpdate(instance: OrderLog, options: any) {
+    if (options.transaction && options.transaction.finished !== 'commit') {
+      console.log(
+        `⏳ Skipping update log for ${instance.id}, transaction not committed yet.`,
+      );
+      return;
+    }
+
+    const existingLog = await OrderLog.findOne({
+      where: { id: instance.id, dml_action: 'U' },
+      transaction: options.transaction ?? null,
+    });
+
+    if (existingLog) {
+      console.log(
+        `⚠️ Update log for ${instance.id} already exists, skipping duplicate entry.`,
+      );
+      return;
+    }
+
+    console.log(`🟡 Logging UPDATE for ID: ${instance.id}`);
+    await OrderLog.create(
+      { ...instance.get(), dml_action: 'U', log_timestamp: new Date() },
+      { transaction: options.transaction ?? null },
+    );
+  }
+
+  /** ✅ Log Delete */
+  @AfterDestroy
+  static async logDelete(instance: OrderLog, options: any) {
+    if (options.transaction && options.transaction.finished !== 'commit') {
+      console.log(
+        `⏳ Skipping delete log for ${instance.id}, transaction not committed yet.`,
+      );
+      return;
+    }
+
+    // 🚨 Prevent duplicate logs
+    const existingLog = await OrderLog.findOne({
+      where: { id: instance.id, dml_action: 'D' },
+      transaction: options.transaction ?? null,
+    });
+    if (existingLog) {
+      console.log(
+        `⚠️ Delete log already exists for ID: ${instance.id}, skipping duplicate.`,
+      );
+      return;
+    }
+
+    console.log(`🔴 Logging DELETE for ID: ${instance.id}`);
+    await OrderLog.create(
+      { ...instance.get(), dml_action: 'D', log_timestamp: new Date() },
+      { transaction: options.transaction ?? null },
+    );
+  }
 }

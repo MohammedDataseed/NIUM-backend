@@ -1,0 +1,81 @@
+
+# NIUM Database Migration Guide
+
+This guide explains how to migrate the database schema and data from `nium-test-2` to `nium-test-3`.
+
+## 📌 Step 1: Export Schema from `nium-test-2`
+Run the following command to export only the schema (table structure) from `nium-test-2`:
+
+```sh
+pg_dump -U postgres -d nium-test-2 --schema-only > schema_dump.sql
+```
+
+Note: --schema-only ensures it only exports the CREATE TABLE queries, without data.
+
+## 📌 Step 2: Create New Database (nium-test-3)
+Open PostgreSQL CLI:
+
+```sh
+psql -U postgres
+```
+```sh
+CREATE DATABASE "nium-test-3";
+```
+Exit PostgreSQL CLI:
+```sh
+exit;
+```
+
+
+## 📌 Step 3: Import Schema into nium-test-3
+Now, apply the exported schema to the new database:
+
+```
+psql -U postgres -d nium-test-3 -f schema_dump.sql
+```
+This will create all the tables in nium-test-3.
+
+## 📌 Step 4: Verify Tables in nium-test-3
+To check if tables were created successfully:
+
+```
+psql -U postgres -d nium-test-3
+```
+
+Then, list the tables:
+
+```
+\dt;
+```
+
+## 📌 Step 5: Copy Data from nium-test-2
+If you also need to copy data, run:
+
+```
+pg_dump -U postgres -d nium-test-2 --data-only > data_dump.sql
+
+```
+
+## 📌 Step 6: Import Data into nium-test-3
+Now, import the data into the new database:
+
+```
+psql -U postgres -d nium-test-3 -f data_dump.sql
+```
+
+✅ Final Check
+To confirm data exists, connect to nium-test-3:
+
+```
+psql -U postgres -d nium-test-3
+```
+
+Run queries like:
+
+```
+SELECT COUNT(*) FROM users;
+SELECT COUNT(*) FROM roles;
+```
+
+Now, nium-test-3 should be a complete copy of nium-test-2 with both schema and data migrated.
+

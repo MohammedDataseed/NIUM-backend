@@ -28,7 +28,7 @@ module.exports = {
     password: "1234",
     database: "nium-dev",
     host: "13.201.102.229",
-    dialect: "postgres", 
+    dialect: "postgres",
     pool: {
       max: Number(process.env.PGMAX) || 5,
       idle: Number(process.env.PGIDLETIMEOUT) || 10000,

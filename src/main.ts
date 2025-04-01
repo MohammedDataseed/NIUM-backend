@@ -5,6 +5,8 @@ import { GlobalExceptionFilter } from "./filters/exception.filter";
 import { LoggerService } from "./shared/services/logger/logger.service";
 import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
 import * as morgan from "morgan";
+import * as bodyParser from 'body-parser';
+
 import helmet from "helmet";
 import { json } from "express"; // Import express json middleware
 import { ConfigService } from "@nestjs/config";
@@ -26,10 +28,53 @@ async function bootstrap() {
       stream: { write: (message) => logger.info(message) },
     })
   );
-  app.enableCors({
-    origin: [
+
+  // app.use((req: Request, res: Response, next: NextFunction) => {
+  //   const allowedOrigins = [
+  //     "http://localhost:3000",
+  //     "http://127.0.0.1:3000",
+  //     "http://localhost:5500",
+  //     "http://127.0.0.1:5500",
+  //     "http://localhost:8000",
+  //     "http://127.0.0.1:8000",
+  //     "http://13.201.102.229",
+  //     "https://13.201.102.229",
+  //     "http://nium.thestorywallcafe.com",
+  //     "https://nium.thestorywallcafe.com",
+  //     "https://nium-forex-agent-portal.vercel.app",
+  //   ];
+
+  //   const origin = req.headers.origin;
+  //   if (allowedOrigins.includes(origin)) {
+  //     res.header("Access-Control-Allow-Origin", origin);
+  //   }
+
+  //   res.header(
+  //     "Access-Control-Allow-Methods",
+  //     "GET, POST, PUT, DELETE, OPTIONS"
+  //   );
+    
+  // // ✅ Add partner_id and api_key to allowed headers
+  // res.header(
+  //   "Content-Type, Authorization, api_key, partner_id"
+  // );
+
+  //   res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  //   res.header("Access-Control-Allow-Credentials", "true");
+
+  //   if (req.method === "OPTIONS") {
+  //     return res.sendStatus(200);
+  //   }
+
+  //   next();
+  // });
+
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    const allowedOrigins = [
       "http://localhost:3000",
       "http://127.0.0.1:3000",
+      "http://localhost:5500",
+      "http://127.0.0.1:5500",
       "http://localhost:8000",
       "http://127.0.0.1:8000",
       "http://13.201.102.229",
@@ -37,30 +82,36 @@ async function bootstrap() {
       "http://nium.thestorywallcafe.com",
       "https://nium.thestorywallcafe.com",
       "https://nium-forex-agent-portal.vercel.app",
-    ], // Allow frontend on localhost
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "OPTIONS"], // Explicitly allow methods
-    allowedHeaders: ["Content-Type", "Authorization"], // Allow required headers
-  });
-
-  // ✅ Handle OPTIONS requests explicitly
-  app.use((req, res, next) => {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header(
-      "Access-Control-Allow-Methods",
-      "GET, POST, PUT, DELETE, OPTIONS"
-    );
-    res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-
-    if (req.method === "OPTIONS") {
-      return res.sendStatus(200); // ✅ Send immediate response for OPTIONS
+    ];
+  
+    const origin = req.headers.origin;
+    if (allowedOrigins.includes(origin)) {
+      res.header("Access-Control-Allow-Origin", origin);
     }
-
+  
+    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  
+    // ✅ Correctly set Access-Control-Allow-Headers
+    res.header(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Authorization, api_key, partner_id"
+    );
+  
+    res.header("Access-Control-Allow-Credentials", "true");
+  
+    if (req.method === "OPTIONS") {
+      return res.sendStatus(200);
+    }
+  
     next();
   });
+  
   app.use(helmet());
   // Increase the JSON body size limit to 1MB (or adjust as needed)
-  app.use(json({ limit: "5mb" })); // 5mb = 5120 * 1024 bytes
+  app.use(json({ limit: "100mb" })); // 5mb = 5120 * 1024 bytes
+  // Increase body size limit
+  app.use(bodyParser.json({ limit: '100mb' }));  // Adjust as needed
+  app.use(bodyParser.urlencoded({ limit: '100mb', extended: true }));
   app.setGlobalPrefix("v1/api");
   app.use(contextService.middleware("request"));
 
@@ -79,37 +130,35 @@ async function bootstrap() {
 
   // Proxy for v_kyc_link
 
- const proxyOptions = {
-  target: 'https://capture.kyc.idfy.com', // Target API
-  changeOrigin: true, // Correct origin header handling
-  pathRewrite: {
-    '^/captures': '/v2/captures',  // Rewrite '/captures' to '/v2/captures'
-  },
-  onProxyReq: (proxyReq, req, res) => {
-    // Optional: Set additional headers if needed
-    proxyReq.setHeader('Origin', 'https://capture.kyc.idfy.com');
-  },
-};
-  // Apply proxy middleware for '/captures' route
-  app.use('/captures', createProxyMiddleware(proxyOptions));
-
- 
-
-  const proxyOptionsEsign = {
-    target: 'https://app1.leegality.com', // Target e-sign service
- 
+  const proxyOptions = {
+    target: "https://capture.kyc.idfy.com", // Target API
     changeOrigin: true, // Correct origin header handling
     pathRewrite: {
-      '^/sign': '',  // Rewrite '/captures' to '/v2/captures'
+      "^/captures": "/v2/captures", // Rewrite '/captures' to '/v2/captures'
     },
     onProxyReq: (proxyReq, req, res) => {
       // Optional: Set additional headers if needed
-      proxyReq.setHeader('Origin', 'https://app1.leegality.com');
+      proxyReq.setHeader("Origin", "https://capture.kyc.idfy.com");
     },
   };
-    // Apply proxy middleware for '/captures' route
-    app.use('/sign/*', createProxyMiddleware(proxyOptionsEsign));
-  
+  // Apply proxy middleware for '/captures' route
+  app.use("/captures", createProxyMiddleware(proxyOptions));
+
+  const proxyOptionsEsign = {
+    target: "https://app1.leegality.com", // Target e-sign service
+
+    changeOrigin: true, // Correct origin header handling
+    pathRewrite: {
+      "^/sign": "", // Rewrite '/captures' to '/v2/captures'
+    },
+    onProxyReq: (proxyReq, req, res) => {
+      // Optional: Set additional headers if needed
+      proxyReq.setHeader("Origin", "https://app1.leegality.com");
+    },
+  };
+  // Apply proxy middleware for '/captures' route
+  app.use("/sign/*", createProxyMiddleware(proxyOptionsEsign));
+
   // listen for kill signal
   // app.enableShutdownHooks();
   // Global Unhandled Promise Catcher
@@ -123,7 +172,7 @@ async function bootstrap() {
     .setTitle(`InstaReM ${process.env.SERVICE_NAME}`)
     .setDescription(process.env.SERVICE_NAME)
     .setVersion("1.0")
-     .addBearerAuth(
+    .addBearerAuth(
       {
         type: "http",
         scheme: "bearer",

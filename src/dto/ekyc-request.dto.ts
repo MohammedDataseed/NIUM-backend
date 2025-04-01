@@ -129,7 +129,7 @@ export class EkycRetrieveDataDto {
 }
 
 export class EkycRetrieveRequestDto {
-  @ApiProperty({ example: '234', description: 'Task ID for the e-KYC request' })
+  @ApiProperty({ example: 'TAYIB1', description: 'Task ID for the e-KYC request' })
   @IsString()
   @IsNotEmpty()
   task_id: string;
@@ -145,7 +145,7 @@ export class EkycRetrieveRequestDto {
   @ApiProperty({
     example: {
       user_key: 'N0N0M8nTyzD3UghN6qehC9HTfwneEZJv',
-      esign_doc_id: 'MMtdWgP',
+      esign_doc_id: '01JPN6FMTRB4YQ4BX0T1J4673Y',
     },
     description: 'Additional data for the request',
   })

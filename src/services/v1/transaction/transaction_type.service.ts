@@ -116,14 +116,14 @@ export class transaction_typeService {
   }
 
   async findAllConfig(): Promise<
-    { transaction_type_id: string; transaction_name: string }[]
+    { id: string; text: string }[]
   > {
     const transaction = await this.transaction_typeRepository.findAll({
       where: { isActive: true }, // Only fetch active documents
     });
     return transaction.map((transaction) => ({
-      transaction_type_id: transaction.hashed_key,
-      transaction_name: transaction.name,
+      id: transaction.hashed_key,
+      text: transaction.name,
     }));
   }
 

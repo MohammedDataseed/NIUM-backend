@@ -63,6 +63,8 @@ export class DocumentTypeService {
     }
   }
 
+  
+
   async updateDocumentType(
     span: opentracing.Span,
     hashed_key: string,
@@ -110,15 +112,13 @@ export class DocumentTypeService {
     }
   }
 
-  async findAllConfig(): Promise<
-    { document_type_id: string; document_name: string }[]
-  > {
+  async findAllConfig(): Promise<{ id: string; text: string }[]> {
     const document = await this.documentTypeRepository.findAll({
       where: { isActive: true }, // Only fetch active documents
     });
     return document.map((document) => ({
-      document_type_id: document.hashed_key,
-      document_name: document.name,
+      id: document.hashed_key,
+      text: document.name,
     }));
   }
 

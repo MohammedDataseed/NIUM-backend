@@ -1,3 +1,4 @@
+//documentType.model.ts
 import {
   Table,
   Column,
@@ -8,11 +9,16 @@ import {
   ForeignKey,
   BelongsTo,
   BeforeCreate,
+  BeforeUpdate,
+  BeforeDestroy,
+  AfterCreate,
+  AfterUpdate,
+  AfterDestroy,
   BeforeValidate,
   Unique,
   DataType,
 } from "sequelize-typescript";
-
+import { DocumentTypeLog } from "./document_type_log.model";
 import { User } from "./user.model";
 import * as crypto from "crypto";
 
@@ -77,4 +83,107 @@ export class DocumentType extends Model<DocumentType> {
     instance.hashed_key = `${randomPart}${timestampPart}`; // 16-char random + timestamp
   }
   
+  @AfterCreate
+  static async logInsert(instance: DocumentType, options: any) {
+    if (options.transaction && options.transaction.finished !== "commit") {
+      console.log(`⏳ Skipping log for ${instance.id}, transaction not committed yet.`);
+      return;
+    }
+  
+    console.log(`🔵 Logging INSERT for ID: ${instance.id}`);
+  
+    // 🚨 Check if a log already exists to prevent duplicates
+    const existingLog = await DocumentTypeLog.findOne({ where: { id: instance.id } });
+    if (existingLog) {
+      console.log(`⚠️ Log already exists for ID: ${instance.id}, skipping duplicate log.`);
+      return;
+    }
+  
+    await DocumentTypeLog.create(
+      {
+        dml_action: "I",
+        log_timestamp: new Date(),
+        id: instance.id,
+        hashed_key: instance.hashed_key,
+        name: instance.name,
+        created_by: instance.created_by,
+        updated_by: instance.updated_by,
+        created_at: instance.createdAt,
+        updated_at: instance.updatedAt ?? new Date(),
+      },
+      { transaction: options.transaction ?? null }
+    );
+  }
+  
+  @AfterUpdate
+static async logUpdate(instance: DocumentType, options: any) {
+  if (options.transaction && options.transaction.finished !== "commit") {
+    console.log(`⏳ Skipping update log for ${instance.id}, transaction not committed yet.`);
+    return;
+  }
+
+  console.log(`🟡 Logging UPDATE for ID: ${instance.id}`);
+
+  // 🚨 Check if a log for this update already exists
+  const existingLog = await DocumentTypeLog.findOne({ 
+    where: { id: instance.id, dml_action: "U" } 
+  });
+  if (existingLog) {
+    console.log(`⚠️ Update log already exists for ID: ${instance.id}, skipping duplicate.`);
+    return;
+  }
+
+  await DocumentTypeLog.create(
+    {
+      dml_action: "U",
+      log_timestamp: new Date(),
+      id: instance.id,
+      hashed_key: instance.hashed_key,
+      name: instance.name,
+      is_active: instance.isActive,
+      created_at: instance.createdAt,
+      updated_at: instance.updatedAt,
+      created_by: instance.created_by,
+      updated_by: instance.updated_by,
+    },
+    { transaction: options.transaction ?? null }
+  );
+}
+
+@AfterDestroy
+static async logDelete(instance: DocumentType, options: any) {
+  if (options.transaction && options.transaction.finished !== "commit") {
+    console.log(`⏳ Skipping delete log for ${instance.id}, transaction not committed yet.`);
+    return;
+  }
+
+  console.log(`🔴 Logging DELETE for ID: ${instance.id}`);
+
+  // 🚨 Check if a delete log already exists
+  const existingLog = await DocumentTypeLog.findOne({ 
+    where: { id: instance.id, dml_action: "D" } 
+  });
+  if (existingLog) {
+    console.log(`⚠️ Delete log already exists for ID: ${instance.id}, skipping duplicate.`);
+    return;
+  }
+
+  await DocumentTypeLog.create(
+    {
+      dml_action: "D",
+      log_timestamp: new Date(),
+      id: instance.id,
+      hashed_key: instance.hashed_key,
+      name: instance.name,
+      is_active: instance.isActive,
+      created_at: instance.createdAt,
+      updated_at: instance.updatedAt,
+      created_by: instance.created_by,
+      updated_by: instance.updated_by,
+    },
+    { transaction: options.transaction ?? null }
+  );
+}
+
+
 }

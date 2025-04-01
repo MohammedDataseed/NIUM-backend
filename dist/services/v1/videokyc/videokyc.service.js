@@ -1,0 +1,541 @@
+"use strict";
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+var VideokycService_1;
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.VideokycService = void 0;
+const common_1 = require("@nestjs/common");
+const client_s3_1 = require("@aws-sdk/client-s3");
+const uuid_1 = require("uuid");
+const axios_1 = require("axios");
+const opentracing = require("opentracing");
+const vkyc_model_1 = require("../../../database/models/vkyc.model");
+const order_service_1 = require("../order/order.service");
+let VideokycService = VideokycService_1 = class VideokycService {
+    constructor(orderRepository, vkycRepository, orderService) {
+        this.orderRepository = orderRepository;
+        this.vkycRepository = vkycRepository;
+        this.orderService = orderService;
+        this.REQUEST_API_URL = "https://api.kyc.idfy.com/sync/profiles";
+        this.REQUEST_TASK_API_URL = "https://eve.idfy.com/v3/tasks";
+        this.RETRIEVE_API_URL = "https://eve.idfy.com/v3/tasks/sync/generate/esign_retrieve";
+        this.CONFIG_ID = process.env.VKYC_CONFIG_ID;
+        this.API_KEY = "fbb65739-9015-4d88-b2f5-5057e1b1f07e";
+        this.ACCOUNT_ID = "e1628d9a6e50/7afd3aae-730e-41ff-aa4c-0914ef4dbbe0";
+        this.logger = new common_1.Logger(VideokycService_1.name);
+        this.s3 = new client_s3_1.S3Client({
+            region: process.env.AWS_REGION,
+            credentials: {
+                accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+                secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+            },
+        });
+    }
+    async sendVideokycRequest(orderId) {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k;
+        this.logger.log(`Processing v-KYC request for order: ${orderId}`);
+        console.log("Event: Starting v-KYC request processing", { orderId });
+        let orderDetails;
+        let attemptNumber = 1;
+        let currentOrderId;
+        try {
+            const span = opentracing.globalTracer().startSpan("fetch-order-details");
+            console.log("Event: Fetching order details", {
+                orderId,
+                spanId: span.context().toSpanId(),
+            });
+            orderDetails = await this.orderService.findOne(span, orderId);
+            span.finish();
+            if (!orderDetails) {
+                console.log("Event: Order not found", { orderId });
+                throw new common_1.HttpException(`Order not found: ${orderId}`, common_1.HttpStatus.NOT_FOUND);
+            }
+            if (!orderDetails.dataValues.is_v_kyc_required) {
+                console.log("Event: v-KYC not required, skipping request", { orderId });
+                return {
+                    success: false,
+                    message: "v-KYC is not required for this order.",
+                };
+            }
+            const previousAttempts = await vkyc_model_1.Vkyc.count({
+                where: { partner_order_id: orderId },
+            });
+            attemptNumber = previousAttempts + 1;
+            console.log("Event: Storing v-KYC attempt", { orderId, attemptNumber });
+            const timestamp = Date.now();
+            currentOrderId = `${orderId}-${timestamp}`;
+            console.log("Event: Updated orderId for v-KYC", { currentOrderId });
+            const requestData = {
+                reference_id: currentOrderId,
+                config: {
+                    id: this.CONFIG_ID,
+                    overrides: {},
+                },
+                data: {
+                    name: {
+                        first_name: (_a = orderDetails === null || orderDetails === void 0 ? void 0 : orderDetails.dataValues) === null || _a === void 0 ? void 0 : _a.customer_name,
+                    },
+                    dob: "",
+                },
+                payload: {
+                    security_questions: [
+                        {
+                            question: "What is your name?",
+                            answer: (_b = orderDetails === null || orderDetails === void 0 ? void 0 : orderDetails.dataValues) === null || _b === void 0 ? void 0 : _b.customer_name,
+                        },
+                        {
+                            question: "What is your contact number ?",
+                            answer: (_c = orderDetails === null || orderDetails === void 0 ? void 0 : orderDetails.dataValues) === null || _c === void 0 ? void 0 : _c.customer_phone,
+                        },
+                        {
+                            question: "What is your email id?",
+                            answer: (_d = orderDetails === null || orderDetails === void 0 ? void 0 : orderDetails.dataValues) === null || _d === void 0 ? void 0 : _d.customer_email,
+                        },
+                    ],
+                },
+            };
+            console.log("Event: API Request Data", JSON.stringify(requestData, null, 2));
+            let responseData;
+            const response = await axios_1.default.post(this.REQUEST_API_URL, requestData, {
+                headers: {
+                    "api-key": this.API_KEY,
+                    "account-id": this.ACCOUNT_ID,
+                    "Content-Type": "application/json",
+                },
+            });
+            responseData = response.data;
+            console.log("Success Response:", JSON.stringify(responseData, null, 2));
+            console.log("Event: API Response", JSON.stringify(response.data, null, 2));
+            console.log("Event: v-KYC request sent successfully", {
+                orderId,
+                response: response.data,
+            });
+            const vkycData = {
+                partner_order_id: orderId,
+                reference_id: currentOrderId,
+                profile_id: response.data.profile_id,
+                v_kyc_status: "pending",
+                v_kyc_link: response.data.capture_link,
+                v_kyc_link_expires: new Date(response.data.capture_expires_at),
+                v_kyc_link_status: "active",
+                order_id: (_e = orderDetails === null || orderDetails === void 0 ? void 0 : orderDetails.dataValues) === null || _e === void 0 ? void 0 : _e.id,
+                attempt_number: attemptNumber,
+                created_by: (_f = orderDetails === null || orderDetails === void 0 ? void 0 : orderDetails.dataValues) === null || _f === void 0 ? void 0 : _f.partner_id,
+                updated_by: (_g = orderDetails === null || orderDetails === void 0 ? void 0 : orderDetails.dataValues) === null || _g === void 0 ? void 0 : _g.partner_id,
+            };
+            await vkyc_model_1.Vkyc.create(vkycData);
+            console.log("Event: v-KYC data stored successfully", {
+                orderId,
+                vkycData,
+            });
+            let is_video_kyc_link_regenerated = false;
+            let is_video_kyc_link_regenerated_details = [];
+            if (attemptNumber > 1) {
+                is_video_kyc_link_regenerated = true;
+                const previousVkycRecords = await vkyc_model_1.Vkyc.findAll({
+                    where: { partner_order_id: orderId },
+                    attributes: [
+                        "reference_id",
+                        "profile_id",
+                        "v_kyc_link",
+                        "v_kyc_link_expires",
+                        "v_kyc_link_status",
+                        "attempt_number",
+                    ],
+                });
+                is_video_kyc_link_regenerated_details = previousVkycRecords.map((record) => record.toJSON());
+            }
+            const span2 = opentracing
+                .globalTracer()
+                .startSpan("update-order-controller");
+            const childSpan = span
+                .tracer()
+                .startSpan("update-v-kyc", { childOf: span2 });
+            const v_kyc_link_status = responseData.status || "capture_pending";
+            const v_kyc_completed_by_customer = response.data.v_kyc_link_status === "completed" ? true : false;
+            try {
+                console.log("Event: Updating order with v-kyc details", { orderId });
+                await this.orderService.updateOrder(childSpan, orderId, {
+                    v_kyc_link: response.data.capture_link || null,
+                    v_kyc_link_expires: new Date(response.data.capture_expires_at).toISOString(),
+                    v_kyc_status: "pending",
+                    v_kyc_link_status: "active",
+                    v_kyc_completed_by_customer,
+                    v_kyc_reference_id: currentOrderId,
+                    v_kyc_profile_id: response.data.profile_id,
+                    is_video_kyc_link_regenerated,
+                    is_video_kyc_link_regenerated_details,
+                });
+                this.logger.log(`updated order ${orderId} with v-kyc details`);
+                console.log("Event: Order updated with v-kyc details", { orderId });
+            }
+            catch (error) {
+                childSpan.log({ event: "error", message: error.message });
+                this.logger.error(`Failed to update order ${orderId} with v-kyc details: ${error.message}`, error.stack);
+                console.log("Event: Failed to update order", {
+                    orderId,
+                    error: error.message,
+                });
+                throw new common_1.HttpException({
+                    success: false,
+                    message: error.message,
+                    details: "Failed to update order with v-kyc details",
+                }, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+            finally {
+                childSpan.finish();
+            }
+            return {
+                success: true,
+                message: "v-KYC link generated successfully",
+                v_kyc_link: ((_h = response.data) === null || _h === void 0 ? void 0 : _h.capture_link) || null,
+                v_kyc_link_status: ((_j = response.data) === null || _j === void 0 ? void 0 : _j.status) || "capture_pending",
+                v_kyc_link_expires: ((_k = response.data) === null || _k === void 0 ? void 0 : _k.capture_expires_at) || null,
+                v_kyc_status: "pending",
+            };
+        }
+        catch (error) {
+            this.logger.error(`Error fetching order details: ${error.message}`, error.stack);
+            console.log("Event: Error fetching order details", {
+                orderId,
+                error: error.message,
+            });
+            if (error.response) {
+                console.error("Error Response:", error.response.data);
+            }
+            throw new common_1.HttpException({
+                success: false,
+                message: error.message,
+                details: "Failed to generate vkyc",
+            }, common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    async handleEkycRetrieveWebhook(partner_order_id) {
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u;
+        const token = process.env.API_KEY;
+        if (!token) {
+            throw new common_1.HttpException("Missing API key", common_1.HttpStatus.BAD_REQUEST);
+        }
+        if (!partner_order_id) {
+            throw new common_1.HttpException("Missing required field: partner_order_id", common_1.HttpStatus.BAD_REQUEST);
+        }
+        this.logger.log(`Processing VKYC webhook for partner_order_id: ${partner_order_id}`);
+        const order = await this.orderRepository.findOne({
+            where: { partner_order_id },
+            include: [{ model: vkyc_model_1.Vkyc, as: "vkycs" }],
+        });
+        if (!order) {
+            this.logger.warn(`No order found for partner_order_id: ${partner_order_id}`);
+            throw new common_1.HttpException("Order not found", common_1.HttpStatus.NOT_FOUND);
+        }
+        if (!order.is_v_kyc_required) {
+            this.logger.log(`VKYC not required for partner_order_id: ${partner_order_id}`);
+            return { success: true, message: "VKYC not required", data: null };
+        }
+        const vkycRecords = ((_a = order === null || order === void 0 ? void 0 : order.dataValues) === null || _a === void 0 ? void 0 : _a.vkycs) || [];
+        if (!vkycRecords.length) {
+            this.logger.warn(`No VKYC records found for partner_order_id: ${partner_order_id}`);
+            throw new common_1.HttpException("No VKYC records found", common_1.HttpStatus.NOT_FOUND);
+        }
+        const v_kyc_profile_id = (_b = order === null || order === void 0 ? void 0 : order.dataValues) === null || _b === void 0 ? void 0 : _b.v_kyc_profile_id;
+        if (!v_kyc_profile_id) {
+            throw new common_1.HttpException("v_kyc_profile_id not available", common_1.HttpStatus.BAD_REQUEST);
+        }
+        const requestData = { request_id: v_kyc_profile_id };
+        let responseData;
+        try {
+            responseData = await this.retrieveVideokycData(requestData);
+        }
+        catch (error) {
+            this.logger.error(`Failed to retrieve VKYC data: ${error.message}`);
+            throw new common_1.HttpException("Failed to retrieve VKYC data", common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        if (!responseData) {
+            throw new common_1.HttpException("VKYC data retrieval returned empty response", common_1.HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        const resources = (responseData === null || responseData === void 0 ? void 0 : responseData.resources) || {};
+        const vkycDocumentsProfileReport = ((_c = resources.documents) === null || _c === void 0 ? void 0 : _c.find((doc) => doc.type === "profile_report")) || null;
+        const vkycDocuments = (vkycDocumentsProfileReport === null || vkycDocumentsProfileReport === void 0 ? void 0 : vkycDocumentsProfileReport.value) || null;
+        const profileReportUrl = (vkycDocumentsProfileReport === null || vkycDocumentsProfileReport === void 0 ? void 0 : vkycDocumentsProfileReport.value) || null;
+        const vkycImagesDataSelfie = ((_d = resources.images) === null || _d === void 0 ? void 0 : _d.find((img) => img.type === "selfie")) || null;
+        const vkycImagesDataPan = ((_e = resources.images) === null || _e === void 0 ? void 0 : _e.find((img) => img.type === "ind_pan")) || null;
+        const vkycImagesDataOthers = ((_f = resources.images) === null || _f === void 0 ? void 0 : _f.filter((img) => img.type === "others")) || [];
+        const vkycVideosAgent = ((_g = resources.videos) === null || _g === void 0 ? void 0 : _g.find((video) => video.attr === "agent")) || null;
+        const vkycVideosCustomer = ((_h = resources.videos) === null || _h === void 0 ? void 0 : _h.find((video) => video.attr === "customer")) || null;
+        const textResources = Array.isArray(resources.text) ? resources.text : [];
+        const vkycLocation = ((_j = textResources.find((txt) => txt.attr === "location")) === null || _j === void 0 ? void 0 : _j.value) || null;
+        const vkycName = ((_l = (_k = textResources.find((txt) => txt.attr === "name")) === null || _k === void 0 ? void 0 : _k.value) === null || _l === void 0 ? void 0 : _l.first_name) ||
+            null;
+        const vkycDob = ((_m = textResources.find((txt) => txt.attr === "dob")) === null || _m === void 0 ? void 0 : _m.value) || null;
+        const vkycDataResources = {
+            partner_order_id: partner_order_id,
+            documents: vkycDocuments,
+            images: {
+                selfie: (vkycImagesDataSelfie === null || vkycImagesDataSelfie === void 0 ? void 0 : vkycImagesDataSelfie.value) || null,
+                pan: (vkycImagesDataPan === null || vkycImagesDataPan === void 0 ? void 0 : vkycImagesDataPan.value) || null,
+                others: vkycImagesDataOthers.map((img) => img.value) || [],
+            },
+            videos: {
+                agent: (vkycVideosAgent === null || vkycVideosAgent === void 0 ? void 0 : vkycVideosAgent.value) || null,
+                customer: (vkycVideosCustomer === null || vkycVideosCustomer === void 0 ? void 0 : vkycVideosCustomer.value) || null,
+            },
+        };
+        console.log(JSON.stringify(vkycDataResources, null, 2));
+        const uploadedFiles = await this.processAndUploadVKYCFiles(vkycDataResources, `${partner_order_id}/vkyc_documents`);
+        const isCompleted = responseData.status == "completed";
+        const isRejected = responseData.reviewer_action == "rejected";
+        const isInProgress = responseData.status == "in_progress" &&
+            responseData.reviewer_action == null;
+        let v_kyc_status;
+        if (responseData.reviewer_action == "rejected") {
+            v_kyc_status = "rejected";
+        }
+        else if (isCompleted && responseData.reviewer_action == "approved") {
+            v_kyc_status = "completed";
+        }
+        else if (isInProgress) {
+            v_kyc_status = "in_progress";
+        }
+        else {
+            v_kyc_status = "pending";
+        }
+        const v_kyc_completed_by_customer = isCompleted;
+        const v_kyc_customer_completion_date = ((_o = responseData.profile_data) === null || _o === void 0 ? void 0 : _o.completed_at)
+            ? new Date(responseData.profile_data.completed_at)
+            : null;
+        if (v_kyc_customer_completion_date &&
+            isNaN(v_kyc_customer_completion_date.getTime())) {
+            this.logger.error(`Invalid completed_at value: ${responseData.profile_data.completed_at}`);
+            throw new common_1.HttpException("Invalid completed_at timestamp", common_1.HttpStatus.BAD_REQUEST);
+        }
+        const vkycData = {
+            reference_id: responseData.reference_id || null,
+            profile_id: v_kyc_profile_id,
+            partner_order_id: partner_order_id,
+            v_kyc_status,
+            v_kyc_link_status: "active",
+            v_kyc_comments: ((_p = responseData.status_description) === null || _p === void 0 ? void 0 : _p.comments) || null,
+            v_kyc_doc_completion_date: v_kyc_customer_completion_date,
+            v_kyc_completed_by_customer,
+            device_info: responseData.device_info || null,
+            profile_data: responseData.profile_data || null,
+            performed_by: ((_q = responseData.profile_data) === null || _q === void 0 ? void 0 : _q.performed_by) || null,
+            resources_documents: ((_r = responseData.resources) === null || _r === void 0 ? void 0 : _r.documents) || [],
+            resources_documents_files: uploadedFiles.documents ? [uploadedFiles.documents] : [],
+            resources_images: ((_s = responseData.resources) === null || _s === void 0 ? void 0 : _s.images) || [],
+            resources_images_files: [
+                uploadedFiles.images.selfie,
+                uploadedFiles.images.pan,
+                ...uploadedFiles.images.others,
+            ].filter(Boolean),
+            resources_videos: ((_t = responseData.resources) === null || _t === void 0 ? void 0 : _t.videos) || [],
+            resources_videos_files: [
+                uploadedFiles.videos.agent,
+                uploadedFiles.videos.customer,
+            ].filter(Boolean),
+            resources_text: ((_u = responseData.resources) === null || _u === void 0 ? void 0 : _u.text) || null,
+            location_info: vkycLocation || null,
+            reviewer_action: responseData.reviewer_action || null,
+            tasks: responseData.tasks || null,
+            status: responseData.status || null,
+            status_description: responseData.status_description || null,
+            status_detail: responseData.status_detail || null,
+        };
+        console.log(vkycData);
+        const existingVkyc = await vkyc_model_1.Vkyc.findOne({
+            where: {
+                partner_order_id: vkycData.partner_order_id,
+                profile_id: vkycData.profile_id,
+            },
+        });
+        if (existingVkyc) {
+            await existingVkyc.update(vkycData);
+            console.log("Event: v-KYC data updated successfully", {
+                partner_order_id,
+                vkycData,
+            });
+        }
+        else {
+            await vkyc_model_1.Vkyc.create(vkycData);
+            console.log("Event: v-KYC data stored successfully", {
+                partner_order_id,
+                vkycData,
+            });
+        }
+        await order.update({
+            v_kyc_status,
+            v_kyc_customer_completion_date,
+            v_kyc_completed_by_customer,
+        });
+        this.logger.log(`Updated Order for partner_order_id: ${partner_order_id} with VKYC status: ${v_kyc_status}`);
+        return {
+            success: true,
+            message: "Webhook processed successfully",
+            data: responseData,
+        };
+    }
+    async uploadToS3(base64Data, fileType, folder, fileName) {
+        if (!base64Data)
+            return null;
+        const buffer = Buffer.from(base64Data, "base64");
+        const fileExtension = fileType.split("/")[1];
+        const finalFileName = fileName
+            ? `${folder}/${fileName}`
+            : `${folder}/${(0, uuid_1.v4)()}.${fileExtension}`;
+        const uploadParams = {
+            Bucket: process.env.AWS_S3_BUCKET_NAME,
+            Key: finalFileName,
+            Body: buffer,
+            ContentType: fileType,
+        };
+        const maxRetries = 3;
+        let attempt = 0;
+        while (attempt < maxRetries) {
+            try {
+                await this.s3.send(new client_s3_1.PutObjectCommand(uploadParams));
+                return `https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${finalFileName}`;
+            }
+            catch (error) {
+                attempt++;
+                console.error(`S3 Upload Attempt ${attempt} Failed:`, error);
+                if (attempt === maxRetries) {
+                    console.error("S3 Upload Failed after retries:", error);
+                    return null;
+                }
+                await new Promise((resolve) => setTimeout(resolve, attempt * 1000));
+            }
+        }
+    }
+    async processAndUploadVKYCFiles(resources, pathString) {
+        var _a, _b, _c, _d, _e;
+        console.log(pathString);
+        const downloadAndUpload = async (url, fileType, folder, fileName) => {
+            if (!url || typeof url !== "string")
+                return null;
+            try {
+                const urlObj = new URL(url);
+                const expires = urlObj.searchParams.get("Expires");
+                const expirationTimestamp = expires
+                    ? parseInt(expires, 10) * 1000
+                    : null;
+                const currentTimestamp = Date.now();
+                if (expirationTimestamp && expirationTimestamp <= currentTimestamp) {
+                    this.logger.warn(`URL expired: ${url}`);
+                    return null;
+                }
+                const response = await axios_1.default.get(url, {
+                    responseType: "arraybuffer",
+                });
+                const fileBuffer = Buffer.from(response.data);
+                const base64Data = fileBuffer.toString("base64");
+                return await this.uploadToS3(base64Data, fileType, folder, fileName);
+            }
+            catch (error) {
+                this.logger.error(`Failed to process URL ${url}: ${error.message}`);
+                return null;
+            }
+        };
+        const vkycDocuments = typeof resources.documents === "string" ? resources.documents : null;
+        const vkycImagesDataSelfie = ((_a = resources.images) === null || _a === void 0 ? void 0 : _a.selfie) || null;
+        const vkycImagesDataPan = ((_b = resources.images) === null || _b === void 0 ? void 0 : _b.pan) || null;
+        const vkycImagesDataOthers = Array.isArray((_c = resources.images) === null || _c === void 0 ? void 0 : _c.others)
+            ? resources.images.others
+            : [];
+        const vkycVideosAgent = ((_d = resources.videos) === null || _d === void 0 ? void 0 : _d.agent) || null;
+        const vkycVideosCustomer = ((_e = resources.videos) === null || _e === void 0 ? void 0 : _e.customer) || null;
+        const uploadedFiles = {
+            documents: vkycDocuments
+                ? await downloadAndUpload(vkycDocuments, "application/pdf", `${pathString}/documents`, "profile_report.pdf")
+                : null,
+            images: {
+                selfie: vkycImagesDataSelfie
+                    ? await downloadAndUpload(vkycImagesDataSelfie, "image/jpeg", `${pathString}/images`, "selfie.jpg")
+                    : null,
+                pan: vkycImagesDataPan
+                    ? await downloadAndUpload(vkycImagesDataPan, "image/jpeg", `${pathString}/images`, "ind_pan.jpg")
+                    : null,
+                others: await Promise.all(vkycImagesDataOthers.map(async (url, index) => {
+                    try {
+                        return url
+                            ? await downloadAndUpload(url, "image/jpeg", `${pathString}/images`, `others_${index + 1}.jpg`)
+                            : null;
+                    }
+                    catch (error) {
+                        this.logger.error(`Error uploading other image: ${error.message}`);
+                        return null;
+                    }
+                })),
+            },
+            videos: {
+                agent: vkycVideosAgent
+                    ? await downloadAndUpload(vkycVideosAgent, "video/mp4", `${pathString}/videos`, "agent.mp4")
+                    : null,
+                customer: vkycVideosCustomer
+                    ? await downloadAndUpload(vkycVideosCustomer, "video/mp4", `${pathString}/videos`, "customer.mp4")
+                    : null,
+            },
+        };
+        console.log("Uploaded Files:", uploadedFiles);
+        return uploadedFiles;
+    }
+    async retrieveVideokycData(requestData) {
+        try {
+            const url = `https://api.kyc.idfy.com/profiles/${requestData.request_id}`;
+            const response = await axios_1.default.get(url, {
+                headers: {
+                    "api-key": this.API_KEY,
+                    "account-id": this.ACCOUNT_ID,
+                    "Content-Type": "application/json",
+                },
+            });
+            console.log("VKYC API Response:", JSON.stringify(response.data, null, 2));
+            return response.data;
+        }
+        catch (error) {
+            this.handleError(error);
+        }
+    }
+    async getTaskDetails(token, requestId) {
+        try {
+            if (!requestId) {
+                throw new common_1.HttpException("request_id is required", common_1.HttpStatus.BAD_REQUEST);
+            }
+            const response = await axios_1.default.get(`${this.REQUEST_TASK_API_URL}?request_id=${requestId}`, {
+                headers: {
+                    "api-key": this.API_KEY,
+                    "account-id": this.ACCOUNT_ID,
+                    "Content-Type": "application/json",
+                    "X-API-Key": token,
+                },
+            });
+            return response.data;
+        }
+        catch (error) {
+            this.handleError(error);
+        }
+    }
+    handleError(error) {
+        var _a, _b;
+        const errorMessage = ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data) || "An error occurred during the request";
+        const statusCode = ((_b = error.response) === null || _b === void 0 ? void 0 : _b.status) || common_1.HttpStatus.INTERNAL_SERVER_ERROR;
+        throw new common_1.HttpException(errorMessage, statusCode);
+    }
+};
+exports.VideokycService = VideokycService;
+exports.VideokycService = VideokycService = VideokycService_1 = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, common_1.Inject)("ORDER_REPOSITORY")),
+    __param(1, (0, common_1.Inject)("V_KYC_REPOSITORY")),
+    __metadata("design:paramtypes", [Object, Object, order_service_1.OrdersService])
+], VideokycService);
+//# sourceMappingURL=videokyc.service.js.map

@@ -1,0 +1,210 @@
+{
+  "success": true,
+  "message": "Webhook processed successfully",
+  "data": {
+    "config": {
+      "id": "349b8f41-badd-44de-a2c3-ff50fc8a2a44",
+      "overrides": {}
+    },
+    "device_info": {
+      "final_ipv4": "103.176.235.75",
+      "user_agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36"
+    },
+    "profile_data": {
+      "completed_at": "2025-03-27T09:58:15Z",
+      "created_at": "2025-03-27T09:58:15Z",
+      "email": [],
+      "mobile_number": [],
+      "notes": null,
+      "performed_by": [],
+      "purged_at": null
+    },
+    "profile_id": "5f7a8090-4005-428a-abed-1109e042b266",
+    "reference_id": "NIUMTEST3-1743069497287",
+    "resources": {
+      "documents": [],
+      "images": [],
+      "text": [
+        {
+          "attr": "name",
+          "location": {},
+          "metadata": {},
+          "ref_id": "nil.nil.name.0.nil",
+          "source": 0,
+          "tags": null,
+          "type": null,
+          "value": {
+            "first_name": "Mohammed Tayibulla"
+          }
+        }
+      ],
+      "videos": []
+    },
+    "reviewer_action": null,
+    "schema_version": "1.0.0",
+    "status": "capture_pending",
+    "status_description": {},
+    "status_detail": null,
+    "tasks": [
+      {
+        "key": "vkyc.assisted_vkyc",
+        "resources": [],
+        "result": {
+          "automated_response": null,
+          "manual_response": null
+        },
+        "status": "in_progress",
+        "task_id": "6a0b3a9b-b112-44c5-b5f6-ae2a8773dac7",
+        "task_type": "vkyc.assisted_vkyc",
+        "tasks": [
+          {
+            "tasks": [
+              {
+                "key": "key_location",
+                "resources": [],
+                "result": {
+                  "automated_response": null,
+                  "manual_response": null
+                },
+                "status": "pending",
+                "task_id": "3bdc047f-6f08-4c3d-833a-d1bc1ee9e368",
+                "task_type": "data_capture.location",
+                "tasks": [
+                  {
+                    "key": "key_resolve_location",
+                    "resources": [],
+                    "result": {
+                      "automated_response": null,
+                      "manual_response": null
+                    },
+                    "status": "pending",
+                    "task_id": "2a4842a8-72b3-477f-9b5e-eac7a39e2e8d",
+                    "task_type": "resolve.location"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "tasks": [
+              {
+                "key": "sec_key1",
+                "resources": [],
+                "result": {
+                  "automated_response": null,
+                  "manual_response": {
+                    "answer": "Mohammed Tayibulla",
+                    "question": "What is your name?"
+                  }
+                },
+                "status": "pending",
+                "task_id": "91c9f176-ed5c-4295-a1b5-2a6ac17d0fd0",
+                "task_type": "verify.security_question"
+              },
+              {
+                "key": "sec_key2",
+                "resources": [],
+                "result": {
+                  "automated_response": null,
+                  "manual_response": {
+                    "answer": "8550895486",
+                    "question": "What is your contact number ?"
+                  }
+                },
+                "status": "pending",
+                "task_id": "4d4def89-6bcb-4576-8b8e-ced39a4b25c6",
+                "task_type": "verify.security_question"
+              },
+              {
+                "key": "sec_key3",
+                "resources": [],
+                "result": {
+                  "automated_response": null,
+                  "manual_response": {
+                    "answer": "contact2tayib@gmail.com",
+                    "question": "What is your email id?"
+                  }
+                },
+                "status": "pending",
+                "task_id": "c660d6bb-6d16-4be4-a11e-9fe5d91c2752",
+                "task_type": "verify.security_question"
+              }
+            ]
+          },
+          {
+            "tasks": [
+              {
+                "key": "key13",
+                "resources": [],
+                "result": {
+                  "automated_response": null,
+                  "manual_response": null
+                },
+                "status": "pending",
+                "task_id": "e2ab7221-0a94-4982-ac9e-201ef5cc0bba",
+                "task_type": "compare.face_compare"
+              },
+              {
+                "key": "key14",
+                "resources": [],
+                "result": {
+                  "automated_response": null,
+                  "manual_response": null
+                },
+                "status": "pending",
+                "task_id": "fcdf9bf0-c5f8-4f4a-99c7-90b2171a1c21",
+                "task_type": "extract.ind_pan"
+              }
+            ]
+          },
+          {
+            "tasks": [
+              {
+                "key": "key40",
+                "question": "Do the faces match?",
+                "resources": [],
+                "result": {
+                  "automated_response": null,
+                  "manual_response": null
+                },
+                "status": "pending",
+                "task_id": "77956eaa-cf58-4b41-96b1-f424e05eeb5d",
+                "task_type": "verify.qa"
+              }
+            ]
+          },
+          {
+            "tasks": [
+              {
+                "key": "key31",
+                "question": "Do the Names match?",
+                "resources": [],
+                "result": {
+                  "automated_response": null,
+                  "manual_response": null
+                },
+                "status": "pending",
+                "task_id": "2c9405ab-a7b5-4458-80a9-3f2b52501802",
+                "task_type": "verify.qa"
+              },
+              {
+                "key": "key33",
+                "question": "Do the Date of Birth Match?",
+                "resources": [],
+                "result": {
+                  "automated_response": null,
+                  "manual_response": null
+                },
+                "status": "pending",
+                "task_id": "bc7bbd0d-0a29-4fa2-bf64-b29c0df4f5b5",
+                "task_type": "verify.qa"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "version": "v1.1",
+    "tag": null
+  }
+}
