@@ -15,6 +15,13 @@ const contextService = require('request-context');
 
 async function bootstrap() {
   // initiate express app
+  if (process.env.AWS_AUTO_SECRET_ENV_VARIABLES) {
+    const secretObject = JSON.parse(process.env.AWS_AUTO_SECRET_ENV_VARIABLES);
+    Object.keys(secretObject).forEach((secretKey) => {
+      process.env[secretKey] = secretObject[secretKey];
+    });
+    delete process.env.AWS_AUTO_SECRET_ENV_VARIABLES;
+  }
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const logger = app.get<LoggerService>(LoggerService);
   const config = app.get<ConfigService>(ConfigService);
