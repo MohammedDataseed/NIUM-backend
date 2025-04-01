@@ -1,5 +1,5 @@
-import { Model } from "sequelize-typescript";
-import { Order } from "./order.model";
+import { Model } from 'sequelize-typescript';
+import { Order } from './order.model';
 export declare class Vkyc extends Model<Vkyc> {
     id: string;
     hashed_key: string;
@@ -34,4 +34,7 @@ export declare class Vkyc extends Model<Vkyc> {
     created_by: string | null;
     updated_by: string | null;
     static generatehashed_key(instance: Vkyc): void;
+    static logInsert(instance: Vkyc, options: any): Promise<void>;
+    static logUpdate(instance: Vkyc, options: any): Promise<void>;
+    static logDelete(instance: Vkyc, options: any): Promise<void>;
 }

@@ -12,12 +12,172 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Vkyc = void 0;
 const sequelize_typescript_1 = require("sequelize-typescript");
 const order_model_1 = require("./order.model");
+const vkyc_log_model_1 = require("./vkyc_log.model");
 const crypto = require("crypto");
 let Vkyc = class Vkyc extends sequelize_typescript_1.Model {
     static generatehashed_key(instance) {
-        const randomPart = crypto.randomBytes(16).toString("hex");
+        const randomPart = crypto.randomBytes(16).toString('hex');
         const timestampPart = Date.now().toString(36);
         instance.hashed_key = `${randomPart}${timestampPart}`;
+    }
+    static async logInsert(instance, options) {
+        var _a, _b;
+        if (options.transaction && options.transaction.finished !== 'commit') {
+            console.log(`⏳ Skipping log for ${instance.id}, transaction not committed yet.`);
+            return;
+        }
+        const existingLog = await vkyc_log_model_1.VkycLog.findOne({
+            where: { id: instance.id, dml_action: 'I' },
+            transaction: (_a = options.transaction) !== null && _a !== void 0 ? _a : null,
+        });
+        if (existingLog) {
+            console.log(`⚠️ Insert log for ${instance.id} already exists, skipping duplicate entry.`);
+            return;
+        }
+        console.log(`🔵 Logging INSERT for ID: ${instance.id}`);
+        await vkyc_log_model_1.VkycLog.create({
+            dml_action: 'I',
+            log_timestamp: new Date(),
+            id: instance.id,
+            hashed_key: instance.hashed_key,
+            partner_order_id: instance.partner_order_id,
+            order_id: instance.order_id,
+            attempt_number: instance.attempt_number,
+            reference_id: instance.reference_id,
+            profile_id: instance.profile_id,
+            v_kyc_link: instance.v_kyc_link,
+            v_kyc_link_expires: instance.v_kyc_link_expires,
+            v_kyc_link_status: instance.v_kyc_link_status,
+            v_kyc_comments: instance.v_kyc_comments,
+            v_kyc_doc_completion_date: instance.v_kyc_doc_completion_date,
+            device_info: instance.device_info,
+            profile_data: instance.profile_data,
+            performed_by: instance.performed_by,
+            resources_documents: instance.resources_documents,
+            resources_documents_files: instance.resources_documents_files,
+            resources_images: instance.resources_images,
+            resources_images_files: instance.resources_images_files,
+            resources_videos: instance.resources_videos,
+            resources_videos_files: instance.resources_videos_files,
+            resources_text: instance.resources_text,
+            location_info: instance.location_info,
+            first_name: instance.first_name,
+            reviewer_action: instance.reviewer_action,
+            tasks: instance.tasks,
+            status: instance.status,
+            status_description: instance.status_description,
+            status_detail: instance.status_detail,
+            created_by: instance.created_by,
+            updated_by: instance.updated_by,
+            createdAt: instance.createdAt,
+            updatedAt: instance.updatedAt,
+        }, { transaction: (_b = options.transaction) !== null && _b !== void 0 ? _b : null });
+    }
+    static async logUpdate(instance, options) {
+        var _a, _b;
+        if (options.transaction && options.transaction.finished !== 'commit') {
+            console.log(`⏳ Skipping update log for ${instance.id}, transaction not committed yet.`);
+            return;
+        }
+        const existingLog = await vkyc_log_model_1.VkycLog.findOne({
+            where: { id: instance.id, dml_action: 'U' },
+            transaction: (_a = options.transaction) !== null && _a !== void 0 ? _a : null,
+        });
+        if (existingLog) {
+            console.log(`⚠️ Update log for ${instance.id} already exists, skipping duplicate entry.`);
+            return;
+        }
+        console.log(`🟡 Logging UPDATE for ID: ${instance.id}`);
+        await vkyc_log_model_1.VkycLog.create({
+            dml_action: 'U',
+            log_timestamp: new Date(),
+            id: instance.id,
+            hashed_key: instance.hashed_key,
+            partner_order_id: instance.partner_order_id,
+            order_id: instance.order_id,
+            attempt_number: instance.attempt_number,
+            reference_id: instance.reference_id,
+            profile_id: instance.profile_id,
+            v_kyc_link: instance.v_kyc_link,
+            v_kyc_link_expires: instance.v_kyc_link_expires,
+            v_kyc_link_status: instance.v_kyc_link_status,
+            v_kyc_comments: instance.v_kyc_comments,
+            v_kyc_doc_completion_date: instance.v_kyc_doc_completion_date,
+            device_info: instance.device_info,
+            profile_data: instance.profile_data,
+            performed_by: instance.performed_by,
+            resources_documents: instance.resources_documents,
+            resources_documents_files: instance.resources_documents_files,
+            resources_images: instance.resources_images,
+            resources_images_files: instance.resources_images_files,
+            resources_videos: instance.resources_videos,
+            resources_videos_files: instance.resources_videos_files,
+            resources_text: instance.resources_text,
+            location_info: instance.location_info,
+            first_name: instance.first_name,
+            reviewer_action: instance.reviewer_action,
+            tasks: instance.tasks,
+            status: instance.status,
+            status_description: instance.status_description,
+            status_detail: instance.status_detail,
+            created_by: instance.created_by,
+            updated_by: instance.updated_by,
+            createdAt: instance.createdAt,
+            updatedAt: instance.updatedAt,
+        }, { transaction: (_b = options.transaction) !== null && _b !== void 0 ? _b : null });
+    }
+    static async logDelete(instance, options) {
+        var _a, _b;
+        if (options.transaction && options.transaction.finished !== 'commit') {
+            console.log(`⏳ Skipping delete log for ${instance.id}, transaction not committed yet.`);
+            return;
+        }
+        console.log(`🔴 Logging DELETE for ID: ${instance.id}`);
+        const existingLog = await vkyc_log_model_1.VkycLog.findOne({
+            where: { id: instance.id, dml_action: 'D' },
+            transaction: (_a = options.transaction) !== null && _a !== void 0 ? _a : null,
+        });
+        if (existingLog) {
+            console.log(`⚠️ Delete log already exists for ID: ${instance.id}, skipping duplicate.`);
+            return;
+        }
+        await vkyc_log_model_1.VkycLog.create({
+            dml_action: 'D',
+            log_timestamp: new Date(),
+            id: instance.id,
+            hashed_key: instance.hashed_key,
+            partner_order_id: instance.partner_order_id,
+            order_id: instance.order_id,
+            attempt_number: instance.attempt_number,
+            reference_id: instance.reference_id,
+            profile_id: instance.profile_id,
+            v_kyc_link: instance.v_kyc_link,
+            v_kyc_link_expires: instance.v_kyc_link_expires,
+            v_kyc_link_status: instance.v_kyc_link_status,
+            v_kyc_comments: instance.v_kyc_comments,
+            v_kyc_doc_completion_date: instance.v_kyc_doc_completion_date,
+            device_info: instance.device_info,
+            profile_data: instance.profile_data,
+            performed_by: instance.performed_by,
+            resources_documents: instance.resources_documents,
+            resources_documents_files: instance.resources_documents_files,
+            resources_images: instance.resources_images,
+            resources_images_files: instance.resources_images_files,
+            resources_videos: instance.resources_videos,
+            resources_videos_files: instance.resources_videos_files,
+            resources_text: instance.resources_text,
+            location_info: instance.location_info,
+            first_name: instance.first_name,
+            reviewer_action: instance.reviewer_action,
+            tasks: instance.tasks,
+            status: instance.status,
+            status_description: instance.status_description,
+            status_detail: instance.status_detail,
+            created_by: instance.created_by,
+            updated_by: instance.updated_by,
+            createdAt: instance.createdAt,
+            updatedAt: instance.updatedAt,
+        }, { transaction: (_b = options.transaction) !== null && _b !== void 0 ? _b : null });
     }
 };
 exports.Vkyc = Vkyc;
@@ -33,7 +193,7 @@ __decorate([
 __decorate([
     sequelize_typescript_1.Unique,
     (0, sequelize_typescript_1.AllowNull)(true),
-    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.STRING, field: "hashed_key" }),
+    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.STRING, field: 'hashed_key' }),
     __metadata("design:type", String)
 ], Vkyc.prototype, "hashed_key", void 0);
 __decorate([
@@ -46,7 +206,7 @@ __decorate([
     __metadata("design:type", String)
 ], Vkyc.prototype, "order_id", void 0);
 __decorate([
-    (0, sequelize_typescript_1.BelongsTo)(() => order_model_1.Order, { foreignKey: "order_id", targetKey: "id" }),
+    (0, sequelize_typescript_1.BelongsTo)(() => order_model_1.Order, { foreignKey: 'order_id', targetKey: 'id' }),
     __metadata("design:type", order_model_1.Order)
 ], Vkyc.prototype, "order", void 0);
 __decorate([
@@ -180,9 +340,27 @@ __decorate([
     __metadata("design:paramtypes", [Vkyc]),
     __metadata("design:returntype", void 0)
 ], Vkyc, "generatehashed_key", null);
+__decorate([
+    sequelize_typescript_1.AfterCreate,
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Vkyc, Object]),
+    __metadata("design:returntype", Promise)
+], Vkyc, "logInsert", null);
+__decorate([
+    sequelize_typescript_1.AfterUpdate,
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Vkyc, Object]),
+    __metadata("design:returntype", Promise)
+], Vkyc, "logUpdate", null);
+__decorate([
+    sequelize_typescript_1.AfterDestroy,
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Vkyc, Object]),
+    __metadata("design:returntype", Promise)
+], Vkyc, "logDelete", null);
 exports.Vkyc = Vkyc = __decorate([
     (0, sequelize_typescript_1.Table)({
-        tableName: "vkycs",
+        tableName: 'vkycs',
         timestamps: true,
     })
 ], Vkyc);

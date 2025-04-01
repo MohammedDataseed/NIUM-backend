@@ -1,7 +1,7 @@
-import { Model } from "sequelize-typescript";
-import { Role } from "./role.model";
-import { Products } from "./products.model";
-import { User } from "./user.model";
+import { Model } from 'sequelize-typescript';
+import { Role } from './role.model';
+import { Products } from './products.model';
+import { User } from './user.model';
 export declare class Partner extends Model<Partner> {
     id: string;
     hashed_key: string;
@@ -20,4 +20,7 @@ export declare class Partner extends Model<Partner> {
     updater: User;
     products: Products[];
     static generatePublicKey(instance: Partner): void;
+    static logInsert(instance: Partner, options: any): Promise<void>;
+    static logUpdate(instance: Partner, options: any): Promise<void>;
+    static logDelete(instance: Partner, options: any): Promise<void>;
 }

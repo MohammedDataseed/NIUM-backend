@@ -170,17 +170,17 @@ module.exports = {
       END;
       $$ LANGUAGE plpgsql;
 
-      CREATE TRIGGER vkyc_trigger AFTER INSERT OR UPDATE OR DELETE ON vkyc FOR EACH ROW EXECUTE FUNCTION log_vkyc_changes();
+      CREATE TRIGGER vkycs_trigger AFTER INSERT OR UPDATE OR DELETE ON vkycs FOR EACH ROW EXECUTE FUNCTION log_vkyc_changes();
     `);
   },
 
   async down(queryInterface) {
     await queryInterface.dropTable('vkyc_log');
     await queryInterface.sequelize.query(
-      'DROP TRIGGER IF EXISTS vkyc_trigger ON vkyc',
+      'DROP TRIGGER IF EXISTS vkycs_trigger ON vkycs',
     );
     await queryInterface.sequelize.query(
-      'DROP FUNCTION IF EXISTS log_vkyc_changes',
+      'DROP FUNCTION IF EXISTS log_vkycs_changes',
     );
   },
 };

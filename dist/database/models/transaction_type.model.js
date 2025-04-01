@@ -12,12 +12,61 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.transaction_type = void 0;
 const sequelize_typescript_1 = require("sequelize-typescript");
 const user_model_1 = require("./user.model");
+const transaction_type_log_model_1 = require("./transaction_type_log.model");
 const crypto = require("crypto");
 let transaction_type = class transaction_type extends sequelize_typescript_1.Model {
     static generateHashedKey(instance) {
-        const randomPart = crypto.randomBytes(16).toString("hex");
+        const randomPart = crypto.randomBytes(16).toString('hex');
         const timestampPart = Date.now().toString(36);
         instance.hashed_key = `${randomPart}${timestampPart}`;
+    }
+    static async logInsert(instance, options) {
+        if (!options.transaction)
+            return;
+        await transaction_type_log_model_1.TransactionTypeLog.create({
+            dml_action: 'I',
+            log_timestamp: new Date(),
+            id: instance.id,
+            hashed_key: instance.hashed_key,
+            name: instance.name,
+            is_active: instance.isActive,
+            created_at: instance.createdAt,
+            updated_at: instance.updatedAt,
+            created_by: instance.created_by,
+            updated_by: instance.updated_by,
+        }, { transaction: options.transaction });
+    }
+    static async logUpdate(instance, options) {
+        if (!options.transaction)
+            return;
+        await transaction_type_log_model_1.TransactionTypeLog.create({
+            dml_action: 'U',
+            log_timestamp: new Date(),
+            id: instance.id,
+            hashed_key: instance.hashed_key,
+            name: instance.name,
+            is_active: instance.isActive,
+            created_at: instance.createdAt,
+            updated_at: instance.updatedAt,
+            created_by: instance.created_by,
+            updated_by: instance.updated_by,
+        }, { transaction: options.transaction });
+    }
+    static async logDelete(instance, options) {
+        if (!options.transaction)
+            return;
+        await transaction_type_log_model_1.TransactionTypeLog.create({
+            dml_action: 'D',
+            log_timestamp: new Date(),
+            id: instance.id,
+            hashed_key: instance.hashed_key,
+            name: instance.name,
+            is_active: instance.isActive,
+            created_at: instance.createdAt,
+            updated_at: instance.updatedAt,
+            created_by: instance.created_by,
+            updated_by: instance.updated_by,
+        }, { transaction: options.transaction });
     }
 };
 exports.transaction_type = transaction_type;
@@ -30,49 +79,49 @@ __decorate([
 __decorate([
     (0, sequelize_typescript_1.AllowNull)(false),
     sequelize_typescript_1.Unique,
-    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.STRING, field: "hashed_key" }),
+    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.STRING, field: 'hashed_key' }),
     __metadata("design:type", String)
 ], transaction_type.prototype, "hashed_key", void 0);
 __decorate([
     sequelize_typescript_1.Unique,
     (0, sequelize_typescript_1.AllowNull)(false),
-    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.STRING, field: "name" }),
+    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.STRING, field: 'name' }),
     __metadata("design:type", String)
 ], transaction_type.prototype, "name", void 0);
 __decorate([
     (0, sequelize_typescript_1.AllowNull)(false),
     (0, sequelize_typescript_1.Default)(true),
-    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.BOOLEAN, field: "is_active" }),
+    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.BOOLEAN, field: 'is_active' }),
     __metadata("design:type", Boolean)
 ], transaction_type.prototype, "isActive", void 0);
 __decorate([
     (0, sequelize_typescript_1.Default)(sequelize_typescript_1.DataType.NOW),
-    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.DATE, field: "created_at" }),
+    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.DATE, field: 'created_at' }),
     __metadata("design:type", Date)
 ], transaction_type.prototype, "createdAt", void 0);
 __decorate([
     (0, sequelize_typescript_1.Default)(sequelize_typescript_1.DataType.NOW),
-    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.DATE, field: "updated_at" }),
+    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.DATE, field: 'updated_at' }),
     __metadata("design:type", Date)
 ], transaction_type.prototype, "updatedAt", void 0);
 __decorate([
     (0, sequelize_typescript_1.ForeignKey)(() => user_model_1.User),
     (0, sequelize_typescript_1.AllowNull)(true),
-    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.UUID, field: "created_by" }),
+    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.UUID, field: 'created_by' }),
     __metadata("design:type", String)
 ], transaction_type.prototype, "created_by", void 0);
 __decorate([
     (0, sequelize_typescript_1.ForeignKey)(() => user_model_1.User),
     (0, sequelize_typescript_1.AllowNull)(true),
-    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.UUID, field: "updated_by" }),
+    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.UUID, field: 'updated_by' }),
     __metadata("design:type", String)
 ], transaction_type.prototype, "updated_by", void 0);
 __decorate([
-    (0, sequelize_typescript_1.BelongsTo)(() => user_model_1.User, { foreignKey: "created_by" }),
+    (0, sequelize_typescript_1.BelongsTo)(() => user_model_1.User, { foreignKey: 'created_by' }),
     __metadata("design:type", user_model_1.User)
 ], transaction_type.prototype, "creator", void 0);
 __decorate([
-    (0, sequelize_typescript_1.BelongsTo)(() => user_model_1.User, { foreignKey: "updated_by" }),
+    (0, sequelize_typescript_1.BelongsTo)(() => user_model_1.User, { foreignKey: 'updated_by' }),
     __metadata("design:type", user_model_1.User)
 ], transaction_type.prototype, "updater", void 0);
 __decorate([
@@ -81,9 +130,27 @@ __decorate([
     __metadata("design:paramtypes", [transaction_type]),
     __metadata("design:returntype", void 0)
 ], transaction_type, "generateHashedKey", null);
+__decorate([
+    sequelize_typescript_1.AfterCreate,
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [transaction_type, Object]),
+    __metadata("design:returntype", Promise)
+], transaction_type, "logInsert", null);
+__decorate([
+    sequelize_typescript_1.AfterUpdate,
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [transaction_type, Object]),
+    __metadata("design:returntype", Promise)
+], transaction_type, "logUpdate", null);
+__decorate([
+    sequelize_typescript_1.AfterDestroy,
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [transaction_type, Object]),
+    __metadata("design:returntype", Promise)
+], transaction_type, "logDelete", null);
 exports.transaction_type = transaction_type = __decorate([
     (0, sequelize_typescript_1.Table)({
-        tableName: "transaction_type",
+        tableName: 'transaction_type',
         timestamps: true,
         underscored: true,
     })

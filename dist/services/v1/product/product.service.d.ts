@@ -1,7 +1,7 @@
-import { Products } from "../../../database/models/products.model";
-import * as opentracing from "opentracing";
-import { CreateProductDto, UpdateProductDto } from "../../../dto/product.dto";
-import { WhereOptions } from "sequelize";
+import { Products } from '../../../database/models/products.model';
+import * as opentracing from 'opentracing';
+import { CreateProductDto, UpdateProductDto } from '../../../dto/product.dto';
+import { WhereOptions } from 'sequelize';
 export declare class ProductService {
     private readonly productRepository;
     constructor(productRepository: typeof Products);

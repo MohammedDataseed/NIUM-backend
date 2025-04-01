@@ -1,9 +1,9 @@
-import { Model } from "sequelize-typescript";
+import { Model } from 'sequelize-typescript';
 export declare class Documents extends Model<Documents> {
     documentId: string;
     hashed_key: string;
     entityId: string;
-    entityType: "user" | "customer";
+    entityType: 'user' | 'customer';
     purposeId: string;
     document_type_id: string;
     document_name: string;
@@ -13,7 +13,7 @@ export declare class Documents extends Model<Documents> {
         size?: number;
         uploadedAt?: string;
     };
-    status: "pending" | "approved" | "rejected";
+    status: 'pending' | 'approved' | 'rejected';
     documentExpiry: Date;
     isDocFrontImage: boolean;
     isDocBackImage: boolean;
@@ -22,4 +22,7 @@ export declare class Documents extends Model<Documents> {
     created_by: string;
     updated_by: string;
     static generatePublicKey(instance: Documents): void;
+    static logInsert(instance: Documents, options: any): Promise<void>;
+    static logUpdate(instance: Documents, options: any): Promise<void>;
+    static logDelete(instance: Documents, options: any): Promise<void>;
 }

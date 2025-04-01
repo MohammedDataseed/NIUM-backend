@@ -9,7 +9,7 @@ import { Purpose } from "../models/purpose.model";
 import { Role } from "../models/role.model";
 import { User } from "../models/user.model";
 import { Order } from "../models/order.model";
-import { transaction_type } from "../models/transaction_type.model";
+import { DocumentType } from "../models/documentType.model";
 import { ESign } from "../models/esign.model";
 import { Vkyc } from "../models/vkyc.model";
 export declare const repositoryProviders: ({
@@ -44,7 +44,7 @@ export declare const repositoryProviders: ({
     useValue: typeof Purpose;
 } | {
     provide: string;
-    useValue: typeof transaction_type;
+    useValue: typeof DocumentType;
 } | {
     provide: string;
     useValue: typeof Order;

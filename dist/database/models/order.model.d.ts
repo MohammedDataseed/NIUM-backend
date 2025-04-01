@@ -1,8 +1,9 @@
-import { Model } from "sequelize-typescript";
-import { User } from "./user.model";
-import { Partner } from "./partner.model";
-import { ESign } from "./esign.model";
-import { Vkyc } from "./vkyc.model";
+import { Model } from 'sequelize-typescript';
+import { User } from './user.model';
+import { Partner } from './partner.model';
+import { ESign } from './esign.model';
+import { Vkyc } from './vkyc.model';
+import { OrderLog } from './order_log.model';
 export declare class Order extends Model<Order> {
     id: string;
     serial_number: number;
@@ -65,4 +66,7 @@ export declare class Order extends Model<Order> {
     vkycs: Vkyc[];
     static generateHashedKey(instance: Order): void;
     static setSerialNumber(instance: Order): Promise<void>;
+    static logInsert(instance: OrderLog, options: any): Promise<void>;
+    static logUpdate(instance: OrderLog, options: any): Promise<void>;
+    static logDelete(instance: OrderLog, options: any): Promise<void>;
 }

@@ -1,5 +1,5 @@
-import { Model } from "sequelize-typescript";
-import { User } from "./user.model";
+import { Model } from 'sequelize-typescript';
+import { User } from './user.model';
 export declare class Purpose extends Model<Purpose> {
     id: string;
     hashed_key: string;
@@ -12,4 +12,7 @@ export declare class Purpose extends Model<Purpose> {
     creator: User;
     updater: User;
     static ensureHashedKey(instance: Purpose): void;
+    static logInsert(instance: Purpose, options: any): Promise<void>;
+    static logUpdate(instance: Purpose, options: any): Promise<void>;
+    static logDelete(instance: Purpose, options: any): Promise<void>;
 }

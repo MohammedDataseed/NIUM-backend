@@ -1,7 +1,7 @@
-import { Model } from "sequelize-typescript";
-import { Role } from "./role.model";
-import { Branch } from "./branch.model";
-import { bank_account } from "./bank_account.model";
+import { Model } from 'sequelize-typescript';
+import { Role } from './role.model';
+import { Branch } from './branch.model';
+import { bank_account } from './bank_account.model';
 export declare class User extends Model<User> {
     id: string;
     email: string;
@@ -20,4 +20,7 @@ export declare class User extends Model<User> {
     creator: User;
     updater: User;
     static generatePublicKey(instance: User): void;
+    static logInsert(instance: User, options: any): Promise<void>;
+    static logUpdate(instance: User, options: any): Promise<void>;
+    static logDelete(instance: User, options: any): Promise<void>;
 }

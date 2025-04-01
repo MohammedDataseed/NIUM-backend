@@ -1,5 +1,5 @@
-import { Model } from "sequelize-typescript";
-import { Order } from "./order.model";
+import { Model } from 'sequelize-typescript';
+import { Order } from './order.model';
 export declare class ESign extends Model<ESign> {
     id: string;
     hashed_key: string;
@@ -34,4 +34,7 @@ export declare class ESign extends Model<ESign> {
     is_signed: boolean;
     type: string;
     static generatehashed_key(instance: ESign): void;
+    static logInsert(instance: ESign, options: any): Promise<void>;
+    static logUpdate(instance: ESign, options: any): Promise<void>;
+    static logDelete(instance: ESign, options: any): Promise<void>;
 }

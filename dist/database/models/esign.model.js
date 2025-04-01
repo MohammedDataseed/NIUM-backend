@@ -12,12 +12,166 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ESign = void 0;
 const sequelize_typescript_1 = require("sequelize-typescript");
 const order_model_1 = require("./order.model");
+const esign_log_model_1 = require("./esign_log.model");
 const crypto = require("crypto");
 let ESign = class ESign extends sequelize_typescript_1.Model {
     static generatehashed_key(instance) {
-        const randomPart = crypto.randomBytes(16).toString("hex");
+        const randomPart = crypto.randomBytes(16).toString('hex');
         const timestampPart = Date.now().toString(36);
         instance.hashed_key = `${randomPart}${timestampPart}`;
+    }
+    static async logInsert(instance, options) {
+        var _a, _b;
+        if (options.transaction && options.transaction.finished !== 'commit')
+            return;
+        const existingLog = await esign_log_model_1.ESignLog.findOne({
+            where: { id: instance.id, dml_action: 'I' },
+            transaction: (_a = options.transaction) !== null && _a !== void 0 ? _a : null,
+        });
+        if (existingLog) {
+            console.log(`⚠️ Insert log for ${instance.id} already exists, skipping duplicate entry.`);
+            return;
+        }
+        console.log(`🔵 Logging INSERT for ID: ${instance.id}`);
+        await esign_log_model_1.ESignLog.create({
+            dml_action: 'I',
+            log_timestamp: new Date(),
+            id: instance.id,
+            hashed_key: instance.hashed_key,
+            partner_order_id: instance.partner_order_id,
+            order_id: instance.order_id,
+            attempt_number: instance.attempt_number,
+            task_id: instance.task_id,
+            group_id: instance.group_id,
+            esign_file_details: instance.esign_file_details,
+            esign_stamp_details: instance.esign_stamp_details,
+            esign_invitees: instance.esign_invitees,
+            esign_details: instance.esign_details,
+            esign_doc_id: instance.esign_doc_id,
+            status: instance.status,
+            request_id: instance.request_id,
+            completed_at: instance.completed_at,
+            esign_expiry: instance.esign_expiry,
+            active: instance.active,
+            expired: instance.expired,
+            rejected: instance.rejected,
+            result: instance.result,
+            esigners: instance.esigners,
+            file_details: instance.file_details,
+            request_details: instance.request_details,
+            esign_irn: instance.esign_irn,
+            esign_folder: instance.esign_folder,
+            esign_type: instance.esign_type,
+            esign_url: instance.esign_url,
+            esigner_email: instance.esigner_email,
+            esigner_phone: instance.esigner_phone,
+            is_signed: instance.is_signed,
+            type: instance.type,
+            createdAt: instance.createdAt,
+            updatedAt: instance.updatedAt,
+        }, { transaction: (_b = options.transaction) !== null && _b !== void 0 ? _b : null });
+    }
+    static async logUpdate(instance, options) {
+        var _a, _b;
+        if (options.transaction && options.transaction.finished !== 'commit')
+            return;
+        const existingLog = await esign_log_model_1.ESignLog.findOne({
+            where: { id: instance.id, dml_action: 'U' },
+            transaction: (_a = options.transaction) !== null && _a !== void 0 ? _a : null,
+        });
+        if (existingLog) {
+            console.log(`⚠️ Update log for ${instance.id} already exists, skipping duplicate entry.`);
+            return;
+        }
+        console.log(`🟡 Logging UPDATE for ID: ${instance.id}`);
+        await esign_log_model_1.ESignLog.create({
+            dml_action: 'U',
+            log_timestamp: new Date(),
+            id: instance.id,
+            hashed_key: instance.hashed_key,
+            partner_order_id: instance.partner_order_id,
+            order_id: instance.order_id,
+            attempt_number: instance.attempt_number,
+            task_id: instance.task_id,
+            group_id: instance.group_id,
+            esign_file_details: instance.esign_file_details,
+            esign_stamp_details: instance.esign_stamp_details,
+            esign_invitees: instance.esign_invitees,
+            esign_details: instance.esign_details,
+            esign_doc_id: instance.esign_doc_id,
+            status: instance.status,
+            request_id: instance.request_id,
+            completed_at: instance.completed_at,
+            esign_expiry: instance.esign_expiry,
+            active: instance.active,
+            expired: instance.expired,
+            rejected: instance.rejected,
+            result: instance.result,
+            esigners: instance.esigners,
+            file_details: instance.file_details,
+            request_details: instance.request_details,
+            esign_irn: instance.esign_irn,
+            esign_folder: instance.esign_folder,
+            esign_type: instance.esign_type,
+            esign_url: instance.esign_url,
+            esigner_email: instance.esigner_email,
+            esigner_phone: instance.esigner_phone,
+            is_signed: instance.is_signed,
+            type: instance.type,
+            createdAt: instance.createdAt,
+            updatedAt: instance.updatedAt,
+        }, { transaction: (_b = options.transaction) !== null && _b !== void 0 ? _b : null });
+    }
+    static async logDelete(instance, options) {
+        var _a, _b;
+        if (options.transaction && options.transaction.finished !== 'commit')
+            return;
+        const existingLog = await esign_log_model_1.ESignLog.findOne({
+            where: { id: instance.id, dml_action: 'D' },
+            transaction: (_a = options.transaction) !== null && _a !== void 0 ? _a : null,
+        });
+        if (existingLog) {
+            console.log(`⚠️ Delete log for ${instance.id} already exists, skipping duplicate entry.`);
+            return;
+        }
+        console.log(`🔴 Logging DELETE for ID: ${instance.id}`);
+        await esign_log_model_1.ESignLog.create({
+            dml_action: 'D',
+            log_timestamp: new Date(),
+            id: instance.id,
+            hashed_key: instance.hashed_key,
+            partner_order_id: instance.partner_order_id,
+            order_id: instance.order_id,
+            attempt_number: instance.attempt_number,
+            task_id: instance.task_id,
+            group_id: instance.group_id,
+            esign_file_details: instance.esign_file_details,
+            esign_stamp_details: instance.esign_stamp_details,
+            esign_invitees: instance.esign_invitees,
+            esign_details: instance.esign_details,
+            esign_doc_id: instance.esign_doc_id,
+            status: instance.status,
+            request_id: instance.request_id,
+            completed_at: instance.completed_at,
+            esign_expiry: instance.esign_expiry,
+            active: instance.active,
+            expired: instance.expired,
+            rejected: instance.rejected,
+            result: instance.result,
+            esigners: instance.esigners,
+            file_details: instance.file_details,
+            request_details: instance.request_details,
+            esign_irn: instance.esign_irn,
+            esign_folder: instance.esign_folder,
+            esign_type: instance.esign_type,
+            esign_url: instance.esign_url,
+            esigner_email: instance.esigner_email,
+            esigner_phone: instance.esigner_phone,
+            is_signed: instance.is_signed,
+            type: instance.type,
+            createdAt: instance.createdAt,
+            updatedAt: instance.updatedAt,
+        }, { transaction: (_b = options.transaction) !== null && _b !== void 0 ? _b : null });
     }
 };
 exports.ESign = ESign;
@@ -33,7 +187,7 @@ __decorate([
 __decorate([
     sequelize_typescript_1.Unique,
     (0, sequelize_typescript_1.AllowNull)(true),
-    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.STRING, field: "hashed_key" }),
+    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.STRING, field: 'hashed_key' }),
     __metadata("design:type", String)
 ], ESign.prototype, "hashed_key", void 0);
 __decorate([
@@ -46,7 +200,7 @@ __decorate([
     __metadata("design:type", String)
 ], ESign.prototype, "order_id", void 0);
 __decorate([
-    (0, sequelize_typescript_1.BelongsTo)(() => order_model_1.Order, { foreignKey: "order_id", targetKey: "id" }),
+    (0, sequelize_typescript_1.BelongsTo)(() => order_model_1.Order, { foreignKey: 'order_id', targetKey: 'id' }),
     __metadata("design:type", order_model_1.Order)
 ], ESign.prototype, "order", void 0);
 __decorate([
@@ -163,9 +317,27 @@ __decorate([
     __metadata("design:paramtypes", [ESign]),
     __metadata("design:returntype", void 0)
 ], ESign, "generatehashed_key", null);
+__decorate([
+    sequelize_typescript_1.AfterCreate,
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [ESign, Object]),
+    __metadata("design:returntype", Promise)
+], ESign, "logInsert", null);
+__decorate([
+    sequelize_typescript_1.AfterUpdate,
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [ESign, Object]),
+    __metadata("design:returntype", Promise)
+], ESign, "logUpdate", null);
+__decorate([
+    sequelize_typescript_1.AfterDestroy,
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [ESign, Object]),
+    __metadata("design:returntype", Promise)
+], ESign, "logDelete", null);
 exports.ESign = ESign = __decorate([
     (0, sequelize_typescript_1.Table)({
-        tableName: "esigns",
+        tableName: 'esigns',
         timestamps: true,
     })
 ], ESign);

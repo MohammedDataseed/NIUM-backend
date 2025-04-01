@@ -1,4 +1,4 @@
-import { Model } from "sequelize-typescript";
+import { Model } from 'sequelize-typescript';
 export declare class bank_account extends Model<bank_account> {
     id: string;
     hashed_key: string;
@@ -11,4 +11,7 @@ export declare class bank_account extends Model<bank_account> {
     created_by: string;
     updated_by: string;
     static generatehashed_key(instance: bank_account): void;
+    static logInsert(instance: bank_account, options: any): Promise<void>;
+    static logUpdate(instance: bank_account, options: any): Promise<void>;
+    static logDelete(instance: bank_account, options: any): Promise<void>;
 }

@@ -1,5 +1,5 @@
-import { Model } from "sequelize-typescript";
-import { User } from "./user.model";
+import { Model } from 'sequelize-typescript';
+import { User } from './user.model';
 export declare class Role extends Model<Role> {
     id: string;
     hashed_key: string;
@@ -10,4 +10,7 @@ export declare class Role extends Model<Role> {
     creator: User;
     updater: User;
     static generatePublicKey(instance: Role): void;
+    static logInsert(instance: Role, options: any): Promise<void>;
+    static logUpdate(instance: Role, options: any): Promise<void>;
+    static logDelete(instance: Role, options: any): Promise<void>;
 }

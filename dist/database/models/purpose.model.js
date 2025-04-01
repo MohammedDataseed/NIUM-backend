@@ -12,68 +12,117 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Purpose = void 0;
 const sequelize_typescript_1 = require("sequelize-typescript");
 const user_model_1 = require("./user.model");
+const purpose_log_model_1 = require("./purpose_log.model");
 const crypto = require("crypto");
 let Purpose = class Purpose extends sequelize_typescript_1.Model {
     static ensureHashedKey(instance) {
         if (!instance.hashed_key) {
-            const randomPart = crypto.randomBytes(16).toString("hex");
+            const randomPart = crypto.randomBytes(16).toString('hex');
             const timestampPart = Date.now().toString(36);
             instance.hashed_key = `${randomPart}${timestampPart}`;
         }
+    }
+    static async logInsert(instance, options) {
+        if (!options.transaction)
+            return;
+        await purpose_log_model_1.PurposeLog.create({
+            dml_action: 'I',
+            log_timestamp: new Date(),
+            id: instance.id,
+            hashed_key: instance.hashed_key,
+            purpose_name: instance.purposeName,
+            is_active: instance.isActive,
+            created_at: instance.createdAt,
+            updated_at: instance.updatedAt,
+            created_by: instance.created_by,
+            updated_by: instance.updated_by,
+        }, { transaction: options.transaction });
+    }
+    static async logUpdate(instance, options) {
+        if (!options.transaction)
+            return;
+        await purpose_log_model_1.PurposeLog.create({
+            dml_action: 'U',
+            log_timestamp: new Date(),
+            id: instance.id,
+            hashed_key: instance.hashed_key,
+            purpose_name: instance.purposeName,
+            is_active: instance.isActive,
+            created_at: instance.createdAt,
+            updated_at: instance.updatedAt,
+            created_by: instance.created_by,
+            updated_by: instance.updated_by,
+        }, { transaction: options.transaction });
+    }
+    static async logDelete(instance, options) {
+        if (!options.transaction)
+            return;
+        await purpose_log_model_1.PurposeLog.create({
+            dml_action: 'D',
+            log_timestamp: new Date(),
+            id: instance.id,
+            hashed_key: instance.hashed_key,
+            purpose_name: instance.purposeName,
+            is_active: instance.isActive,
+            created_at: instance.createdAt,
+            updated_at: instance.updatedAt,
+            created_by: instance.created_by,
+            updated_by: instance.updated_by,
+        }, { transaction: options.transaction });
     }
 };
 exports.Purpose = Purpose;
 __decorate([
     sequelize_typescript_1.PrimaryKey,
     (0, sequelize_typescript_1.Default)(sequelize_typescript_1.DataType.UUIDV4),
-    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.UUID, field: "id" }),
+    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.UUID, field: 'id' }),
     __metadata("design:type", String)
 ], Purpose.prototype, "id", void 0);
 __decorate([
     (0, sequelize_typescript_1.AllowNull)(false),
     sequelize_typescript_1.Unique,
-    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.STRING, field: "hashed_key" }),
+    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.STRING, field: 'hashed_key' }),
     __metadata("design:type", String)
 ], Purpose.prototype, "hashed_key", void 0);
 __decorate([
     (0, sequelize_typescript_1.AllowNull)(false),
-    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.STRING, field: "purpose_name" }),
+    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.STRING, field: 'purpose_name' }),
     __metadata("design:type", String)
 ], Purpose.prototype, "purposeName", void 0);
 __decorate([
     (0, sequelize_typescript_1.AllowNull)(false),
     (0, sequelize_typescript_1.Default)(true),
-    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.BOOLEAN, field: "is_active" }),
+    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.BOOLEAN, field: 'is_active' }),
     __metadata("design:type", Boolean)
 ], Purpose.prototype, "isActive", void 0);
 __decorate([
     (0, sequelize_typescript_1.Default)(sequelize_typescript_1.DataType.NOW),
-    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.DATE, field: "created_at" }),
+    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.DATE, field: 'created_at' }),
     __metadata("design:type", Date)
 ], Purpose.prototype, "createdAt", void 0);
 __decorate([
     (0, sequelize_typescript_1.Default)(sequelize_typescript_1.DataType.NOW),
-    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.DATE, field: "updated_at" }),
+    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.DATE, field: 'updated_at' }),
     __metadata("design:type", Date)
 ], Purpose.prototype, "updatedAt", void 0);
 __decorate([
     (0, sequelize_typescript_1.ForeignKey)(() => user_model_1.User),
     (0, sequelize_typescript_1.AllowNull)(true),
-    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.UUID, field: "created_by" }),
+    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.UUID, field: 'created_by' }),
     __metadata("design:type", String)
 ], Purpose.prototype, "created_by", void 0);
 __decorate([
     (0, sequelize_typescript_1.ForeignKey)(() => user_model_1.User),
     (0, sequelize_typescript_1.AllowNull)(true),
-    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.UUID, field: "updated_by" }),
+    (0, sequelize_typescript_1.Column)({ type: sequelize_typescript_1.DataType.UUID, field: 'updated_by' }),
     __metadata("design:type", String)
 ], Purpose.prototype, "updated_by", void 0);
 __decorate([
-    (0, sequelize_typescript_1.BelongsTo)(() => user_model_1.User, { foreignKey: "created_by" }),
+    (0, sequelize_typescript_1.BelongsTo)(() => user_model_1.User, { foreignKey: 'created_by' }),
     __metadata("design:type", user_model_1.User)
 ], Purpose.prototype, "creator", void 0);
 __decorate([
-    (0, sequelize_typescript_1.BelongsTo)(() => user_model_1.User, { foreignKey: "updated_by" }),
+    (0, sequelize_typescript_1.BelongsTo)(() => user_model_1.User, { foreignKey: 'updated_by' }),
     __metadata("design:type", user_model_1.User)
 ], Purpose.prototype, "updater", void 0);
 __decorate([
@@ -82,9 +131,27 @@ __decorate([
     __metadata("design:paramtypes", [Purpose]),
     __metadata("design:returntype", void 0)
 ], Purpose, "ensureHashedKey", null);
+__decorate([
+    sequelize_typescript_1.AfterCreate,
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Purpose, Object]),
+    __metadata("design:returntype", Promise)
+], Purpose, "logInsert", null);
+__decorate([
+    sequelize_typescript_1.AfterUpdate,
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Purpose, Object]),
+    __metadata("design:returntype", Promise)
+], Purpose, "logUpdate", null);
+__decorate([
+    sequelize_typescript_1.AfterDestroy,
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Purpose, Object]),
+    __metadata("design:returntype", Promise)
+], Purpose, "logDelete", null);
 exports.Purpose = Purpose = __decorate([
     (0, sequelize_typescript_1.Table)({
-        tableName: "purposes",
+        tableName: 'purposes',
         timestamps: true,
         underscored: true,
     })
