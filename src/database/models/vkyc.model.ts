@@ -1,4 +1,4 @@
-//vkyc.model.ts
+// vkyc.model.ts
 import {
   Table,
   Column,

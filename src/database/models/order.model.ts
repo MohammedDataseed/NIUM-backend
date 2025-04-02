@@ -1,4 +1,4 @@
-//order.model.ts
+// order.model.ts
 
 import {
   Table,
@@ -234,10 +234,8 @@ export class Order extends Model<Order> {
   /** Generate `hashed_key` before creation */
   @BeforeCreate
   static generateHashedKey(instance: Order) {
-    console.log('Generating hashed_key...'); // Debugging
     const randomPart = crypto.randomBytes(16).toString('hex');
     const timestampPart = Date.now().toString(36);
     instance.hashed_key = `${randomPart}${timestampPart}`;
-    console.log('Generated hashed_key:', instance.hashed_key); // Debugging
   }
 }

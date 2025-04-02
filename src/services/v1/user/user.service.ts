@@ -4,15 +4,16 @@ import {
   NotFoundException,
   UnauthorizedException,
   InternalServerErrorException,
-  BadRequestException,
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
-import { Op, cast, col, WhereOptions } from 'sequelize';
+import { Logger } from '@nestjs/common';
+
+import { WhereOptions } from 'sequelize';
 import { User } from '../../../database/models/user.model';
-import { Role } from 'src/database/models/role.model';
-import { Branch } from 'src/database/models/branch.model';
-import { bank_account } from 'src/database/models/bank_account.model';
+import { Role } from '../../../database/models/role.model';
+import { Branch } from '../../../database/models/branch.model';
+import { bank_account } from '../../../database/models/bank_account.model';
 import * as opentracing from 'opentracing';
 import { TracerService } from '../../../shared/services/tracer/tracer.service';
 import { CreateUserDto, UpdateUserDto } from 'src/dto/user.dto';
@@ -20,7 +21,7 @@ import * as bcrypt from 'bcryptjs';
 import * as crypto from 'crypto';
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from 'src/dto/login.dto';
-import { MailerService } from 'src/shared/services/mailer/mailer.service';
+import { MailerService } from '../../../shared/services/mailer/mailer.service';
 import { verify } from 'jsonwebtoken';
 
 export interface UserCreationResponse {
@@ -102,7 +103,7 @@ export class UserService {
         user,
       };
     } catch (error) {
-      console.error('Error creating user:', error);
+      Logger.error(`Error creating user: ${error.message}`, '', 'UserService');
       throw new HttpException(
         'Internal Server Error',
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -130,14 +131,17 @@ export class UserService {
 
     try {
       const user = await this.userRepository.findByPk(id);
-      if (!user) throw new NotFoundException('User not found');
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
 
       if (updateUserDto.email && updateUserDto.email !== user.email) {
         const existingUser = await this.userRepository.findOne({
           where: { email: updateUserDto.email },
         });
-        if (existingUser)
+        if (existingUser) {
           throw new UnauthorizedException('Email is already in use');
+        }
       }
 
       await user.update(updateUserDto);
@@ -152,7 +156,9 @@ export class UserService {
 
     try {
       const user = await this.userRepository.findByPk(id);
-      if (!user) throw new NotFoundException('User not found');
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
 
       await user.destroy();
       childSpan.log({ event: 'user_deleted', userId: id });
@@ -253,7 +259,9 @@ export class UserService {
 
   async findByEmail(email: string): Promise<User> {
     const user = await this.userRepository.findOne({ where: { email } });
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
     return user;
   }
 
@@ -296,7 +304,11 @@ export class UserService {
 
       return { message: 'Password reset link sent to your email.' };
     } catch (error) {
-      console.error('Error sending reset email:', error);
+      Logger.error(
+        `Error sending reset email: ${error.message}`,
+        '',
+        'UserService',
+      );
       throw new InternalServerErrorException(
         'Failed to send password reset email',
       );
@@ -308,14 +320,16 @@ export class UserService {
     newPassword: string,
     confirmPassword: string,
   ): Promise<{ message: string }> {
-    if (newPassword !== confirmPassword)
+    if (newPassword !== confirmPassword) {
       throw new UnauthorizedException('Passwords do not match');
+    }
 
     let payload;
     try {
       payload = verify(token, process.env.JWT_SECRET);
-      if (payload.type !== 'reset')
+      if (payload.type !== 'reset') {
         throw new UnauthorizedException('Invalid token type');
+      }
     } catch (error) {
       throw new UnauthorizedException('Invalid or expired token');
     }
@@ -323,7 +337,9 @@ export class UserService {
     const user = await this.userRepository.findOne({
       where: { email: payload.email },
     });
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
 
     // Hash the new password using bcryptjs
     const hashedPassword = await bcrypt.hash(newPassword, 10);

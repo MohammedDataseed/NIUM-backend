@@ -21,13 +21,12 @@ import {
 // import { CreateOrderDto, UpdateOrderDto,UpdateCheckerDto,UnassignCheckerDto } from "../../../dto/order.dto";
 import * as opentracing from 'opentracing';
 import { User } from '../../../database/models/user.model';
-import { ESign } from 'src/database/models/esign.model';
-import { Vkyc } from 'src/database/models/vkyc.model';
+import { ESign } from '../../../database/models/esign.model';
+import { Vkyc } from '../../../database/models/vkyc.model';
 import { Partner } from '../../../database/models/partner.model';
-import { Purpose } from 'src/database/models/purpose.model';
-import { transaction_type } from 'src/database/models/transaction_type.model';
-
-import { WhereOptions, Op } from 'sequelize';
+import { Purpose } from '../../../database/models/purpose.model';
+import { transaction_type } from '../../../database/models/transaction_type.model';
+import { Op } from 'sequelize';
 
 // Define a new interface for the filtered order data
 export interface FilteredOrder {
@@ -360,8 +359,9 @@ export class OrdersService {
       const order = await this.orderRepository.findOne({
         where: { partner_order_id: orderId },
       });
-      if (!order)
+      if (!order) {
         throw new NotFoundException(`Order with ID ${orderId} not found`);
+      }
 
       // Update all provided fields
       Object.assign(order, {
@@ -576,7 +576,7 @@ export class OrdersService {
     }
 
     const order = await this.orderRepository.findOne({
-      where: { partner_order_id: partner_order_id, checker_id: checker.id },
+      where: { partner_order_id, checker_id: checker.id },
     });
 
     if (!order) {

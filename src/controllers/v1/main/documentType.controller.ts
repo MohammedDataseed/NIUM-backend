@@ -6,9 +6,7 @@ import {
   Put,
   Delete,
   Body,
-  UseGuards,
   Param,
-  ParseUUIDPipe,
 } from '@nestjs/common';
 import { DocumentTypeService } from '../../../services/v1/document/documentType.service';
 import { DocumentType } from '../../../database/models/documentType.model';
@@ -17,9 +15,8 @@ import { WhereOptions } from 'sequelize';
 import {
   CreateDocumentTypeDto,
   UpdateDocumentTypeDto,
-} from 'src/dto/documentType.dto';
+} from '../../../dto/documentType.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
-import { JwtGuard } from '../../../auth/jwt.guard';
 
 @ApiTags('DocumentTypes')
 @Controller('documentTypes')
@@ -30,7 +27,7 @@ export class DocumentTypeController {
   @Get()
   async findAll(
     @Query() params: Record<string, any>,
-  ): Promise<{ document_type_id: string; document_name: string }[]> {
+  ): Promise<Array<{ document_type_id: string; document_name: string }>> {
     const tracer = opentracing.globalTracer();
     const span = tracer.startSpan('find-all-document-types-request');
 

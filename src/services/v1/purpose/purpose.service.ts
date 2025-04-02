@@ -109,7 +109,7 @@ export class PurposeService {
     }
   }
 
-  async findAllConfig(): Promise<{ id: string; text: string }[]> {
+  async findAllConfig(): Promise<Array<{ id: string; text: string }>> {
     const purposes = await this.purposeRepository.findAll({
       where: { isActive: true }, // Only fetch active documents
     });
@@ -129,7 +129,9 @@ export class PurposeService {
       const purpose = await this.purposeRepository.findOne({
         where: { hashed_key },
       });
-      if (!purpose) throw new NotFoundException('Purpose Type not found');
+      if (!purpose) {
+        throw new NotFoundException('Purpose Type not found');
+      }
 
       await purpose.destroy();
       childSpan.log({ event: 'purpose_deleted', hashed_key });

@@ -8,13 +8,10 @@ import {
   Unique,
   DataType,
   ForeignKey,
-  BelongsTo,
-  BeforeCreate,
   BeforeValidate,
 } from 'sequelize-typescript';
 import * as crypto from 'crypto';
 import { User } from './user.model';
-import { CreateBranchDto } from 'src/dto/branch.dto';
 @Table({
   tableName: 'branches',
   timestamps: true,

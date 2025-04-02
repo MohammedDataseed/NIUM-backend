@@ -49,8 +49,6 @@ export class DocumentTypeService {
         throw new ConflictException('Document Type already exists');
       }
 
-      console.log('Received DTO:', createDocumentTypeDto); // Debugging log
-
       // Ensure all required fields are passed to create()
       return await this.documentTypeRepository.create({
         name: createDocumentTypeDto.document_name,
@@ -109,7 +107,7 @@ export class DocumentTypeService {
     }
   }
 
-  async findAllConfig(): Promise<{ id: string; text: string }[]> {
+  async findAllConfig(): Promise<Array<{ id: string; text: string }>> {
     const document = await this.documentTypeRepository.findAll({
       where: { isActive: true }, // Only fetch active documents
     });
@@ -129,7 +127,9 @@ export class DocumentTypeService {
       const documentType = await this.documentTypeRepository.findOne({
         where: { hashed_key },
       });
-      if (!documentType) throw new NotFoundException('Document Type not found');
+      if (!documentType) {
+        throw new NotFoundException('Document Type not found');
+      }
 
       await documentType.destroy();
       childSpan.log({

@@ -42,8 +42,6 @@ export class BranchService {
         throw new ConflictException('Branch already exists');
       }
 
-      console.log('Received DTO:', createBranchDto); // Debugging log
-
       // Create new branch instance
       const branch = this.branchRepository.build({
         name: createBranchDto.name,

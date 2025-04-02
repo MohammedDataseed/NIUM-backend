@@ -8,7 +8,7 @@ import {
 import { PurposeService } from '../../../services/v1/purpose/purpose.service';
 import { DocumentTypeService } from '../../../services/v1/document/documentType.service';
 import { transaction_typeService } from '../../../services/v1/transaction/transaction_type.service';
-import { OrdersService } from 'src/services/v1/order/order.service';
+import { OrdersService } from '../../../services/v1/order/order.service';
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import * as opentracing from 'opentracing';
 

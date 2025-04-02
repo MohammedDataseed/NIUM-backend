@@ -29,7 +29,7 @@ export class transaction_type extends Model<transaction_type> {
 
   @AllowNull(false)
   @Unique
-  //@Default(() => crypto.randomBytes(8).toString("hex"))
+  // @Default(() => crypto.randomBytes(8).toString("hex"))
   @Column({ type: DataType.STRING, field: 'hashed_key' })
   hashed_key: string;
 
