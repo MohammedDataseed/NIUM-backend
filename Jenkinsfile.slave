@@ -1,0 +1,97 @@
+pipeline {
+    agent {
+        node { label 'slave' }
+    }
+    environment {
+        GIT_CREDENTIALS = credentials('GIT_CREDENTIALS')
+        AWS_CREDENTIALS = credentials('AWS_NONPROD_FOREX_CREDENTIALS')
+        AWS_DEFAULT_REGION = 'ap-south-1'
+    }
+    tools {
+        nodejs "Node 16.17.0"
+    }
+    parameters {
+        booleanParam(name: 'CI', defaultValue: false, description:'select true to build and push image to ECR')
+        booleanParam(name: 'CD', defaultValue: false, description: 'select true to deploy the latest image')
+        choice(name: 'ENV', choices: ['pre-prod','qa', 'development'], description: '')
+        string(name: 'BRANCH', defaultValue: '')
+        choice(name: 'AWS_ECR_ID', choices: ['187296086360'], description: '')
+        string(name: 'REPO', defaultValue: 'nium-forex-agent-portal-backend.git')
+        string(name: 'APP_NAME', defaultValue: 'nium-forex-agent-portal-backend')
+        booleanParam(name: 'SONAR', defaultValue: false)
+    }
+    stages {
+        stage("Running CI") {
+            when {
+                expression { params.CI == true }
+            }
+            stages {
+                stage('Test Stage') {
+                    environment { 
+                        NODE_ENV='test'
+                        PORT=5000
+                        ENABLE_MIDDLEWARE=true
+                        SERVICE_NAME='nium-forex-agent-portal-backend'
+                        HEALTH_CHECK='/api/v1/public/health-check'                    }
+                    steps {
+                        sh "echo Test Cases Stage execution"
+                        // sh "npm i"
+                        //sh "npm run test"
+                    }
+                }
+                
+                stage('Sonar Run Analysis') {
+                    when {
+                        expression { params.SONAR == true }
+                    }
+                    steps {
+                        sh "echo Sonar Scanning"
+                        sh 'npm install sonarqube-scanner@2.9.1'
+                        sh 'npm run analyse -- -Dproject.settings=./sonar-project.global.properties'
+                    }
+                }
+                
+                stage('Docker Image Creation') {
+                    steps {
+                        sh "echo ${BUILD_NUMBER}"
+                        sh "docker --version"
+                        sh "docker build --no-cache -t ${APP_NAME}:latest ."
+                        sh "docker tag ${APP_NAME}:latest ${AWS_ECR_ID}.dkr.ecr.ap-south-1.amazonaws.com/${APP_NAME}:${ENV}-${BUILD_NUMBER}"
+                        sh "eval \$(aws ecr get-login --no-include-email --region ap-south-1)"
+                        sh "docker push ${AWS_ECR_ID}.dkr.ecr.ap-south-1.amazonaws.com/${APP_NAME}:${ENV}-${BUILD_NUMBER}"    
+                    }
+                }
+            }
+        }
+
+        stage('Deploy') {
+            when {
+                expression { params.CD == true }
+            }
+            steps {
+                script {
+                    def data = sh(
+                            script: "aws ecr describe-images --repository-name ${APP_NAME} --query 'sort_by(imageDetails,& imagePushedAt)'",
+                            returnStdout: true
+                        ).trim()
+
+                    def filteredData = sh(
+                        script: """
+                            jq 'map(select(.imageTags != null and (.imageTags[] | contains("${params.ENV}"))))' <<< '${data}'
+                        """,
+                        returnStdout: true
+                    ).trim()
+
+                    TAG = sh(
+                        script: """
+                            jq 'map(select(.imageTags != null)) | sort_by(.imagePushedAt) | last | .imageTags | .[]' <<< '${filteredData}'
+                        """,
+                        returnStdout: true
+                    ).trim()
+                }
+                echo "Deployment starting :: Image TAG: ${TAG}"
+                sh "ansible-playbook ./ansible/deploy-script.yaml --extra-vars 'env=${ENV} AWS_ECR_ID=${AWS_ECR_ID} RELEASE_TAG=${TAG}'"
+            }
+        }
+    }
+}

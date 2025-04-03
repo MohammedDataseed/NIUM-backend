@@ -1,0 +1,15 @@
+# VPC Variables
+vpc_id: 'vpc-0ca0aee089d8654df'
+cluster_name: 'niumforex-ecs-cluster'
+
+# Application Variables
+app_name: 'forex-agent-portal-backnd'
+secret_arn: ''
+node_env: 'production'
+
+# Scaling Variables
+desired_count: 2
+min_task: 2
+max_task: 3
+reserved_memory: 500
+memory_limit: 700

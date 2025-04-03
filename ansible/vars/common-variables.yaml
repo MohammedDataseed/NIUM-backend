@@ -1,0 +1,24 @@
+# Container Variables
+alb_listener_port: 80
+tg_port: '{{ container_port }}'
+tg_unhealthy_threshold_count: 2
+tg_healthy_threshold_count: 2
+tg_health_check_timeout: 120
+tg_health_check_interval: 300
+tg_health_check_path: '/nium-forex-agent-portal-backend/api/v1/public/health-check'
+
+# Application Variables
+app_image: '{{ AWS_ECR_ID }}.dkr.ecr.ap-south-1.amazonaws.com/nium-forex-agent-portal-backend:{{ RELEASE_TAG }}'
+container_port: 5003
+execution_role_arn_num: '{{ AWS_ECR_ID }}'
+
+# Scaling Variables
+desired_count: 2
+min_task: 2
+max_task: 3
+reserved_memory: 500
+memory_limit: 800
+cpu_target_value: 65
+memory_target_value: 65
+scale_out_cooldown: 300
+scale_in_cooldown: 300

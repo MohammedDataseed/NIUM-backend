@@ -1,0 +1,8 @@
+# VPC Variables
+vpc_id: 'vpc-0a82255c1ea3246a2'
+cluster_name: 'niumforex-ecs-cluster'
+
+# Application Variables
+app_name: 'forex-agent-portal-backnd'
+secret_arn: 'arn:aws:secretsmanager:ap-south-1:187296086360:secret:Nium-forex-agent-portal-backend-Preprod-5gUw5v'
+node_env: 'pre-prod'

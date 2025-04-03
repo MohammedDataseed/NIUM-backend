@@ -15,6 +15,13 @@ const contextService = require('request-context');
 
 async function bootstrap() {
   // initiate express app
+  if (process.env.AWS_AUTO_SECRET_ENV_VARIABLES) {
+    const secretObject = JSON.parse(process.env.AWS_AUTO_SECRET_ENV_VARIABLES);
+    Object.keys(secretObject).forEach((secretKey) => {
+      process.env[secretKey] = secretObject[secretKey];
+    });
+    delete process.env.AWS_AUTO_SECRET_ENV_VARIABLES;
+  }
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const logger = app.get<LoggerService>(LoggerService);
   const config = app.get<ConfigService>(ConfigService);
@@ -62,7 +69,7 @@ async function bootstrap() {
   app.use(helmet());
   // Increase the JSON body size limit to 1MB (or adjust as needed)
   app.use(json({ limit: '5mb' })); // 5mb = 5120 * 1024 bytes
-  app.setGlobalPrefix('v1/api');
+  app.setGlobalPrefix('nium-forex-agent-portal-backend/api');
   app.use(contextService.middleware('request'));
 
   const proxyOptions = {
