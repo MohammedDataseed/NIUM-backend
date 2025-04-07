@@ -45,6 +45,7 @@ async function bootstrap() {
       'http://nium.thestorywallcafe.com',
       'https://nium.thestorywallcafe.com',
       'https://nium-forex-agent-portal.vercel.app',
+      'https://sandbox-backoffice.instarem.com',
     ];
 
     const origin = req.headers.origin;
