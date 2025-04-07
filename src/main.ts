@@ -69,7 +69,7 @@ async function bootstrap() {
   app.use(helmet());
   // Increase the JSON body size limit to 1MB (or adjust as needed)
   app.use(json({ limit: '5mb' })); // 5mb = 5120 * 1024 bytes
-  app.setGlobalPrefix('/');
+  app.setGlobalPrefix('/api');
   app.use(contextService.middleware('request'));
 
   const proxyOptions = {
