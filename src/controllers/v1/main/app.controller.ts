@@ -2,7 +2,7 @@ import { Controller, Get, Headers } from '@nestjs/common';
 import { AppService } from '../../../services/v1/app/app.service';
 import * as opentracing from 'opentracing';
 
-@Controller('/v1/public')
+@Controller('/public')
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
