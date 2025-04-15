@@ -45,6 +45,7 @@ async function bootstrap() {
       'http://nium.thestorywallcafe.com',
       'https://nium.thestorywallcafe.com',
       'https://nium-forex-agent-portal.vercel.app',
+      'https://sandbox-backoffice.instarem.com',
     ];
 
     const origin = req.headers.origin;
@@ -69,7 +70,7 @@ async function bootstrap() {
   app.use(helmet());
   // Increase the JSON body size limit to 1MB (or adjust as needed)
   app.use(json({ limit: '5mb' })); // 5mb = 5120 * 1024 bytes
-  app.setGlobalPrefix('nium-forex-agent-portal-backend/api');
+  app.setGlobalPrefix('/api/v1');
   app.use(contextService.middleware('request'));
 
   const proxyOptions = {

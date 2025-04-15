@@ -5,11 +5,11 @@ tg_unhealthy_threshold_count: 2
 tg_healthy_threshold_count: 2
 tg_health_check_timeout: 120
 tg_health_check_interval: 300
-tg_health_check_path: '/nium-forex-agent-portal-backend/api/v1/public/health-check'
+tg_health_check_path: '/api/v1/public/health-check'
 
 # Application Variables
 app_image: '{{ AWS_ECR_ID }}.dkr.ecr.ap-south-1.amazonaws.com/nium-forex-agent-portal-backend:{{ RELEASE_TAG }}'
-container_port: 5003
+container_port: 5004
 execution_role_arn_num: '{{ AWS_ECR_ID }}'
 
 # Scaling Variables
