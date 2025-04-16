@@ -4,14 +4,13 @@ import {
   Get,
   Post,
   Put,
-  Delete,
   Body,
   Query,
 } from '@nestjs/common';
 import { RoleService } from '../../../services/v1/role/role.service';
 import { Role } from '../../../database/models/role.model';
 import * as opentracing from 'opentracing';
-import { CreateRoleDto, UpdateRoleDto, DeleteRoleDto } from 'src/dto/role.dto';
+import { CreateRoleDto, UpdateRoleDto } from '../../../dto/role.dto';
 import {
   ApiTags,
   ApiOperation,
@@ -29,7 +28,7 @@ export class RoleController {
   /** ================================
    * 🔹 Get All Roles
    * ================================ */
-  //@UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Get()
   @ApiOperation({ summary: 'Get all roles with optional filters' })
   @ApiResponse({
@@ -52,7 +51,7 @@ export class RoleController {
   /** ================================
    * 🔹 Create a New Role
    * ================================ */
-  //@UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Post()
   @ApiOperation({ summary: 'Create a new role' })
   @ApiResponse({
@@ -75,7 +74,7 @@ export class RoleController {
   /** ================================
    * 🔹 Update Role by hashed_key
    * ================================ */
-  //@UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Put('status')
   @ApiOperation({ summary: 'Update role status using hashed_key' })
   @ApiResponse({ status: 200, description: 'Role status updated successfully' })

@@ -6,8 +6,8 @@ import { DatabaseModule } from '../database/database.module'; // ✅ Import Data
 import { UserService } from '../services/v1/user/user.service';
 import { SharedModule } from '../shared/shared.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { MailModule } from 'src/shared/services/mailer/mailer.module';
-import { MailerService } from 'src/shared/services/mailer/mailer.service';
+import { MailModule } from '../shared/services/mailer/mailer.module';
+import { MailerService } from '../shared/services/mailer/mailer.service';
 @Module({
   imports: [
     ConfigModule, // ✅ Ensure ConfigModule is imported
@@ -25,7 +25,7 @@ import { MailerService } from 'src/shared/services/mailer/mailer.service';
         if (!secret) {
           throw new Error('JWT_SECRET is not defined in environment variables');
         }
-        return { secret, signOptions: { expiresIn: expiresIn } };
+        return { secret, signOptions: { expiresIn } };
       },
     }),
   ],

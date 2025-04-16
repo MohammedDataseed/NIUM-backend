@@ -35,8 +35,8 @@ pipeline {
                         HEALTH_CHECK='/api/v1/public/health-check'                    }
                     steps {
                         sh "echo Test Cases Stage execution"
-                        // sh "npm i"
-                        //sh "npm run test"
+                        sh "npm i"
+                        sh "npm run test"
                     }
                 }
                 

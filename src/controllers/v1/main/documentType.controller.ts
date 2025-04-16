@@ -1,4 +1,5 @@
 import {
+  UseGuards,
   Controller,
   Get,
   Query,
@@ -6,9 +7,7 @@ import {
   Put,
   Delete,
   Body,
-  UseGuards,
   Param,
-  ParseUUIDPipe,
 } from '@nestjs/common';
 import { DocumentTypeService } from '../../../services/v1/document/documentType.service';
 import { DocumentType } from '../../../database/models/documentType.model';
@@ -17,7 +16,7 @@ import { WhereOptions } from 'sequelize';
 import {
   CreateDocumentTypeDto,
   UpdateDocumentTypeDto,
-} from 'src/dto/documentType.dto';
+} from '../../../dto/documentType.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { JwtGuard } from '../../../auth/jwt.guard';
 
@@ -26,11 +25,11 @@ import { JwtGuard } from '../../../auth/jwt.guard';
 export class DocumentTypeController {
   constructor(private readonly documentTypeService: DocumentTypeService) {}
 
-  // //@UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Get()
   async findAll(
     @Query() params: Record<string, any>,
-  ): Promise<{ document_type_id: string; document_name: string }[]> {
+  ): Promise<Array<{ document_type_id: string; document_name: string }>> {
     const tracer = opentracing.globalTracer();
     const span = tracer.startSpan('find-all-document-types-request');
 
@@ -51,7 +50,7 @@ export class DocumentTypeController {
     }
   }
 
-  // //@UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Post()
   @ApiOperation({ summary: 'Create a new document type' })
   @ApiResponse({
@@ -83,7 +82,7 @@ export class DocumentTypeController {
     }
   }
 
-  // //@UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Put(':document_type_id')
   @ApiOperation({ summary: 'Update a document type' })
   @ApiResponse({
@@ -116,7 +115,7 @@ export class DocumentTypeController {
     }
   }
 
-  // //@UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Delete(':document_type_id')
   @ApiOperation({ summary: 'Delete a document type' })
   @ApiResponse({

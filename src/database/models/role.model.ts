@@ -9,7 +9,6 @@ import {
   DataType,
   ForeignKey,
   BelongsTo,
-  BeforeCreate,
   BeforeValidate,
 } from 'sequelize-typescript';
 import { User } from './user.model';

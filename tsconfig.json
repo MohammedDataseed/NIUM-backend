@@ -11,5 +11,8 @@
     "baseUrl": "./",
     "incremental": true
   },
+  "rules": {
+    "no-unused-variable": [true, { "ignore-pattern": "^_" }]
+  },
   "exclude": ["node_modules", "dist"]
 }

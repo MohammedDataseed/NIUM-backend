@@ -12,14 +12,11 @@ import {
   UploadedFile,
   UseInterceptors,
   BadRequestException,
-  NotFoundException,
-  ValidationError,
   ValidationPipe,
   HttpStatus,
   HttpException,
 } from '@nestjs/common';
 import { OrdersService } from '../../../services/v1/order/order.service';
-import axios from 'axios';
 import * as opentracing from 'opentracing';
 import { Response } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -173,7 +170,9 @@ export class PdfController {
     @UploadedFile() file: Express.Multer.File,
     @Body('partner_order_id') orderId: string,
   ) {
-    if (!file) throw new BadRequestException('File is required');
+    if (!file) {
+      throw new BadRequestException('File is required');
+    }
     if (!orderId || typeof orderId !== 'string' || !orderId.trim()) {
       throw new BadRequestException(
         'Order ID is required and must be a non-empty string',
@@ -289,7 +288,9 @@ export class PdfController {
     @Body('partner_order_id') orderId: string,
     @Body('file_name') fileName: string,
   ) {
-    if (!file) throw new BadRequestException('File is required');
+    if (!file) {
+      throw new BadRequestException('File is required');
+    }
     if (!orderId || typeof orderId !== 'string' || !orderId.trim()) {
       throw new BadRequestException(
         'Order ID is required and must be a non-empty string',

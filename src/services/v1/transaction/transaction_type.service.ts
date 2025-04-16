@@ -115,7 +115,7 @@ export class transaction_typeService {
     }
   }
 
-  async findAllConfig(): Promise<{ id: string; text: string }[]> {
+  async findAllConfig(): Promise<Array<{ id: string; text: string }>> {
     const transaction = await this.transaction_typeRepository.findAll({
       where: { isActive: true }, // Only fetch active documents
     });
@@ -135,8 +135,9 @@ export class transaction_typeService {
       const transaction_type = await this.transaction_typeRepository.findOne({
         where: { hashed_key },
       });
-      if (!transaction_type)
+      if (!transaction_type) {
         throw new NotFoundException('Transaction Type not found');
+      }
 
       await transaction_type.destroy();
       childSpan.log({

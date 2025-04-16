@@ -7,9 +7,9 @@ import {
 } from '@nestjs/common';
 import axios, { AxiosError } from 'axios';
 import * as opentracing from 'opentracing';
-import { Vkyc } from 'src/database/models/vkyc.model';
+import { Vkyc } from '../../../database/models/vkyc.model';
 import { OrdersService } from '../order/order.service';
-import { Order } from 'src/database/models/order.model';
+import { Order } from '../../../database/models/order.model';
 
 // Define interfaces for request and response payloads
 interface VideoKycRequestPayload {
@@ -416,7 +416,7 @@ export class VideokycService {
     };
 
     // Check if Vkyc already exists for the same profile_id
-    let vkycRecord = await Vkyc.findOne({
+    const vkycRecord = await Vkyc.findOne({
       where: { profile_id: v_kyc_profile_id },
     });
 

@@ -16,7 +16,6 @@ import {
   business_type,
 } from '../../../dto/partner.dto';
 import * as bcrypt from 'bcryptjs';
-import { JwtService } from '@nestjs/jwt';
 import * as crypto from 'crypto';
 
 @Injectable()
@@ -24,7 +23,6 @@ export class PartnerService {
   constructor(
     @Inject('PARTNER_REPOSITORY')
     private readonly partnerRepository: typeof Partner,
-    private readonly jwtService: JwtService,
   ) {}
 
   async findAllPartners(span: opentracing.Span): Promise<PartnerResponseDto[]> {
@@ -59,7 +57,9 @@ export class PartnerService {
         include: [{ model: Products }],
       });
 
-      if (!partner) throw new NotFoundException('Partner not found');
+      if (!partner) {
+        throw new NotFoundException('Partner not found');
+      }
       return this.toResponseDto(partner);
     } finally {
       childSpan.finish();
@@ -78,7 +78,9 @@ export class PartnerService {
         include: [{ model: Products }],
       });
 
-      if (!partner) throw new NotFoundException('Partner not found');
+      if (!partner) {
+        throw new NotFoundException('Partner not found');
+      }
       return this.toResponseDto(partner);
     } finally {
       childSpan.finish();
@@ -188,15 +190,18 @@ export class PartnerService {
         transaction,
       });
 
-      if (!partner) throw new NotFoundException('Partner not found');
+      if (!partner) {
+        throw new NotFoundException('Partner not found');
+      }
 
       if (updatePartnerDto.email && updatePartnerDto.email !== partner.email) {
         const existingPartner = await this.partnerRepository.findOne({
           where: { email: updatePartnerDto.email },
           transaction,
         });
-        if (existingPartner)
+        if (existingPartner) {
           throw new ConflictException('Email is already in use');
+        }
       }
 
       if (updatePartnerDto.password) {
@@ -234,7 +239,9 @@ export class PartnerService {
       const partner = await this.partnerRepository.findOne({
         where: { hashed_key },
       });
-      if (!partner) throw new NotFoundException('Partner not found');
+      if (!partner) {
+        throw new NotFoundException('Partner not found');
+      }
 
       await partner.destroy();
       childSpan.log({ event: 'partner_deleted', hashed_key });
@@ -248,7 +255,9 @@ export class PartnerService {
 
     try {
       const partner = await this.partnerRepository.findByPk(id);
-      if (!partner) throw new NotFoundException('Partner not found');
+      if (!partner) {
+        throw new NotFoundException('Partner not found');
+      }
 
       await partner.destroy();
       childSpan.log({ event: 'partner_deleted', id });

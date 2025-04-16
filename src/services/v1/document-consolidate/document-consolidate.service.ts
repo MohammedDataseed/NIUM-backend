@@ -1,4 +1,4 @@
-//documents-consolidate.service.ts
+// documents-consolidate.service.ts
 
 import {
   Injectable,
@@ -35,9 +35,9 @@ import {
   PDFRawStream,
 } from 'pdf-lib';
 import axios from 'axios';
-import { Order } from 'src/database/models/order.model';
-import { Documents } from 'src/database/models/documents.model';
-import { DocumentType } from 'src/database/models/documentType.model'; // Assuming document_type table exists
+import { Order } from '../../../database/models/order.model';
+import { Documents } from '../../../database/models/documents.model';
+import { DocumentType } from '../../../database/models/documentType.model'; // Assuming document_type table exists
 
 @Injectable()
 export class PdfService {
@@ -312,16 +312,18 @@ export class PdfService {
     const order = await this.orderRepository.findOne({
       where: { partner_order_id },
     });
-    if (!order)
+    if (!order) {
       throw new BadRequestException(`Order ID ${partner_order_id} not found`);
+    }
 
     const documentType = await this.documentTypeRepository.findOne({
       where: { hashed_key: document_type_id },
     });
-    if (!documentType)
+    if (!documentType) {
       throw new BadRequestException(
         `Invalid document_type_id: ${document_type_id}`,
       );
+    }
 
     function isValidBase64(str: string): boolean {
       const base64Regex =
@@ -329,8 +331,9 @@ export class PdfService {
       return base64Regex.test(str);
     }
 
-    if (!isValidBase64(base64File))
+    if (!isValidBase64(base64File)) {
       throw new BadRequestException('Invalid Base64 encoding.');
+    }
 
     let mimeType: string, base64Data: string;
     const fileMatch = base64File.match(
@@ -349,16 +352,18 @@ export class PdfService {
       mimeType = Object.entries(magicNumbers).find(([magic]) =>
         base64Data.startsWith(magic),
       )?.[1];
-      if (!mimeType)
+      if (!mimeType) {
         throw new BadRequestException(
           'Invalid base64 format. Only JPEG, JPG, PNG, and PDF allowed.',
         );
+      }
     }
 
-    let buffer = Buffer.from(base64Data, 'base64');
+    const buffer = Buffer.from(base64Data, 'base64');
     const MAX_SIZE_BYTES = 15 * 1024 * 1024;
-    if (buffer.length > MAX_SIZE_BYTES)
+    if (buffer.length > MAX_SIZE_BYTES) {
       throw new BadRequestException('File size must be ≤ 15MB');
+    }
 
     const existingDocument = await this.documentRepository.findOne({
       where: { entityId: order.id, document_type_id: documentType.id },
@@ -436,7 +441,7 @@ export class PdfService {
         // Get file size from buffer
         const fileSize = mergedFile.buffer.length;
         // Check if an existing merged document exists
-        let existingMergedDocument = await this.documentRepository.findOne({
+        const existingMergedDocument = await this.documentRepository.findOne({
           where: {
             entityId: order.id,
             document_name: `merged_${partner_order_id}.pdf`,
@@ -490,7 +495,7 @@ export class PdfService {
               documentIds: [mergedDocument.id], // Assuming document has an `id`
             },
           },
-          { where: { partner_order_id: partner_order_id } },
+          { where: { partner_order_id } },
         );
       } else {
         throw new InternalServerErrorException(
@@ -578,8 +583,9 @@ export class PdfService {
     };
     const response = await this.s3.send(new ListObjectsV2Command(listParams));
     const files = response.Contents || [];
-    if (!files.length && !newFileBuffer)
+    if (!files.length && !newFileBuffer) {
       throw new BadRequestException(`No files found in folder: ${folderName}`);
+    }
 
     const mergedPdf = await PDFDocument.create();
 
@@ -650,10 +656,11 @@ export class PdfService {
       }
     }
 
-    if (mergedPdf.getPageCount() === 0)
+    if (mergedPdf.getPageCount() === 0) {
       throw new BadRequestException(
         `No valid files to merge in folder: ${folderName}`,
       );
+    }
 
     // let mergedBytes = await mergedPdf.save();
 

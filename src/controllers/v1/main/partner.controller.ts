@@ -24,16 +24,12 @@ import {
   ApiParam,
 } from '@nestjs/swagger';
 import { JwtGuard } from '../../../auth/jwt.guard';
-import { MailerService } from 'src/shared/services/mailer/mailer.service';
 
 @ApiTags('Partners')
 @Controller('partners')
 @ApiBearerAuth('access_token')
 export class PartnerController {
-  constructor(
-    private readonly partnerService: PartnerService,
-    private readonly mailService: MailerService,
-  ) {}
+  constructor(private readonly partnerService: PartnerService) {}
 
   /** 🔹 Get All Partners */
   @UseGuards(JwtGuard)

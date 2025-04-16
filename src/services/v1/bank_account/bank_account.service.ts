@@ -4,7 +4,7 @@ import {
   ConflictException,
   NotFoundException,
 } from '@nestjs/common';
-import { bank_account } from 'src/database/models/bank_account.model';
+import { bank_account } from '../../../database/models/bank_account.model';
 import * as opentracing from 'opentracing';
 import { CreateBankAccountDto } from '../../../dto/bank_account.dto';
 import { WhereOptions } from 'sequelize';

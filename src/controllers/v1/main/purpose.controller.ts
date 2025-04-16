@@ -13,7 +13,7 @@ import { PurposeService } from '../../../services/v1/purpose/purpose.service';
 import { Purpose } from '../../../database/models/purpose.model';
 import * as opentracing from 'opentracing';
 import { WhereOptions } from 'sequelize';
-import { CreatePurposeDto, UpdatePurposeDto } from 'src/dto/purpose.dto';
+import { CreatePurposeDto, UpdatePurposeDto } from '../../../dto/purpose.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { JwtGuard } from '../../../auth/jwt.guard';
 
@@ -22,11 +22,11 @@ import { JwtGuard } from '../../../auth/jwt.guard';
 export class PurposeController {
   constructor(private readonly purposeService: PurposeService) {}
 
-  // //@UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Get()
   async findAll(
     @Query() params: Record<string, any>,
-  ): Promise<{ purpose_type_id: string; purpose_name: string }[]> {
+  ): Promise<Array<{ purpose_type_id: string; purpose_name: string }>> {
     const tracer = opentracing.globalTracer();
     const span = tracer.startSpan('find-all-purpose-type-request');
 
@@ -44,7 +44,7 @@ export class PurposeController {
     }
   }
 
-  // //@UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Post()
   @ApiOperation({ summary: 'Create a new purpose type' })
   @ApiResponse({
@@ -76,7 +76,7 @@ export class PurposeController {
     }
   }
 
-  // //@UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Put(':purpose_type_id')
   @ApiOperation({ summary: 'Update a purpose type' })
   @ApiResponse({
@@ -109,7 +109,7 @@ export class PurposeController {
     }
   }
 
-  // //@UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Delete(':purpose_type_id')
   @ApiOperation({ summary: 'Delete a purpose type' })
   @ApiResponse({

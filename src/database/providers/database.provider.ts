@@ -1,4 +1,4 @@
-//database.provider.ts
+// database.provider.ts
 import { Sequelize } from 'sequelize-typescript';
 import { models } from '../models';
 import { ConfigService } from '@nestjs/config';
@@ -18,7 +18,6 @@ export const databaseProviders = [
         password: config.get('PGPASSWORD'),
         logging: (msg) => {
           if (config.get('NODE_ENV') === NODE_ENV_VALUES.DEVELOPMENT) {
-            console.log('dev');
             logger.info(msg);
           }
         },
@@ -36,7 +35,6 @@ export const databaseProviders = [
           idle: config.get('PGIDLETIMEOUT'),
         },
       });
-      console.log('Loaded Models:', models);
       await sequelize.addModels(models);
 
       // Authenticate the connection
@@ -61,24 +59,6 @@ export const databaseProviders = [
           );
           process.exit(1);
         });
-
-      // // Conditionally sync models based on environment
-      // if (config.get("NODE_ENV") === NODE_ENV_VALUES.DEVELOPMENT) {
-      //   // In development: Sync models and adjust tables if necessary
-      //   await sequelize.sync({
-      //     force: false, // Don't drop existing tables
-      //     alter: true, // Automatically adjust tables to match models
-      //     logging: console.log,
-      //   });
-      //   logger.info("Database synced successfully in development");
-      // } else {
-      //   // In production: Don't sync automatically (for safety)
-      //   await sequelize.sync({
-      //     force: false, // Don't drop tables in production
-      //     alter: false, // Don't alter existing tables
-      //   });
-      //   logger.info("Database sync skipped in production");
-      // }
 
       return sequelize;
     },

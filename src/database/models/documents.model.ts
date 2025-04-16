@@ -2,22 +2,20 @@ import {
   Table,
   Column,
   Model,
-  PrimaryKey,
   AllowNull,
   DataType,
   ForeignKey,
   Default,
   BeforeValidate,
-  BeforeCreate,
   Unique,
 } from 'sequelize-typescript';
 
-import { validate as isUUID, v4 as uuidv4 } from 'uuid';
-import { createHash } from 'crypto'; // For generating hashed keys
+// import { validate as isUUID, v4 as uuidv4 } from 'uuid';
+// import { createHash } from 'crypto'; // For generating hashed keys
 import { User } from './user.model';
 import { DocumentType } from './documentType.model';
 import { Purpose } from './purpose.model';
-import { DocumentRequirements } from './document_requirements.model';
+// import { DocumentRequirements } from './document_requirements.model';
 
 import * as crypto from 'crypto';
 @Table({

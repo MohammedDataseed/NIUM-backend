@@ -9,8 +9,6 @@ import {
   Body,
   Param,
   Query,
-  createParamDecorator,
-  ExecutionContext,
   UnauthorizedException,
 } from '@nestjs/common';
 
@@ -34,8 +32,8 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { JwtGuard } from '../../../auth/jwt.guard';
-import { LoginDto } from 'src/dto/login.dto';
-import { MailerService } from 'src/shared/services/mailer/mailer.service';
+import { LoginDto } from '../../../dto/login.dto';
+import { MailerService } from '../../../shared/services/mailer/mailer.service';
 
 @ApiTags('Users')
 @Controller('users')
@@ -46,7 +44,7 @@ export class UserController {
     private readonly mailService: MailerService,
   ) {}
 
-  // @UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Get()
   async findAll(@Query() params: Record<string, any>): Promise<User[]> {
     const tracer = opentracing.globalTracer();
