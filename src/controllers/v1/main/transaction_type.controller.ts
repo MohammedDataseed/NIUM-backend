@@ -6,7 +6,7 @@ import {
   Put,
   Delete,
   Body,
-  // UseGuards,
+  UseGuards,
   Param,
 } from '@nestjs/common';
 import { transaction_typeService } from '../../../services/v1/transaction/transaction_type.service';
@@ -18,7 +18,7 @@ import {
   Updatetransaction_typeDto,
 } from '../../../dto/transaction_type.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
-// import { JwtGuard } from '../../../auth/jwt.guard';
+import { JwtGuard } from '../../../auth/jwt.guard';
 
 @ApiTags('transaction_type')
 @Controller('transaction_type')
@@ -27,7 +27,7 @@ export class transaction_typeController {
     private readonly transaction_typeService: transaction_typeService,
   ) {}
 
-  // //@UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Get()
   async findAll(
     @Query() params: Record<string, any>,
@@ -52,7 +52,7 @@ export class transaction_typeController {
     }
   }
 
-  // //@UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Post()
   @ApiOperation({ summary: 'Create a new transaction type' })
   @ApiResponse({
@@ -85,7 +85,7 @@ export class transaction_typeController {
     }
   }
 
-  // //@UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Put(':transaction_type_id')
   @ApiOperation({ summary: 'Update a transaction type' })
   @ApiResponse({
@@ -118,7 +118,7 @@ export class transaction_typeController {
     }
   }
 
-  // //@UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Delete(':transaction_type_id')
   @ApiOperation({ summary: 'Delete a Transaction type' })
   @ApiResponse({

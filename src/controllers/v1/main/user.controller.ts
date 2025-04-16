@@ -44,7 +44,7 @@ export class UserController {
     private readonly mailService: MailerService,
   ) {}
 
-  // @UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Get()
   async findAll(@Query() params: Record<string, any>): Promise<User[]> {
     const tracer = opentracing.globalTracer();

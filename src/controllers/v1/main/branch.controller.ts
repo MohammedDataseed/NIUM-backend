@@ -1,17 +1,18 @@
-import { Controller, Get, Query, Post, Body } from '@nestjs/common';
+import { UseGuards, Controller, Get, Query, Post, Body } from '@nestjs/common';
 import { BranchService } from '../../../services/v1/branch/branch.service';
 import { Branch } from '../../../database/models/branch.model';
 import * as opentracing from 'opentracing';
 import { WhereOptions } from 'sequelize';
 import { CreateBranchDto } from '../../../dto/branch.dto';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { JwtGuard } from '../../../auth/jwt.guard';
 
 @ApiTags('Branches')
 @Controller('branches')
 export class BranchController {
   constructor(private readonly branchService: BranchService) {}
 
-  // // @UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Get()
   async findAll(@Query() params: Record<string, any>): Promise<Branch[]> {
     const tracer = opentracing.globalTracer();
@@ -22,7 +23,7 @@ export class BranchController {
     return result;
   }
 
-  // // @UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Post()
   @ApiOperation({ summary: 'Create a new branch' })
   @ApiResponse({

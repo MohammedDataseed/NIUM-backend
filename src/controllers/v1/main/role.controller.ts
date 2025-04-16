@@ -1,5 +1,5 @@
 import {
-  // UseGuards,
+  UseGuards,
   Controller,
   Get,
   Post,
@@ -17,7 +17,7 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-// import { JwtGuard } from '../../../auth/jwt.guard';
+import { JwtGuard } from '../../../auth/jwt.guard';
 
 @ApiTags('Roles')
 @Controller('roles')
@@ -28,7 +28,7 @@ export class RoleController {
   /** ================================
    * 🔹 Get All Roles
    * ================================ */
-  // @UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Get()
   @ApiOperation({ summary: 'Get all roles with optional filters' })
   @ApiResponse({
@@ -51,7 +51,7 @@ export class RoleController {
   /** ================================
    * 🔹 Create a New Role
    * ================================ */
-  // @UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Post()
   @ApiOperation({ summary: 'Create a new role' })
   @ApiResponse({
@@ -74,7 +74,7 @@ export class RoleController {
   /** ================================
    * 🔹 Update Role by hashed_key
    * ================================ */
-  // @UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Put('status')
   @ApiOperation({ summary: 'Update role status using hashed_key' })
   @ApiResponse({ status: 200, description: 'Role status updated successfully' })

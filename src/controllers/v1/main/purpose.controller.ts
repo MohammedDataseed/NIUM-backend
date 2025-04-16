@@ -6,7 +6,7 @@ import {
   Put,
   Delete,
   Body,
-  // UseGuards,
+  UseGuards,
   Param,
 } from '@nestjs/common';
 import { PurposeService } from '../../../services/v1/purpose/purpose.service';
@@ -15,14 +15,14 @@ import * as opentracing from 'opentracing';
 import { WhereOptions } from 'sequelize';
 import { CreatePurposeDto, UpdatePurposeDto } from '../../../dto/purpose.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
-// import { JwtGuard } from '../../../auth/jwt.guard';
+import { JwtGuard } from '../../../auth/jwt.guard';
 
 @ApiTags('Purpose')
 @Controller('purpose')
 export class PurposeController {
   constructor(private readonly purposeService: PurposeService) {}
 
-  // //@UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Get()
   async findAll(
     @Query() params: Record<string, any>,
@@ -44,7 +44,7 @@ export class PurposeController {
     }
   }
 
-  // //@UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Post()
   @ApiOperation({ summary: 'Create a new purpose type' })
   @ApiResponse({
@@ -76,7 +76,7 @@ export class PurposeController {
     }
   }
 
-  // //@UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Put(':purpose_type_id')
   @ApiOperation({ summary: 'Update a purpose type' })
   @ApiResponse({
@@ -109,7 +109,7 @@ export class PurposeController {
     }
   }
 
-  // //@UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Delete(':purpose_type_id')
   @ApiOperation({ summary: 'Delete a purpose type' })
   @ApiResponse({

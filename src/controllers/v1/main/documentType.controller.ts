@@ -1,4 +1,5 @@
 import {
+  UseGuards,
   Controller,
   Get,
   Query,
@@ -17,13 +18,14 @@ import {
   UpdateDocumentTypeDto,
 } from '../../../dto/documentType.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
+import { JwtGuard } from '../../../auth/jwt.guard';
 
 @ApiTags('DocumentTypes')
 @Controller('documentTypes')
 export class DocumentTypeController {
   constructor(private readonly documentTypeService: DocumentTypeService) {}
 
-  // //@UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Get()
   async findAll(
     @Query() params: Record<string, any>,
@@ -48,7 +50,7 @@ export class DocumentTypeController {
     }
   }
 
-  // //@UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Post()
   @ApiOperation({ summary: 'Create a new document type' })
   @ApiResponse({
@@ -80,7 +82,7 @@ export class DocumentTypeController {
     }
   }
 
-  // //@UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Put(':document_type_id')
   @ApiOperation({ summary: 'Update a document type' })
   @ApiResponse({
@@ -113,7 +115,7 @@ export class DocumentTypeController {
     }
   }
 
-  // //@UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Delete(':document_type_id')
   @ApiOperation({ summary: 'Delete a document type' })
   @ApiResponse({
