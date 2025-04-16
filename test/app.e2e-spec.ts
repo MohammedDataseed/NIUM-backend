@@ -27,7 +27,7 @@ describe('AppController (e2e)', () => {
 
   it('Health-Check (GET)', async () => {
     await request(app.getHttpServer())
-      .get('/api/v1/public/health-check')
+      .get('/api/public/health-check')
       .expect(200)
       .expect({ message: 'NestJS demo working!' });
   });
