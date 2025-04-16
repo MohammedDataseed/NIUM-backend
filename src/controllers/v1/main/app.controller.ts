@@ -1,6 +1,5 @@
-import { Controller, Get, Headers } from '@nestjs/common';
+import { Controller, Get } from '@nestjs/common';
 import { AppService } from '../../../services/v1/app/app.service';
-import * as opentracing from 'opentracing';
 
 @Controller('/public')
 export class AppController {

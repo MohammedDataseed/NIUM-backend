@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ShutdownService } from './shutdown.service';
 import { SharedModule } from '../../../shared/shared.module';
 import { DatabaseModule } from '../../../database/database.module';
-// import { RedisService } from '../../../shared/services/redis/redis.service';
+import { RedisService } from '../../../shared/services/redis/redis.service';
 import { databaseProviders } from '../../../database/providers/database.provider';
 import { ConfigService, ConfigModule } from '@nestjs/config';
 
@@ -18,7 +18,7 @@ describe('ShutdownService', () => {
       ],
       providers: [
         ShutdownService,
-        // RedisService,
+        RedisService,
         ...databaseProviders,
         ConfigService,
       ],

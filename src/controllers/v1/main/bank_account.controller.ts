@@ -1,4 +1,5 @@
 import {
+  UseGuards,
   Controller,
   Get,
   Query,
@@ -7,20 +8,13 @@ import {
   Param,
   Put,
   Delete,
-  UseGuards,
 } from '@nestjs/common';
 import { BankAccountService } from '../../../services/v1/bank_account/bank_account.service';
 import { bank_account } from '../../../database/models/bank_account.model';
 import * as opentracing from 'opentracing';
 import { WhereOptions } from 'sequelize';
-import { CreateBankAccountDto } from 'src/dto/bank_account.dto';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBody,
-  ApiParam,
-} from '@nestjs/swagger';
+import { CreateBankAccountDto } from '../../../dto/bank_account.dto';
+import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { JwtGuard } from '../../../auth/jwt.guard';
 
 @ApiTags('Bank Accounts')
@@ -31,7 +25,7 @@ export class BankAccountController {
   /**
    * Get all bank accounts with optional filters.
    */
-  ////@UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Get()
   @ApiOperation({ summary: 'Get all bank accounts with optional filtering' })
   @ApiResponse({
@@ -68,7 +62,7 @@ export class BankAccountController {
   /**
    * Get a single bank account by ID.
    */
-  ////@UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Get(':id')
   @ApiOperation({ summary: 'Get a bank account by ID' })
   @ApiParam({ name: 'id', description: 'Bank Account ID', type: 'string' })
@@ -102,7 +96,7 @@ export class BankAccountController {
   /**
    * Create a new bank account.
    */
-  ////@UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Post()
   @ApiOperation({ summary: 'Create a new bank account' })
   @ApiResponse({
@@ -143,7 +137,7 @@ export class BankAccountController {
   /**
    * Update a bank account.
    */
-  ////@UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Put(':id')
   @ApiOperation({ summary: 'Update an existing bank account' })
   @ApiParam({ name: 'id', description: 'Bank Account ID', type: 'string' })
@@ -184,7 +178,7 @@ export class BankAccountController {
   /**
    * Delete a bank account.
    */
-  ////@UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a bank account' })
   @ApiParam({ name: 'id', description: 'Bank Account ID', type: 'string' })

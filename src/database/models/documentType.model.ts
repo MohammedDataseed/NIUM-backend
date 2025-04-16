@@ -7,7 +7,6 @@ import {
   AllowNull,
   ForeignKey,
   BelongsTo,
-  BeforeCreate,
   BeforeValidate,
   Unique,
   DataType,

@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Role } from '../../../database/models/role.model';
-import { User } from 'src/database/models/user.model';
+import { User } from '../../../database/models/user.model';
 import * as opentracing from 'opentracing';
 import * as crypto from 'crypto';
 

@@ -8,13 +8,8 @@ import {
   Body,
   Param,
   Headers,
-  BadRequestException,
   ValidationPipe,
-  Query,
 } from '@nestjs/common';
-import { Op } from 'sequelize';
-import { validate as isUUID } from 'uuid';
-
 import { OrdersService } from '../../../services/v1/order/order.service';
 import {
   CreateOrderDto,
@@ -25,7 +20,7 @@ import {
   UpdateOrderDetailsDto,
   GetOrderDetailsDto,
 } from '../../../dto/order.dto';
-import { ApiTags, ApiResponse, ApiHeader } from '@nestjs/swagger';
+import { ApiTags, ApiResponse } from '@nestjs/swagger';
 import * as opentracing from 'opentracing';
 
 @ApiTags('orders')
@@ -88,24 +83,6 @@ export class OrdersController {
         orderId,
         updateOrderDto,
       );
-    } finally {
-      span.finish();
-    }
-  }
-
-  @Get(':partnerOrderId')
-  @ApiResponse({ status: 200, description: 'Order details' })
-  async findOneByOrderId(
-    @Headers('api_key') apiKey: string,
-    @Headers('partner_id') partnerId: string,
-    @Param('partnerOrderId') orderId: string, // ✅ FIXED HERE
-  ) {
-    const span = opentracing
-      .globalTracer()
-      .startSpan('find-one-order-controller');
-    try {
-      await this.ordersService.validatePartnerHeaders(partnerId, apiKey);
-      return await this.ordersService.findOneByOrderId(span, orderId);
     } finally {
       span.finish();
     }
@@ -198,5 +175,23 @@ export class OrdersController {
   @Get('order-status-counts')
   async getOrderStatusCounts() {
     return await this.ordersService.getOrderStatusCounts();
+  }
+
+  @Get(':partnerOrderId')
+  @ApiResponse({ status: 200, description: 'Order details' })
+  async findOneByOrderId(
+    @Headers('api_key') apiKey: string,
+    @Headers('partner_id') partnerId: string,
+    @Param('partnerOrderId') orderId: string, // ✅ FIXED HERE
+  ) {
+    const span = opentracing
+      .globalTracer()
+      .startSpan('find-one-order-controller');
+    try {
+      await this.ordersService.validatePartnerHeaders(partnerId, apiKey);
+      return await this.ordersService.findOneByOrderId(span, orderId);
+    } finally {
+      span.finish();
+    }
   }
 }

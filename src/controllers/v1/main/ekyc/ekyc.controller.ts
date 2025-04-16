@@ -20,11 +20,7 @@ import {
   ApiQuery,
   ApiResponse,
 } from '@nestjs/swagger';
-import {
-  EkycRequestDto,
-  EkycRetrieveRequestDto,
-} from 'src/dto/ekyc-request.dto';
-import { Injectable } from '@nestjs/common';
+import { EkycRetrieveRequestDto } from '../../../../dto/ekyc-request.dto';
 import { OrdersService } from '../../../../services/v1/order/order.service';
 import * as opentracing from 'opentracing';
 
@@ -90,17 +86,17 @@ export class EkycController {
           message: 'E-sign link generated successfully',
           e_sign_link:
             response.data?.result?.source_output?.esign_details?.find(
-              (esign) => esign.url_status === true,
+              (esign: { url_status: boolean }) => esign.url_status === true,
             )?.esign_url || null,
           e_sign_link_status:
             response.data?.result?.source_output?.esign_details?.some(
-              (esign) => esign.url_status === true,
+              (esign: { url_status: boolean }) => esign.url_status === true,
             )
               ? 'active'
               : 'inactive',
           e_sign_link_expires:
             response.data?.result?.source_output?.esign_details?.find(
-              (esign) => esign.url_status === true,
+              (esign: { url_status: boolean }) => esign.url_status === true,
             )?.esign_expiry || null,
           e_sign_status: 'pending',
         };

@@ -25,14 +25,10 @@ export class GlobalExceptionFilter {
           error: exception.name,
           statusCode: 500,
         };
-      }
-      // Handle NestJS HTTP exceptions
-      else if (exception instanceof HttpException) {
+      } else if (exception instanceof HttpException) {
         status = exception.getStatus();
         errorResponse = exception.getResponse() as any;
-      }
-      // Handle unexpected errors
-      else {
+      } else {
         this.logger.error('Unexpected error:', exception);
       }
 

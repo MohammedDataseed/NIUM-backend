@@ -4,28 +4,15 @@ import {
   HttpException,
   HttpStatus,
   Logger,
-  NotFoundException,
 } from '@nestjs/common';
-import * as fs from 'fs';
 import * as opentracing from 'opentracing';
 import axios, { AxiosError } from 'axios';
-import { GetObjectCommand } from '@aws-sdk/client-s3'; // Add this import
 import { PdfService } from '../document-consolidate/document-consolidate.service';
-import { PDFDocument } from 'pdf-lib';
 import { OrdersService } from '../order/order.service';
-import { Order } from 'src/database/models/order.model';
-import { ESign } from 'src/database/models/esign.model';
+import { Order } from '../../../database/models/order.model';
+import { ESign } from '../../../database/models/esign.model';
 import { Op, Sequelize } from 'sequelize';
-import { EkycRetrieveRequestDto } from 'src/dto/ekyc-request.dto';
 // Define interfaces for the API response structure
-interface Esign {
-  esign_doc_id?: string;
-  esign_details?: {
-    esign_doc_id?: string;
-  };
-  createdAt?: Date; // <-- Make it optional
-  toJSON: () => object;
-}
 
 interface EkycApiResponse {
   action: string;
@@ -62,7 +49,6 @@ export class EkycService {
   private readonly RETRIEVE_API_URL = process.env.RETRIEVE_API_URL;
   private readonly API_KEY = process.env.API_KEY;
   private readonly ACCOUNT_ID = process.env.ACCOUNT_ID;
-  private readonly USER_KEY = process.env.E_ESIGN_USER_KEY; // Add this
   private readonly PROFILE_ID = process.env.E_ESIGN_PROFILE_ID; // Add this
   private readonly logger = new Logger(EkycService.name);
 
@@ -73,10 +59,7 @@ export class EkycService {
     private readonly esignRepository: typeof ESign,
     private readonly pdfService: PdfService,
     private readonly orderService: OrdersService,
-  ) {
-    this.s3BaseUrl = process.env.APP_BASE;
-  }
-  private readonly s3BaseUrl: string;
+  ) {}
 
   async getMergedPdfBase64(
     orderId: string,
@@ -167,19 +150,6 @@ export class EkycService {
       const response = await axios.get(mergedFile.signed_url, {
         responseType: 'arraybuffer',
       });
-      // const esignFile = Buffer.from(response.data).toString("base64");
-      // // Directly use response.data (Buffer)
-      // const pdfBuffer = Buffer.from(response.data);
-      // this.logger.log(`Fetched Base64 for merged document: ${mergedFile.name}`);
-      // const filePath = `./downloaded2_${mergedFile.name}`;
-
-      // // Save file
-      // fs.writeFileSync(filePath, pdfBuffer);
-
-      // this.logger.log(`PDF downloaded successfully: ${filePath}`);
-
-      // // Return Base64 only once
-      // return pdfBuffer.toString("base64");
 
       const pdfBuffer = Buffer.from(response.data);
       return pdfBuffer.toString('base64'); // Ensure this is the only encoding step
@@ -221,7 +191,6 @@ export class EkycService {
           HttpStatus.NOT_FOUND,
         );
       }
-      // console.log(orderDetails);
       // ✅ **Check if e-Sign is required** ✅
       if (!orderDetails.dataValues.is_esign_required) {
         console.log('Event: e-Sign not required, skipping request', {
@@ -263,8 +232,6 @@ export class EkycService {
       orderId,
       mergedPdfLength: mergedPdfBase64.length,
     });
-    // const mergedPdfBase64 = await this.generateAndMergePdfBase64(orderId);
-    // console.log("Event: Merged PDF generated", { orderId, mergedPdfLength: mergedPdfBase64.length });
 
     // **Prepare Request Payload**
     const requestData = {
@@ -474,7 +441,9 @@ export class EkycService {
     // **Step 4: Extract and update e-sign details in order**
     const esignDetails =
       responseData.result?.source_output?.esign_details || [];
-    const validEsign = esignDetails.find((esign) => esign.url_status === true);
+    const validEsign = esignDetails.find(
+      (esign: { url_status: boolean }) => esign.url_status === true,
+    );
     console.log('Event: Extracted e-sign details', { orderId, validEsign });
 
     if (validEsign) {
@@ -611,7 +580,7 @@ export class EkycService {
 
     // Check for existing order with the same partner_order_id
     const orderData = await this.orderRepository.findOne({
-      where: { partner_order_id: partner_order_id },
+      where: { partner_order_id },
       include: [{ model: ESign, as: 'esigns' }],
     });
     if (!orderData) {
@@ -752,7 +721,7 @@ export class EkycService {
       active: is_active,
       expired: is_expired,
       rejected: is_rejected,
-      is_signed: is_signed,
+      is_signed,
       esign_url: requestDetail.esign_url,
       esigner_email: requestDetail.esigner_email,
       esigner_phone: requestDetail.esigner_phone,
@@ -810,11 +779,11 @@ export class EkycService {
   }
 
   async convertUrlsToBase64(urls: string[]): Promise<any> {
-    const results = [];
-    const errors = [];
+    const results: { url: string; base64: string; mimeType: any }[] = [];
+    const errors: { url: string; error: string }[] = [];
 
     await Promise.all(
-      urls.map(async (url, index) => {
+      urls.map(async (url) => {
         try {
           const response = await axios.get(url, {
             responseType: 'arraybuffer',

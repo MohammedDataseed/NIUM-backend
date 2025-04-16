@@ -8,7 +8,6 @@ import {
   Body,
   UseGuards,
   Param,
-  ParseUUIDPipe,
 } from '@nestjs/common';
 import { transaction_typeService } from '../../../services/v1/transaction/transaction_type.service';
 import { transaction_type } from '../../../database/models/transaction_type.model';
@@ -17,7 +16,7 @@ import { WhereOptions } from 'sequelize';
 import {
   Createtransaction_typeDto,
   Updatetransaction_typeDto,
-} from 'src/dto/transaction_type.dto';
+} from '../../../dto/transaction_type.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { JwtGuard } from '../../../auth/jwt.guard';
 
@@ -28,11 +27,11 @@ export class transaction_typeController {
     private readonly transaction_typeService: transaction_typeService,
   ) {}
 
-  // //@UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Get()
   async findAll(
     @Query() params: Record<string, any>,
-  ): Promise<{ transaction_type_id: string; transaction_name: string }[]> {
+  ): Promise<Array<{ transaction_type_id: string; transaction_name: string }>> {
     const tracer = opentracing.globalTracer();
     const span = tracer.startSpan('find-all-transaction-types-request');
 
@@ -53,7 +52,7 @@ export class transaction_typeController {
     }
   }
 
-  // //@UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Post()
   @ApiOperation({ summary: 'Create a new transaction type' })
   @ApiResponse({
@@ -86,7 +85,7 @@ export class transaction_typeController {
     }
   }
 
-  // //@UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Put(':transaction_type_id')
   @ApiOperation({ summary: 'Update a transaction type' })
   @ApiResponse({
@@ -119,7 +118,7 @@ export class transaction_typeController {
     }
   }
 
-  // //@UseGuards(JwtGuard)
+  @UseGuards(JwtGuard)
   @Delete(':transaction_type_id')
   @ApiOperation({ summary: 'Delete a Transaction type' })
   @ApiResponse({

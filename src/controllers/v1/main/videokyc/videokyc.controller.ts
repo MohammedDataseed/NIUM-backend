@@ -14,18 +14,16 @@ import {
 } from '@nestjs/common';
 import { OrdersService } from '../../../../services/v1/order/order.service';
 import * as opentracing from 'opentracing';
-
 import { VideokycService } from '../../../../services/v1/videokyc/videokyc.service';
 import {
   ApiTags,
   ApiOperation,
-  ApiProperty,
   ApiHeader,
   ApiBody,
   ApiQuery,
   ApiResponse,
 } from '@nestjs/swagger';
-import { AddressDto, SyncProfileDto } from 'src/dto/video-kyc.dto';
+import { SyncProfileDto } from '../../../../dto/video-kyc.dto';
 
 @ApiTags('V-KYC')
 @Controller('videokyc')
@@ -285,14 +283,9 @@ export class VideokycController {
     description: 'Internal server error',
   })
   async retrieveVideokyc(
-    @Headers('X-API-Key') token: string,
     @Param('profile_id') profileId: string, // Accept profile_id as a URL parameter
   ) {
     try {
-      // if (!token) {
-      //   throw new HttpException('X-API-Key header is required', HttpStatus.UNAUTHORIZED);
-      // }
-
       // Pass the profile_id as part of the request data
       const requestData = { request_id: profileId }; // Creating requestData object with profile_id
 
