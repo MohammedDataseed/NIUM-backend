@@ -9,6 +9,12 @@ export const databaseProviders = [
   {
     provide: 'SEQUELIZE',
     useFactory: async (config: ConfigService, logger: LoggerService) => {
+      if (config.get('NODE_ENV') === NODE_ENV_VALUES.TEST) {
+        return new Sequelize({
+          validateOnly: true,
+          models: [...models],
+        });
+      }
       const sequelize = new Sequelize({
         host: config.get('PGHOST'),
         port: config.get('PGPORT'),
