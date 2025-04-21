@@ -85,6 +85,7 @@ export class OrdersService {
       .startSpan('create-order', { childOf: span });
 
     try {
+      console.log('createOrderDto-88', createOrderDto);
       // Check for existing order with the same partner_order_id
       const existingOrder = await this.orderRepository.findOne({
         where: { partner_order_id: createOrderDto.partner_order_id },
@@ -128,7 +129,8 @@ export class OrdersService {
       const niumOrderId = `NIUMF${Math.floor(100000 + Math.random() * 900000)}`; // Example: NIUMF789012
 
       const orderData = {
-        partner_id: partner?.id,
+        // partner_id: partner?.id,
+        partner_id: partner?.id.toString(), // Convert to string if partner?.id is a number
         partner_order_id: createOrderDto.partner_order_id,
         transaction_type: createOrderDto.transaction_type_id,
         is_esign_required: createOrderDto.is_e_sign_required,
@@ -142,12 +144,16 @@ export class OrdersService {
         order_status: 'pending', // Default value
         e_sign_status: 'pending', // Default value
         v_kyc_status: 'pending', // Default value
-        created_by: partner?.id,
-        updated_by: partner?.id,
+        created_by: partner?.id.toString(), // Convert to string if partner?.id is a number
+        updated_by: partner?.id.toString(), // Convert to string if partner?.id is a number
+
+        // created_by: partner?.id,
+        // updated_by: partner?.id,
       };
 
-      console.log('orderData:', JSON.stringify(orderData, null, 2));
+      console.log('orderData 154:', JSON.stringify(orderData, null, 2));
       const order = await this.orderRepository.create(orderData);
+      console.log('156', order);
       // Return structured response
       return {
         message: 'Order created successfully',
@@ -157,6 +163,7 @@ export class OrdersService {
       // return order;
     } catch (error) {
       childSpan.log({ event: 'error', message: error.message });
+      console.log(error);
       throw error;
     } finally {
       childSpan.finish();
@@ -178,24 +185,39 @@ export class OrdersService {
             model: ESign,
             as: 'esigns',
             required: false,
-            where: Sequelize.where(
-              Sequelize.cast(Sequelize.col('esigns.order_id'), 'uuid'), // Cast as UUID
-              Op.eq,
-              Sequelize.col('Order.id'),
-            ),
           },
           {
             model: Vkyc,
             as: 'vkycs',
             required: false,
-            where: Sequelize.where(
-              Sequelize.cast(Sequelize.col('vkycs.order_id'), 'uuid'), // Cast as UUID
-              Op.eq,
-              Sequelize.col('Order.id'),
-            ),
           },
         ],
       });
+
+      // const orders = await this.orderRepository.findAll({
+      //   include: [
+      //     {
+      //       model: ESign,
+      //       as: 'esigns',
+      //       required: false,
+      //       where: Sequelize.where(
+      //         Sequelize.cast(Sequelize.col('esigns.order_id'), 'uuid'), // Cast as UUID
+      //         Op.eq,
+      //         Sequelize.col('Order.id'),
+      //       ),
+      //     },
+      //     {
+      //       model: Vkyc,
+      //       as: 'vkycs',
+      //       required: false,
+      //       where: Sequelize.where(
+      //         Sequelize.cast(Sequelize.col('vkycs.order_id'), 'uuid'), // Cast as UUID
+      //         Op.eq,
+      //         Sequelize.col('Order.id'),
+      //       ),
+      //     },
+      //   ],
+      // });
 
       return orders.length > 0 ? orders : [];
     } catch (error) {
@@ -205,6 +227,7 @@ export class OrdersService {
       childSpan.finish();
     }
   }
+
   async validatePartnerHeaders(
     partnerId: string,
     apiKey: string,
@@ -472,7 +495,7 @@ export class OrdersService {
     }
 
     await this.orderRepository.update(
-      { checker_id: checker.id },
+      { checker_id: checker.hashed_key },
       { where: { partner_order_id: orderIds } },
     );
 
@@ -503,7 +526,7 @@ export class OrdersService {
       throw new NotFoundException(`Order with ID ${orderId} not found.`);
     }
 
-    if (order.checker_id !== checker.id) {
+    if (order.checker_id !== checker.hashed_key) {
       throw new BadRequestException(
         `Checker is not assigned to the given order.`,
       );
@@ -619,7 +642,7 @@ export class OrdersService {
       );
     }
 
-    if (order.checker_id !== checker.id) {
+    if (order.checker_id !== checker.hashed_key) {
       throw new BadRequestException(
         `Checker ID "${checkerId}" is not assigned to this order.`,
       );

@@ -35,8 +35,11 @@ export class Documents extends Model<Documents> {
   @Column({ type: DataType.STRING, field: 'hashed_key' })
   hashed_key: string;
 
-  @Column({ type: DataType.UUID, field: 'entity_id' })
-  entityId: string;
+  // @Column({ type: DataType.UUID, field: 'entity_id' })
+  // entityId: string;
+
+  @Column({ type: DataType.BIGINT, field: 'entity_id' })
+  entityId: number;
 
   @AllowNull(false)
   @Column({ type: DataType.ENUM('user', 'customer'), field: 'entity_type' })

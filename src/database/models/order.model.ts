@@ -11,6 +11,8 @@ import {
   Unique,
   AllowNull,
   BeforeCreate,
+  PrimaryKey,
+  AutoIncrement,
 } from 'sequelize-typescript';
 import { User } from './user.model';
 import { Partner } from './partner.model';
@@ -24,13 +26,25 @@ import * as crypto from 'crypto';
   timestamps: false,
 })
 export class Order extends Model<Order> {
+  // @Column({
+  //   type: DataType.BIGINT,
+  //   defaultValue: DataType.BIGINT,
+  //   primaryKey: true,
+  //   allowNull: false,
+  // })
+  // id: number;
   @Column({
     type: DataType.BIGINT,
-    defaultValue: DataType.BIGINT,
     primaryKey: true,
     allowNull: false,
+    autoIncrement: true, // Ensures automatic incrementation
   })
-  id: string;
+  id: number;
+
+  // @PrimaryKey
+  // @AutoIncrement
+  // @Column({ type: DataType.BIGINT, field: "id" })
+  // id: number;
 
   @Unique
   @AllowNull(false)

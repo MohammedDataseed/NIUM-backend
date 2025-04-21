@@ -5,6 +5,7 @@ import {
   IsOptional,
   IsUUID,
   IsString,
+  IsInt,
 } from 'class-validator';
 
 export class CreateRoleDto {
@@ -25,11 +26,11 @@ export class CreateRoleDto {
   status?: boolean;
 
   @ApiProperty({
-    description: 'UUID of the user creating the role',
-    example: '123e4567-e89b-12d3-a456-426614174000',
+    description: 'ID of the user creating the role',
+    example: '2',
   })
-  @IsUUID()
-  created_by: string;
+  @IsInt() // Ensure the ID is an integer (BIGINT in database)
+  created_by: number;
 }
 
 export class UpdateRoleDto {

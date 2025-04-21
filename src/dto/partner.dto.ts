@@ -18,8 +18,8 @@ export class CreatePartnerDto {
     example: '550e8400-e29b-41d4-a716-446655440000',
     description: 'Role ID (UUID)',
   })
-  @IsUUID()
-  role_id: string;
+  // @IsUUID()
+  role_id: number;
 
   @ApiProperty({
     example: 'partner@example.com',
@@ -107,9 +107,9 @@ export class UpdatePartnerDto {
     example: '550e8400-e29b-41d4-a716-446655440000',
     description: 'Role ID (UUID)',
   })
-  @IsUUID()
+  // @IsUUID()
   @IsOptional()
-  role_id?: string;
+  role_id?: number;
 
   @ApiPropertyOptional({
     example: 'partner@example.com',
@@ -210,8 +210,8 @@ export class PartnerResponseDto {
     example: 'uuid',
     description: 'Unique primary key for the partner',
   })
-  @IsString()
-  partner_id: string; // ✅ Added `@IsString()` for validation
+  // @IsString()
+  partner_id: number; // ✅ Added `@IsString()` for validation
 
   @ApiProperty({
     example: 'a1b2c3d4e5f6...',
@@ -224,7 +224,7 @@ export class PartnerResponseDto {
     example: '550e8400-e29b-41d4-a716-446655440000',
     description: 'Role ID (UUID)',
   })
-  role_id: string;
+  role_id: number;
 
   @ApiProperty({
     example: 'partner@example.com',

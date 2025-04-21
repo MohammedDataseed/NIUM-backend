@@ -10,6 +10,7 @@ import {
   ForeignKey,
   BelongsTo,
   BeforeCreate,
+  AutoIncrement,
 } from 'sequelize-typescript';
 import { Role } from './role.model';
 import { Branch } from './branch.model';
@@ -22,10 +23,15 @@ import * as crypto from 'crypto';
   timestamps: false,
 })
 export class User extends Model<User> {
+  // @PrimaryKey
+  // @Default(DataType.UUIDV4)
+  // @Column({ type: DataType.UUID, field: 'id' })
+  // id: string;
+
   @PrimaryKey
-  @Default(DataType.UUIDV4)
-  @Column({ type: DataType.UUID, field: 'id' })
-  id: string;
+  @AutoIncrement
+  @Column({ type: DataType.BIGINT, field: 'id' })
+  id: number;
 
   @Unique
   @AllowNull(false)

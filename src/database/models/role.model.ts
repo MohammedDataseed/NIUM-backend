@@ -10,6 +10,7 @@ import {
   ForeignKey,
   BelongsTo,
   BeforeValidate,
+  AutoIncrement,
 } from 'sequelize-typescript';
 import { User } from './user.model';
 import * as crypto from 'crypto';
@@ -19,10 +20,14 @@ import * as crypto from 'crypto';
   timestamps: false,
 })
 export class Role extends Model<Role> {
+  // @PrimaryKey
+  // @Default(DataType.UUIDV4)
+  // @Column({ type: DataType.UUID, field: 'id' })
+  // id: string;
   @PrimaryKey
-  @Default(DataType.UUIDV4)
-  @Column({ type: DataType.UUID, field: 'id' })
-  id: string;
+  @AutoIncrement
+  @Column({ type: DataType.BIGINT, field: 'id' })
+  id: number;
 
   @Unique
   @AllowNull(false)
@@ -46,13 +51,21 @@ export class Role extends Model<Role> {
   @Column({ type: DataType.BOOLEAN, field: 'status' })
   status: boolean;
 
-  @ForeignKey(() => User)
-  @Column({ type: DataType.UUID, field: 'created_by' })
-  created_by: string;
+  // @ForeignKey(() => User)
+  // @Column({ type: DataType.UUID, field: 'created_by' })
+  // created_by: string;
+
+  // @ForeignKey(() => User)
+  // @Column({ type: DataType.UUID, field: 'updated_by' })
+  // updated_by: string;
 
   @ForeignKey(() => User)
-  @Column({ type: DataType.UUID, field: 'updated_by' })
-  updated_by: string;
+  @Column({ type: DataType.BIGINT, field: 'created_by' })
+  created_by: number;
+
+  @ForeignKey(() => User)
+  @Column({ type: DataType.BIGINT, field: 'updated_by' })
+  updated_by: number;
 
   @BelongsTo(() => User, 'created_by')
   creator: User;

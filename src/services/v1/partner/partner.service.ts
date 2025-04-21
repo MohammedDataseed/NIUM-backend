@@ -125,9 +125,19 @@ export class PartnerService {
       const hashedKey = this.generateHashedKey();
 
       // Create the partner without products initially
+      // const partner = await this.partnerRepository.create(
+      //   {
+      //     ...createPartnerDto,
+      //     password: hashedPassword,
+      //     api_key: apiKey,
+      //     hashed_key: hashedKey,
+      //   },
+      //   { transaction },
+      // );
       const partner = await this.partnerRepository.create(
         {
           ...createPartnerDto,
+          role_id: Number(createPartnerDto.role_id), // 👈 fix here
           password: hashedPassword,
           api_key: apiKey,
           hashed_key: hashedKey,

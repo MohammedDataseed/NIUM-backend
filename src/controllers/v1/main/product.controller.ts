@@ -14,11 +14,22 @@ import { Products } from '../../../database/models/products.model';
 import * as opentracing from 'opentracing';
 import { WhereOptions } from 'sequelize';
 import { CreateProductDto, UpdateProductDto } from '../../../dto/product.dto';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+// import { ApiTags, ApiOperation, ApiResponse, ApiParam,
+//   ApiBearerAuth, } from '@nestjs/swagger';
+// import { JwtGuard } from '../../../auth/jwt.guard';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBody,
+  ApiBearerAuth,
+  ApiParam,
+} from '@nestjs/swagger';
 import { JwtGuard } from '../../../auth/jwt.guard';
 
 @ApiTags('Products')
 @Controller('products')
+@ApiBearerAuth('access_token')
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 

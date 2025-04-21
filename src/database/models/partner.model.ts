@@ -11,6 +11,7 @@ import {
   BelongsTo,
   BelongsToMany,
   BeforeCreate,
+  AutoIncrement,
 } from 'sequelize-typescript';
 import { Role } from './role.model';
 import { Products } from './products.model';
@@ -20,13 +21,18 @@ import * as crypto from 'crypto'; // Import Node.js crypto module
 
 @Table({
   tableName: 'partners',
-  timestamps: true, // Sequelize will automatically manage created_at and updated_at
+  timestamps: false, // Sequelize will automatically manage created_at and updated_at
 })
 export class Partner extends Model<Partner> {
+  // @PrimaryKey
+  // @Default(DataType.UUIDV4)
+  // @Column({ type: DataType.UUID, field: 'id' })
+  // id: string;
+
   @PrimaryKey
-  @Default(DataType.UUIDV4)
-  @Column({ type: DataType.UUID, field: 'id' })
-  id: string;
+  @AutoIncrement
+  @Column({ type: DataType.BIGINT, field: 'id' })
+  id: number;
 
   @Unique
   @AllowNull(false)
@@ -35,8 +41,8 @@ export class Partner extends Model<Partner> {
 
   @ForeignKey(() => Role)
   @AllowNull(false)
-  @Column({ type: DataType.UUID, field: 'role_id' })
-  role_id: string;
+  @Column({ type: DataType.BIGINT, field: 'role_id' })
+  role_id: number;
 
   @Unique
   @AllowNull(false)

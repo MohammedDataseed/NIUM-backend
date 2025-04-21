@@ -53,6 +53,7 @@ export class OrdersController {
     const tracer = opentracing.globalTracer();
     const span = tracer.startSpan('create-order-controller');
     try {
+      console.log(createOrderDto);
       await this.ordersService.validatePartnerHeaders(partner_id, api_key);
       const order = await this.ordersService.createOrder(
         span,

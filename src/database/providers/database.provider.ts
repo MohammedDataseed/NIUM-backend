@@ -31,14 +31,14 @@ export const databaseProviders = [
           raw: false,
           nest: true,
         },
-        // dialectOptions: {
-        //   ssl: {
-        //     require: true,
-        //     rejectUnauthorized: false, // Set to true if you have a valid cert
-        //   },
-        //   connectTimeout: 3000,
-        //   application_name: config.get('SERVICE_NAME'),
-        // },
+        dialectOptions: {
+          // ssl: {
+          //   require: true,
+          //   rejectUnauthorized: false, // Set to true if you have a valid cert
+          // },
+          connectTimeout: 3000,
+          application_name: config.get('SERVICE_NAME'),
+        },
         pool: {
           max: parseInt(config.get('PGMAX'), 10) || 5,
           min: 1,

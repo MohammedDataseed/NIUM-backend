@@ -412,7 +412,7 @@ export class PdfService {
     const individualMaskedUrl = individualSignedUrl;
 
     const document = await this.documentRepository.create({
-      entityId: order.id,
+      entityId: Number(order.id),
       entityType: 'customer',
       purposeId: null,
       document_type_id: documentType.id,
