@@ -21,12 +21,12 @@ import * as crypto from 'crypto';
 
 @Table({
   tableName: 'orders',
-  timestamps: true,
+  timestamps: false,
 })
 export class Order extends Model<Order> {
   @Column({
-    type: DataType.UUID,
-    defaultValue: DataType.UUIDV4,
+    type: DataType.BIGINT,
+    defaultValue: DataType.BIGINT,
     primaryKey: true,
     allowNull: false,
   })
@@ -156,7 +156,7 @@ export class Order extends Model<Order> {
   @Optional()
   incident_checker_comments: string;
 
-  @Column({ type: DataType.STRING, allowNull: true })
+  @Column({ type: DataType.BIGINT, allowNull: true })
   @Optional()
   nium_order_id: string;
 
@@ -192,15 +192,15 @@ export class Order extends Model<Order> {
 
   // User Tracking (created_by and updated_by)
   @ForeignKey(() => Partner)
-  @Column({ type: DataType.UUID, field: 'created_by' })
+  @Column({ type: DataType.BIGINT, field: 'created_by' })
   created_by: string;
 
   @ForeignKey(() => Partner)
-  @Column({ type: DataType.UUID, field: 'updated_by' })
+  @Column({ type: DataType.BIGINT, field: 'updated_by' })
   updated_by: string;
 
   @ForeignKey(() => User)
-  @Column({ type: DataType.UUID, field: 'checker_id' })
+  @Column({ type: DataType.BIGINT, field: 'checker_id' })
   checker_id: string; // Added for checker (user) details
 
   // Associations
@@ -219,7 +219,7 @@ export class Order extends Model<Order> {
     url: string;
     mimeType: string;
     size: number;
-    createdAt: string;
+    created_at: string;
     documentIds: string[];
   };
 

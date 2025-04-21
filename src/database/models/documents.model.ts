@@ -20,7 +20,7 @@ import { Purpose } from './purpose.model';
 import * as crypto from 'crypto';
 @Table({
   tableName: 'documents',
-  timestamps: true,
+  timestamps: false,
 })
 export class Documents extends Model<Documents> {
   @Column({

@@ -20,7 +20,7 @@ import * as crypto from 'crypto'; // Import Node.js crypto module
 
 @Table({
   tableName: 'partners',
-  timestamps: true, // Sequelize will automatically manage createdAt and updatedAt
+  timestamps: true, // Sequelize will automatically manage created_at and updated_at
 })
 export class Partner extends Model<Partner> {
   @PrimaryKey

@@ -16,7 +16,7 @@ import * as crypto from 'crypto';
 
 @Table({
   tableName: 'esigns',
-  timestamps: true,
+  timestamps: false,
 })
 export class ESign extends Model<ESign> {
   @Column({

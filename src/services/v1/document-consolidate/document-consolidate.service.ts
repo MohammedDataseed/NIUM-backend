@@ -491,7 +491,7 @@ export class PdfService {
               url: mergedUrl,
               mimeType: 'application/pdf',
               size: fileSize,
-              createdAt: new Date().toISOString(),
+              created_at: new Date().toISOString(),
               documentIds: [mergedDocument.id], // Assuming document has an `id`
             },
           },

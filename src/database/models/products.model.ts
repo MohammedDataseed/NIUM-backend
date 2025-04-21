@@ -19,7 +19,7 @@ import * as crypto from 'crypto';
 
 @Table({
   tableName: 'products',
-  timestamps: true, // Since we have manual created_at & updated_at fields
+  timestamps: false, // Since we have manual created_at & updated_at fields
 })
 export class Products extends Model<Products> {
   @PrimaryKey

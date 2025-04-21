@@ -14,7 +14,7 @@ import * as crypto from 'crypto';
 import { User } from './user.model';
 @Table({
   tableName: 'branches',
-  timestamps: true,
+  timestamps: false,
 })
 export class Branch extends Model<Branch> {
   @PrimaryKey
@@ -46,9 +46,9 @@ export class Branch extends Model<Branch> {
   @AllowNull(false)
   @Column({
     type: DataType.ENUM('cash&carry', 'large_enterprise'),
-    field: 'business_type',
+    field: 'bussiness_type',
   })
-  business_type: string;
+  bussiness_type: string;
 
   @ForeignKey(() => User)
   @Column({ type: DataType.UUID, field: 'created_by' })

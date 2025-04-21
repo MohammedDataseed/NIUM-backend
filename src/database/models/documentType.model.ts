@@ -17,7 +17,7 @@ import * as crypto from 'crypto';
 
 @Table({
   tableName: 'document_type', // Matches migration table name
-  timestamps: true, // Enables createdAt & updatedAt
+  timestamps: true, // Enables created_at & updated_at
   underscored: true, // Uses snake_case for DB columns
 })
 export class DocumentType extends Model<DocumentType> {
@@ -43,11 +43,11 @@ export class DocumentType extends Model<DocumentType> {
 
   @Default(DataType.NOW)
   @Column({ type: DataType.DATE, field: 'created_at' })
-  createdAt: Date;
+  created_at: Date;
 
   @Default(DataType.NOW)
   @Column({ type: DataType.DATE, field: 'updated_at' })
-  updatedAt: Date;
+  updated_at: Date;
 
   @ForeignKey(() => User)
   @AllowNull(true) // Make it optional

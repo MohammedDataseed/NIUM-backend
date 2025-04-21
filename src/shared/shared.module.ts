@@ -13,14 +13,14 @@ import { ConfigService } from '@nestjs/config';
   providers: [
     LoggerService,
     ConfigService,
-    RedisService,
+    // RedisService,
     HttpWrapperService,
     TracerService,
     RequestStorageService,
   ],
   exports: [
     LoggerService,
-    RedisService,
+    // RedisService,
     HttpWrapperService,
     // RabbitProducerService,
     TracerService,

@@ -16,7 +16,7 @@ import * as crypto from 'crypto';
 
 @Table({
   tableName: 'roles',
-  timestamps: true,
+  timestamps: false,
 })
 export class Role extends Model<Role> {
   @PrimaryKey
@@ -59,6 +59,9 @@ export class Role extends Model<Role> {
 
   @BelongsTo(() => User, 'updated_by')
   updater: User;
+
+  // @Column({ type: DataType.DATE, field: 'created_at' })
+  // created_at: Date;
 
   /** Generate `publicKey` before creation */
   @BeforeValidate

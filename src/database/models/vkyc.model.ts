@@ -16,7 +16,7 @@ import * as crypto from 'crypto';
 
 @Table({
   tableName: 'vkycs',
-  timestamps: true,
+  timestamps: false,
 })
 export class Vkyc extends Model<Vkyc> {
   @Column({

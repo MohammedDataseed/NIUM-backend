@@ -41,11 +41,11 @@ export class Purpose extends Model<Purpose> {
 
   @Default(DataType.NOW)
   @Column({ type: DataType.DATE, field: 'created_at' })
-  createdAt: Date;
+  created_at: Date;
 
   @Default(DataType.NOW)
   @Column({ type: DataType.DATE, field: 'updated_at' })
-  updatedAt: Date;
+  updated_at: Date;
 
   @ForeignKey(() => User)
   @AllowNull(true)
