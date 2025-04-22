@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsEnum, IsUUID, IsOptional } from 'class-validator';
 
-// Enum for business_type to improve type safety
+// Enum for bussiness_type to improve type safety
 export enum BusinessType {
   CASH_AND_CARRY = 'cash&carry',
   LARGE_ENTERPRISE = 'large_enterprise',
@@ -42,7 +42,7 @@ export class CreateBranchDto {
     enum: BusinessType,
   })
   @IsEnum(BusinessType)
-  business_type: BusinessType;
+  bussiness_type: BusinessType;
 
   @ApiProperty({
     description: 'User ID of the creator of the branch',
@@ -104,7 +104,7 @@ export class UpdateBranchDto {
   })
   @IsEnum(BusinessType)
   @IsOptional()
-  business_type?: BusinessType;
+  bussiness_type?: BusinessType;
 
   @ApiProperty({
     description: 'User ID of the last user who updated the branch',
@@ -153,7 +153,7 @@ export class BranchDto {
     example: 'cash&carry',
     enum: BusinessType,
   })
-  business_type: BusinessType;
+  bussiness_type: BusinessType;
 
   @ApiProperty({
     description: 'Timestamp of when the branch was created',

@@ -104,6 +104,7 @@ export class PdfController {
     const tracer = opentracing.globalTracer();
     const span = tracer.startSpan('upload-document-controller');
     try {
+      console.log(partner_id, api_key);
       await this.ordersService.validatePartnerHeaders(partner_id, api_key);
 
       const { partner_order_id, document_type_id, base64_file, merge_doc } =
@@ -121,6 +122,7 @@ export class PdfController {
 
       // Call service to upload document
       const uploadedDocument = await this.pdfService.uploadDocumentByOrderId(
+        partner_id,
         partner_order_id,
         document_type_id,
         pureBase64,

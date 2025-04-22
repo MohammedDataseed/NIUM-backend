@@ -15,7 +15,7 @@ import * as crypto from 'crypto';
 
 @Table({
   tableName: 'bank_accounts',
-  timestamps: true,
+  timestamps: false,
 })
 export class bank_account extends Model<bank_account> {
   @PrimaryKey

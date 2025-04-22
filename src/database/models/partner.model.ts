@@ -20,7 +20,7 @@ import * as crypto from 'crypto'; // Import Node.js crypto module
 
 @Table({
   tableName: 'partners',
-  timestamps: true, // Sequelize will automatically manage createdAt and updatedAt
+  timestamps: false, // Sequelize will automatically manage created_at and updated_at
 })
 export class Partner extends Model<Partner> {
   @PrimaryKey
@@ -67,9 +67,9 @@ export class Partner extends Model<Partner> {
   @AllowNull(false)
   @Column({
     type: DataType.STRING,
-    field: 'business_type',
+    field: 'bussiness_type',
   })
-  business_type: string;
+  bussiness_type: string;
 
   @ForeignKey(() => User)
   @Column({ type: DataType.UUID, field: 'created_by' })

@@ -10,7 +10,7 @@ import { Products } from './products.model';
 
 @Table({
   tableName: 'partner_products',
-  timestamps: true, // Enable timestamps for this table
+  timestamps: false, // Enable timestamps for this table
 })
 export class PartnerProducts extends Model<PartnerProducts> {
   @ForeignKey(() => Partner)

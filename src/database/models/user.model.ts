@@ -19,7 +19,7 @@ import * as crypto from 'crypto';
 
 @Table({
   tableName: 'users',
-  timestamps: true,
+  timestamps: false,
 })
 export class User extends Model<User> {
   @PrimaryKey
@@ -63,9 +63,9 @@ export class User extends Model<User> {
   @AllowNull(false)
   @Column({
     type: DataType.ENUM('cash&carry', 'large_enterprise'),
-    field: 'business_type',
+    field: 'bussiness_type',
   })
-  business_type: string;
+  bussiness_type: string;
 
   @ForeignKey(() => User)
   @Column({ type: DataType.UUID, field: 'created_by' })

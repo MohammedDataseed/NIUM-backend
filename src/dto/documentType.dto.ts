@@ -75,13 +75,13 @@ export class DocumentTypeDto {
     description: 'Timestamp of when the document type was created',
     example: '2025-02-17T12:34:56Z',
   })
-  createdAt: Date;
+  created_at: Date;
 
   @ApiProperty({
     description: 'Timestamp of when the document type was last updated',
     example: '2025-02-17T12:34:56Z',
   })
-  updatedAt: Date;
+  updated_at: Date;
 
   @ApiProperty({
     description: 'User ID of the creator of the document type',

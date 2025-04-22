@@ -13,7 +13,7 @@ import {
   CreatePartnerDto,
   UpdatePartnerDto,
   PartnerResponseDto,
-  business_type,
+  bussiness_type,
 } from '../../../dto/partner.dto';
 import * as bcrypt from 'bcryptjs';
 import * as crypto from 'crypto';
@@ -268,12 +268,12 @@ export class PartnerService {
 
   private toResponseDto(partner: Partner): PartnerResponseDto {
     if (
-      !Object.values(business_type).includes(
-        partner.business_type as business_type,
+      !Object.values(bussiness_type).includes(
+        partner.bussiness_type as bussiness_type,
       )
     ) {
       throw new InternalServerErrorException(
-        `Invalid business_type value: ${partner.business_type}`,
+        `Invalid bussiness_type value: ${partner.bussiness_type}`,
       );
     }
 
@@ -286,7 +286,7 @@ export class PartnerService {
       last_name: partner.last_name,
       api_key: partner.api_key,
       is_active: partner.is_active,
-      business_type: partner.business_type as business_type,
+      bussiness_type: partner.bussiness_type as bussiness_type,
       created_by: partner.created_by,
       updated_by: partner.updated_by,
       products:

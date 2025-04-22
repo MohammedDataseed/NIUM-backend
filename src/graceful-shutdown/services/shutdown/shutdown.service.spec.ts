@@ -18,7 +18,7 @@ describe('ShutdownService', () => {
       ],
       providers: [
         ShutdownService,
-        RedisService,
+        // RedisService,
         ...databaseProviders,
         ConfigService,
       ],

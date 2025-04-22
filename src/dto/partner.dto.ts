@@ -8,7 +8,7 @@ import {
   IsArray,
 } from 'class-validator';
 
-export enum business_type {
+export enum bussiness_type {
   LARGE_ENTERPRISE = 'large_enterprise',
   CASH_CARRY = 'cash&carry', // ✅ Updated value for better JSON compatibility
 }
@@ -69,11 +69,11 @@ export class CreatePartnerDto {
 
   @ApiProperty({
     example: 'large_enterprise',
-    enum: business_type,
+    enum: bussiness_type,
     description: 'Business type',
   })
-  @IsEnum(business_type)
-  business_type: business_type;
+  @IsEnum(bussiness_type)
+  bussiness_type: bussiness_type;
 
   @ApiProperty({
     example: '550e8400-e29b-41d4-a716-446655440001',
@@ -161,12 +161,12 @@ export class UpdatePartnerDto {
 
   @ApiPropertyOptional({
     example: 'large_enterprise',
-    enum: business_type,
+    enum: bussiness_type,
     description: 'Business type',
   })
-  @IsEnum(business_type)
+  @IsEnum(bussiness_type)
   @IsOptional()
-  business_type?: business_type;
+  bussiness_type?: bussiness_type;
 
   @ApiPropertyOptional({
     example: 'hashed_key',
@@ -249,10 +249,10 @@ export class PartnerResponseDto {
 
   @ApiProperty({
     example: 'large_enterprise',
-    enum: business_type,
+    enum: bussiness_type,
     description: 'Business type',
   })
-  business_type: business_type;
+  bussiness_type: bussiness_type;
 
   @ApiProperty({
     example: '550e8400-e29b-41d4-a716-446655440001',
