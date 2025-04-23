@@ -33,7 +33,7 @@ export class CreateUserDto {
     enum: ['cash&carry', 'large_enterprise'],
   })
   @IsEnum(['cash&carry', 'large_enterprise'])
-  bussiness_type: string;
+  business_type: string;
 
   @ApiProperty({
     description: 'Branch ID',
@@ -88,7 +88,7 @@ export class UpdateUserDto {
   })
   @IsEnum(['cash&carry', 'large_enterprise'])
   @IsOptional()
-  bussiness_type?: string;
+  business_type?: string;
 
   @ApiProperty({
     example: '7cfa494d-ea85-496d-92ec-0a35a359e556',

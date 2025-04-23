@@ -48,7 +48,7 @@ export class BranchService {
         location: createBranchDto.location,
         city: createBranchDto.city,
         state: createBranchDto.state,
-        bussiness_type: createBranchDto.bussiness_type,
+        business_type: createBranchDto.business_type,
       });
 
       // 🔹 Fallback in case `@BeforeCreate` hook doesn't trigger

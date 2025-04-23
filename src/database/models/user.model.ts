@@ -63,9 +63,9 @@ export class User extends Model<User> {
   @AllowNull(false)
   @Column({
     type: DataType.ENUM('cash&carry', 'large_enterprise'),
-    field: 'bussiness_type',
+    field: 'business_type',
   })
-  bussiness_type: string;
+  business_type: string;
 
   @ForeignKey(() => User)
   @Column({ type: DataType.UUID, field: 'created_by' })
