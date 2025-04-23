@@ -169,7 +169,7 @@ export class EkycService {
     }
   }
 
-  async sendEkycRequest(orderId: string): Promise<any> {
+  async sendEkycRequest(partner_id: string, orderId: string): Promise<any> {
     this.logger.log(`Processing e-KYC request for order: ${orderId}`);
     console.log('Event: Starting e-KYC request processing', { orderId });
 
@@ -363,6 +363,8 @@ export class EkycService {
           responseData.result?.source_output?.status === 'Success',
         expired: false,
         rejected: false,
+        created_by: partner_id, //partner_id primary key
+        updated_by: partner_id, //partner_id primary key
       });
 
       throw new HttpException(
@@ -388,7 +390,6 @@ export class EkycService {
         attempt_number: attemptNumber,
         task_id: requestData.task_id,
         group_id: requestData.group_id,
-
         esign_file_details: {
           ...requestData.data.esign_file_details,
           esign_file: signedUrl,
@@ -410,6 +411,8 @@ export class EkycService {
           responseData.result?.source_output?.status === 'Success',
         expired: false,
         rejected: false,
+        created_by: partner_id, //partner_id primary key
+        updated_by: partner_id, //partner_id primary key
       });
 
       this.logger.log(

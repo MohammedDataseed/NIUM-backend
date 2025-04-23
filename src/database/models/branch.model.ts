@@ -14,7 +14,7 @@ import * as crypto from 'crypto';
 import { User } from './user.model';
 @Table({
   tableName: 'branches',
-  timestamps: true,
+  timestamps: false,
 })
 export class Branch extends Model<Branch> {
   @PrimaryKey

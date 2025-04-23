@@ -17,11 +17,18 @@ import {
   Createtransaction_typeDto,
   Updatetransaction_typeDto,
 } from '../../../dto/transaction_type.dto';
-import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBody,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { JwtGuard } from '../../../auth/jwt.guard';
 
 @ApiTags('transaction_type')
 @Controller('transaction_type')
+@ApiBearerAuth('access_token')
 export class transaction_typeController {
   constructor(
     private readonly transaction_typeService: transaction_typeService,

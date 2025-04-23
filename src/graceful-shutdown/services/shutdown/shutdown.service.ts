@@ -5,7 +5,7 @@ import { Sequelize } from 'sequelize-typescript';
 @Injectable()
 export class ShutdownService implements OnApplicationShutdown {
   constructor(
-    private redisService: RedisService,
+    private readonly redisService: RedisService,
     @Inject('SEQUELIZE') private readonly orm: Sequelize,
   ) {}
 

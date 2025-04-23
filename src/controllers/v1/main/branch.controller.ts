@@ -4,11 +4,17 @@ import { Branch } from '../../../database/models/branch.model';
 import * as opentracing from 'opentracing';
 import { WhereOptions } from 'sequelize';
 import { CreateBranchDto } from '../../../dto/branch.dto';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { JwtGuard } from '../../../auth/jwt.guard';
 
 @ApiTags('Branches')
 @Controller('branches')
+@ApiBearerAuth('access_token')
 export class BranchController {
   constructor(private readonly branchService: BranchService) {}
 

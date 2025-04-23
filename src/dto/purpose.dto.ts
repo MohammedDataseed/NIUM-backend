@@ -75,13 +75,13 @@ export class PurposeDto {
     description: 'Timestamp of when the purpose was created',
     example: '2025-02-17T12:34:56Z',
   })
-  createdAt: Date;
+  created_at: Date;
 
   @ApiProperty({
     description: 'Timestamp of when the purpose was last updated',
     example: '2025-02-17T12:34:56Z',
   })
-  updatedAt: Date;
+  updated_at: Date;
 
   @ApiProperty({
     description: 'User ID of the creator of the purpose',

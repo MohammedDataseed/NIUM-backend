@@ -14,11 +14,18 @@ import { Purpose } from '../../../database/models/purpose.model';
 import * as opentracing from 'opentracing';
 import { WhereOptions } from 'sequelize';
 import { CreatePurposeDto, UpdatePurposeDto } from '../../../dto/purpose.dto';
-import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBody,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { JwtGuard } from '../../../auth/jwt.guard';
 
 @ApiTags('Purpose')
 @Controller('purpose')
+@ApiBearerAuth('access_token')
 export class PurposeController {
   constructor(private readonly purposeService: PurposeService) {}
 

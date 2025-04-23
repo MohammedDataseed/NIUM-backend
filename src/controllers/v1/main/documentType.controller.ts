@@ -17,11 +17,18 @@ import {
   CreateDocumentTypeDto,
   UpdateDocumentTypeDto,
 } from '../../../dto/documentType.dto';
-import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBody,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { JwtGuard } from '../../../auth/jwt.guard';
 
 @ApiTags('DocumentTypes')
 @Controller('documentTypes')
+@ApiBearerAuth('access_token')
 export class DocumentTypeController {
   constructor(private readonly documentTypeService: DocumentTypeService) {}
 

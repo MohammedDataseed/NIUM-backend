@@ -18,7 +18,7 @@ import { Purpose } from './purpose.model';
 // Document Master Model
 @Table({
   tableName: 'document_master',
-  timestamps: true,
+  timestamps: false,
 })
 export class DocumentMaster extends Model<DocumentMaster> {
   @PrimaryKey

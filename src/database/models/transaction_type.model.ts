@@ -18,7 +18,7 @@ import * as crypto from 'crypto';
 
 @Table({
   tableName: 'transaction_type', // Matches migration table name
-  timestamps: true, // Enables createdAt & updatedAt
+  timestamps: false, // Enables created_at & updated_at
   underscored: true, // Uses snake_case for DB columns
 })
 export class transaction_type extends Model<transaction_type> {
@@ -45,11 +45,11 @@ export class transaction_type extends Model<transaction_type> {
 
   @Default(DataType.NOW)
   @Column({ type: DataType.DATE, field: 'created_at' })
-  createdAt: Date;
+  created_at: Date;
 
   @Default(DataType.NOW)
   @Column({ type: DataType.DATE, field: 'updated_at' })
-  updatedAt: Date;
+  updated_at: Date;
 
   @ForeignKey(() => User)
   @AllowNull(true) // Make it optional

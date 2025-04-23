@@ -15,7 +15,7 @@ import * as crypto from 'crypto';
 // Document Requirements Model
 @Table({
   tableName: 'document_requirements',
-  timestamps: true,
+  timestamps: false,
 })
 export class DocumentRequirements extends Model<DocumentRequirements> {
   @PrimaryKey
