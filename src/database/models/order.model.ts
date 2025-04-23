@@ -21,7 +21,7 @@ import * as crypto from 'crypto';
 
 @Table({
   tableName: 'orders',
-  timestamps: true,
+  timestamps: false,
 })
 export class Order extends Model<Order> {
   @Column({
@@ -219,7 +219,7 @@ export class Order extends Model<Order> {
     url: string;
     mimeType: string;
     size: number;
-    createdAt: string;
+    created_at: string;
     documentIds: string[];
   };
 

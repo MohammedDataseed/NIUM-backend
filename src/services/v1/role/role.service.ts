@@ -85,13 +85,14 @@ export class RoleService {
         name: createRoleDto.name,
         status: createRoleDto.status ?? true,
         created_by: createdById,
+        updated_by: createdById,
       });
 
       // Fallback in case `@BeforeCreate` doesn't trigger
-      if (!role.hashed_key) {
-        role.hashed_key =
-          crypto.randomBytes(16).toString('hex') + Date.now().toString(36);
-      }
+      // if (!role.hashed_key) {
+      //   role.hashed_key =
+      //     crypto.randomBytes(16).toString('hex') + Date.now().toString(36);
+      // }
 
       await role.save();
       return role;

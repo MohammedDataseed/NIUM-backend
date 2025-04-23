@@ -53,8 +53,8 @@ export class EkycController {
     },
   })
   async sendEkycLink(
-    @Headers('api_key') apiKey: string,
-    @Headers('partner_id') partnerId: string,
+    @Headers('api_key') api_key: string,
+    @Headers('partner_id') partner_id: string,
     @Body(
       'partner_order_id',
       new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }),
@@ -75,9 +75,12 @@ export class EkycController {
       .startSpan('find-one-order-controller');
     try {
       // return this.ekycService.sendEkycRequest(partner_order_id);
-      await this.ordersService.validatePartnerHeaders(partnerId, apiKey);
+      await this.ordersService.validatePartnerHeaders(partner_id, api_key);
       // Call the service method
-      const response = await this.ekycService.sendEkycRequest(partner_order_id);
+      const response = await this.ekycService.sendEkycRequest(
+        partner_id,
+        partner_order_id,
+      );
 
       // If response is successful, transform the output
       if (response.success) {

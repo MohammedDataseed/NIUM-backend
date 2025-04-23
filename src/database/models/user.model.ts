@@ -19,7 +19,7 @@ import * as crypto from 'crypto';
 
 @Table({
   tableName: 'users',
-  timestamps: true,
+  timestamps: false,
 })
 export class User extends Model<User> {
   @PrimaryKey

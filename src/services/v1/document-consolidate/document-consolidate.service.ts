@@ -304,6 +304,7 @@ export class PdfService {
   }
 
   async uploadDocumentByOrderId(
+    partner_id: string,
     partner_order_id: string,
     document_type_id: string,
     base64File: string,
@@ -424,6 +425,8 @@ export class PdfService {
         uploadedAt: new Date().toISOString(),
       },
       isUploaded: true,
+      created_by: partner_id, //partner_id primary key
+      updated_by: partner_id, //partner_id primary key
     });
 
     // Merge if merge_doc=true
@@ -459,6 +462,8 @@ export class PdfService {
                 uploadedAt: new Date().toISOString(),
               },
               isUploaded: true,
+              created_by: partner_id, //partner_id primary key
+              updated_by: partner_id, //partner_id primary key
             },
             { where: { id: existingMergedDocument.id } },
           );
@@ -480,6 +485,8 @@ export class PdfService {
               uploadedAt: new Date().toISOString(),
             },
             isUploaded: true,
+            created_by: partner_id, //partner_id primary key
+            updated_by: partner_id, //partner_id primary key
           });
 
           console.log('New merged document uploaded to DB:', mergedDocument);
@@ -491,7 +498,7 @@ export class PdfService {
               url: mergedUrl,
               mimeType: 'application/pdf',
               size: fileSize,
-              createdAt: new Date().toISOString(),
+              created_at: new Date().toISOString(),
               documentIds: [mergedDocument.id], // Assuming document has an `id`
             },
           },

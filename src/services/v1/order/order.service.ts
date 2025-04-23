@@ -546,7 +546,7 @@ export class OrdersService {
 
     const orders = await this.orderRepository.findAll({
       where: whereCondition,
-      order: [['createdAt', 'DESC']],
+      order: [['created_at', 'DESC']],
     });
 
     return {

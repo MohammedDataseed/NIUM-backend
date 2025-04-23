@@ -14,11 +14,18 @@ import { bank_account } from '../../../database/models/bank_account.model';
 import * as opentracing from 'opentracing';
 import { WhereOptions } from 'sequelize';
 import { CreateBankAccountDto } from '../../../dto/bank_account.dto';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { JwtGuard } from '../../../auth/jwt.guard';
 
 @ApiTags('Bank Accounts')
 @Controller('bank-accounts')
+@ApiBearerAuth('access_token')
 export class BankAccountController {
   constructor(private readonly bankAccountService: BankAccountService) {}
 

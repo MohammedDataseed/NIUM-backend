@@ -16,7 +16,7 @@ import * as crypto from 'crypto';
 
 @Table({
   tableName: 'roles',
-  timestamps: true,
+  timestamps: false,
 })
 export class Role extends Model<Role> {
   @PrimaryKey

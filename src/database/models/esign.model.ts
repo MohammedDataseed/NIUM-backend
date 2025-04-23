@@ -12,11 +12,12 @@ import {
   AllowNull,
 } from 'sequelize-typescript';
 import { Order } from './order.model';
+import { User } from './user.model';
 import * as crypto from 'crypto';
 
 @Table({
   tableName: 'esigns',
-  timestamps: true,
+  timestamps: false,
 })
 export class ESign extends Model<ESign> {
   @Column({
@@ -123,6 +124,20 @@ export class ESign extends Model<ESign> {
 
   @Column({ type: DataType.STRING, allowNull: true })
   type: string;
+
+  @ForeignKey(() => User)
+  @Column({ type: DataType.UUID, field: 'created_by' })
+  created_by: string;
+
+  @ForeignKey(() => User)
+  @Column({ type: DataType.UUID, field: 'updated_by' })
+  updated_by: string;
+
+  @BelongsTo(() => User, 'created_by')
+  creator: User;
+
+  @BelongsTo(() => User, 'updated_by')
+  updater: User;
 
   /** Generate `hashed_key` before creation */
   @BeforeValidate

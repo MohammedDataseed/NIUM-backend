@@ -88,6 +88,7 @@ export class UserService {
         .update(createUserDto.email)
         .digest('hex');
 
+      console.log('91', createUserDto);
       // Create the user in the database
       const user = await this.userRepository.create({
         ...createUserDto,
@@ -96,6 +97,8 @@ export class UserService {
         branch_id: createUserDto.branch_id,
         bank_account_id: createUserDto.bank_account_id,
       });
+
+      console.log('100', user);
 
       // Return the success message along with the user details
       return {
