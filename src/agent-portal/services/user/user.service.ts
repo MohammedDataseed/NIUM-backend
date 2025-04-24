@@ -8,18 +8,16 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { Logger } from '@nestjs/common';
-
+import { JwtService } from '@nestjs/jwt';
 import { WhereOptions } from 'sequelize';
 import { User } from '../../../database/models/user.model';
 import { Role } from '../../../database/models/role.model';
 import { Branch } from '../../../database/models/branch.model';
 import { bank_account } from '../../../database/models/bank_account.model';
 import * as opentracing from 'opentracing';
-import { TracerService } from '../../../shared/services/tracer/tracer.service';
 import { CreateUserDto, UpdateUserDto } from 'src/dto/user.dto';
 import * as bcrypt from 'bcryptjs';
 import * as crypto from 'crypto';
-import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from 'src/dto/login.dto';
 import { MailerService } from '../../../shared/services/mailer/mailer.service';
 import { verify } from 'jsonwebtoken';
@@ -34,13 +32,6 @@ export class UserService {
   constructor(
     @Inject('USER_REPOSITORY')
     private readonly userRepository: typeof User,
-    @Inject('BRANCH_REPOSITORY')
-    private readonly branchRepository: typeof Branch,
-    @Inject('ROLE_REPOSITORY')
-    private readonly roleRepository: typeof Role,
-    @Inject('BANK_ACCOUNT_REPOSITORY')
-    private readonly bankAccountRepository: typeof bank_account,
-    private readonly tracerService: TracerService,
     private readonly jwtService: JwtService,
     private readonly mailService: MailerService,
   ) {}
@@ -357,5 +348,10 @@ export class UserService {
     await user.save();
 
     return { message: 'Password reset successfully.' };
+  }
+
+  async validateUser(payload: any) {
+    const { email } = payload;
+    return this.findByEmail(email);
   }
 }

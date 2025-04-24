@@ -9,11 +9,11 @@ import {
   Put,
   Delete,
 } from '@nestjs/common';
-import { BankAccountService } from '../../../services/v1/bank_account/bank_account.service';
-import { bank_account } from '../../../database/models/bank_account.model';
+import { BankAccountService } from '../services/bank_account/bank_account.service';
+import { bank_account } from '../../database/models/bank_account.model';
 import * as opentracing from 'opentracing';
 import { WhereOptions } from 'sequelize';
-import { CreateBankAccountDto } from '../../../dto/bank_account.dto';
+import { CreateBankAccountDto } from '../../dto/bank_account.dto';
 import {
   ApiTags,
   ApiOperation,
@@ -21,7 +21,7 @@ import {
   ApiParam,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { JwtGuard } from '../../../auth/jwt.guard';
+import { JwtGuard } from '../../auth/jwt.guard';
 
 @ApiTags('Bank Accounts')
 @Controller('bank-accounts')

@@ -1,16 +1,16 @@
 import { UseGuards, Controller, Get, Query, Post, Body } from '@nestjs/common';
-import { BranchService } from '../../../services/v1/branch/branch.service';
-import { Branch } from '../../../database/models/branch.model';
+import { BranchService } from '../services/branch/branch.service';
+import { Branch } from '../../database/models/branch.model';
 import * as opentracing from 'opentracing';
 import { WhereOptions } from 'sequelize';
-import { CreateBranchDto } from '../../../dto/branch.dto';
+import { CreateBranchDto } from '../../dto/branch.dto';
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { JwtGuard } from '../../../auth/jwt.guard';
+import { JwtGuard } from '../../auth/jwt.guard';
 
 @ApiTags('Branches')
 @Controller('branches')

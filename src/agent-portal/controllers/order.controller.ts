@@ -10,7 +10,7 @@ import {
   Headers,
   ValidationPipe,
 } from '@nestjs/common';
-import { OrdersService } from '../../../services/v1/order/order.service';
+import { OrdersService } from '../services/order/order.service';
 import {
   CreateOrderDto,
   UpdateOrderDto,
@@ -19,7 +19,7 @@ import {
   GetCheckerOrdersDto,
   UpdateOrderDetailsDto,
   GetOrderDetailsDto,
-} from '../../../dto/order.dto';
+} from '../../dto/order.dto';
 import { ApiTags, ApiResponse } from '@nestjs/swagger';
 import * as opentracing from 'opentracing';
 

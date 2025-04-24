@@ -9,13 +9,13 @@ import {
   Put,
   Delete,
 } from '@nestjs/common';
-import { ProductService } from '../../../services/v1/product/product.service';
-import { Products } from '../../../database/models/products.model';
+import { ProductService } from '../services/product/product.service';
+import { Products } from '../../database/models/products.model';
 import * as opentracing from 'opentracing';
 import { WhereOptions } from 'sequelize';
-import { CreateProductDto, UpdateProductDto } from '../../../dto/product.dto';
+import { CreateProductDto, UpdateProductDto } from '../../dto/product.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
-import { JwtGuard } from '../../../auth/jwt.guard';
+import { JwtGuard } from '../../auth/jwt.guard';
 
 @ApiTags('Products')
 @Controller('products')

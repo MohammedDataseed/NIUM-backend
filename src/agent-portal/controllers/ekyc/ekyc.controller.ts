@@ -10,7 +10,7 @@ import {
   Query,
   ValidationPipe,
 } from '@nestjs/common';
-import { EkycService } from '../../../../services/v1/ekyc/ekyc.service';
+import { EkycService } from '../../services/ekyc/ekyc.service';
 import {
   ApiTags,
   ApiOperation,
@@ -20,8 +20,8 @@ import {
   ApiQuery,
   ApiResponse,
 } from '@nestjs/swagger';
-import { EkycRetrieveRequestDto } from '../../../../dto/ekyc-request.dto';
-import { OrdersService } from '../../../../services/v1/order/order.service';
+import { EkycRetrieveRequestDto } from '../../../dto/ekyc-request.dto';
+import { OrdersService } from '../../services/order/order.service';
 import * as opentracing from 'opentracing';
 
 // DTO for request body

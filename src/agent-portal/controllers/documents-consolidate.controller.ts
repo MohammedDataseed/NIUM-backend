@@ -16,7 +16,7 @@ import {
   HttpStatus,
   HttpException,
 } from '@nestjs/common';
-import { OrdersService } from '../../../services/v1/order/order.service';
+import { OrdersService } from '../services/order/order.service';
 import * as opentracing from 'opentracing';
 import { Response } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -28,7 +28,7 @@ import {
   ApiConsumes,
   ApiBody,
 } from '@nestjs/swagger';
-import { PdfService } from '../../../services/v1/document-consolidate/document-consolidate.service';
+import { PdfService } from '../services/document-consolidate/document-consolidate.service';
 import { Express } from 'express';
 import { IsString, IsBoolean, IsNotEmpty } from 'class-validator';
 import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';

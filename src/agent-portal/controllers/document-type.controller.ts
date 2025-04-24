@@ -9,14 +9,14 @@ import {
   Body,
   Param,
 } from '@nestjs/common';
-import { DocumentTypeService } from '../../../services/v1/document/documentType.service';
-import { DocumentType } from '../../../database/models/documentType.model';
+import { DocumentTypeService } from '../services/document/document-type.service';
+import { DocumentType } from '../../database/models/documentType.model';
 import * as opentracing from 'opentracing';
 import { WhereOptions } from 'sequelize';
 import {
   CreateDocumentTypeDto,
   UpdateDocumentTypeDto,
-} from '../../../dto/documentType.dto';
+} from '../../dto/documentType.dto';
 import {
   ApiTags,
   ApiOperation,
@@ -24,7 +24,7 @@ import {
   ApiBody,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { JwtGuard } from '../../../auth/jwt.guard';
+import { JwtGuard } from '../../auth/jwt.guard';
 
 @ApiTags('DocumentTypes')
 @Controller('documentTypes')

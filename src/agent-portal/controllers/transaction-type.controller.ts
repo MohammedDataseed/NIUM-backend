@@ -9,14 +9,14 @@ import {
   UseGuards,
   Param,
 } from '@nestjs/common';
-import { transaction_typeService } from '../../../services/v1/transaction/transaction_type.service';
-import { transaction_type } from '../../../database/models/transaction_type.model';
+import { TransactionTypeService } from '../services/transaction/transaction-type.service';
+import { transaction_type } from '../../database/models/transaction_type.model';
 import * as opentracing from 'opentracing';
 import { WhereOptions } from 'sequelize';
 import {
   Createtransaction_typeDto,
   Updatetransaction_typeDto,
-} from '../../../dto/transaction_type.dto';
+} from '../../dto/transaction_type.dto';
 import {
   ApiTags,
   ApiOperation,
@@ -24,14 +24,14 @@ import {
   ApiBody,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { JwtGuard } from '../../../auth/jwt.guard';
+import { JwtGuard } from '../../auth/jwt.guard';
 
 @ApiTags('transaction_type')
 @Controller('transaction_type')
 @ApiBearerAuth('access_token')
-export class transaction_typeController {
+export class TransactionTypeController {
   constructor(
-    private readonly transaction_typeService: transaction_typeService,
+    private readonly transactionTypeService: TransactionTypeService,
   ) {}
 
   @UseGuards(JwtGuard)
@@ -45,7 +45,7 @@ export class transaction_typeController {
     try {
       const whereCondition: WhereOptions<transaction_type> =
         params as WhereOptions<transaction_type>;
-      const transaction_type = await this.transaction_typeService.findAll(
+      const transaction_type = await this.transactionTypeService.findAll(
         span,
         whereCondition,
       );
@@ -79,7 +79,7 @@ export class transaction_typeController {
 
     try {
       const newTransaction =
-        await this.transaction_typeService.createtransaction_type(
+        await this.transactionTypeService.createtransaction_type(
           span,
           createtransaction_typeDto,
         );
@@ -114,7 +114,7 @@ export class transaction_typeController {
     const span = tracer.startSpan('update-transaction-type-request');
 
     try {
-      await this.transaction_typeService.updatetransaction_type(
+      await this.transactionTypeService.updatetransaction_type(
         span,
         transaction_type_id,
         updatetransaction_typeDto,
@@ -140,7 +140,7 @@ export class transaction_typeController {
     const span = tracer.startSpan('delete-transaction-type-request');
 
     try {
-      await this.transaction_typeService.deletetransaction_type(
+      await this.transactionTypeService.deletetransaction_type(
         span,
         transaction_type_id,
       );

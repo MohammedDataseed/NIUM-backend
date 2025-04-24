@@ -12,9 +12,9 @@ import {
   Headers,
   ValidationPipe,
 } from '@nestjs/common';
-import { OrdersService } from '../../../../services/v1/order/order.service';
+import { OrdersService } from '../../services/order/order.service';
 import * as opentracing from 'opentracing';
-import { VideokycService } from '../../../../services/v1/videokyc/videokyc.service';
+import { VideokycService } from '../../services/videokyc/videokyc.service';
 import {
   ApiTags,
   ApiOperation,
@@ -23,7 +23,7 @@ import {
   ApiQuery,
   ApiResponse,
 } from '@nestjs/swagger';
-import { SyncProfileDto } from '../../../../dto/video-kyc.dto';
+import { SyncProfileDto } from '../../../dto/video-kyc.dto';
 
 @ApiTags('V-KYC')
 @Controller('videokyc')

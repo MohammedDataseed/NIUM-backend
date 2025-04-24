@@ -5,10 +5,10 @@ import {
   Headers,
   BadRequestException,
 } from '@nestjs/common';
-import { PurposeService } from '../../../services/v1/purpose/purpose.service';
-import { DocumentTypeService } from '../../../services/v1/document/documentType.service';
-import { transaction_typeService } from '../../../services/v1/transaction/transaction_type.service';
-import { OrdersService } from '../../../services/v1/order/order.service';
+import { PurposeService } from '../services/purpose/purpose.service';
+import { DocumentTypeService } from '../services/document/document-type.service';
+import { TransactionTypeService } from '../services/transaction/transaction-type.service';
+import { OrdersService } from '../services/order/order.service';
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import * as opentracing from 'opentracing';
 
@@ -18,7 +18,7 @@ export class ConfigController {
   constructor(
     private readonly purposeService: PurposeService,
     private readonly documentTypeService: DocumentTypeService,
-    private readonly transactionTypeService: transaction_typeService, // Fixed naming convention
+    private readonly transactionTypeService: TransactionTypeService, // Fixed naming convention
     private readonly ordersService: OrdersService,
   ) {}
 
