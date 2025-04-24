@@ -217,7 +217,7 @@ export class UserService {
     // 🔹 Convert Sequelize instance to plain object and remove password
     const safeUser = user.get({ plain: true });
     delete safeUser.password;
-
+    console.log('USER JWT_SECRET:', process.env.JWT_SECRET);
     return {
       user: safeUser, // Return user object without password
       access_token: this.jwtService.sign(payload, {
