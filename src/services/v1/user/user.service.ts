@@ -220,7 +220,10 @@ export class UserService {
     console.log('USER JWT_SECRET:', process.env.JWT_SECRET);
     return {
       user: safeUser, // Return user object without password
-      access_token: this.jwtService.sign(payload),
+      access_token: this.jwtService.sign(payload, {
+        secret: process.env.JWT_SECRET,
+        expiresIn: process.env.ACCESS_TOKEN_EXPIRY || '1h',
+      }),
       refresh_token: this.jwtService.sign(payload, {
         secret: process.env.JWT_SECRET,
         expiresIn: process.env.REFRESH_TOKEN_EXPIRY || '1d',
@@ -271,10 +274,16 @@ export class UserService {
     try {
       const payload = this.jwtService.verify(refreshToken);
       return {
-        access_token: this.jwtService.sign({
-          email: payload.email,
-          sub: payload.sub,
-        }),
+        access_token: this.jwtService.sign(
+          {
+            email: payload.email,
+            sub: payload.sub,
+          },
+          {
+            secret: process.env.JWT_SECRET,
+            expiresIn: '1h',
+          },
+        ),
       };
     } catch (error) {
       throw new UnauthorizedException('Invalid or expired refresh token');

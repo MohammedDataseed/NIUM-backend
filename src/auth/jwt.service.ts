@@ -13,7 +13,10 @@ export class JwtAuthService {
 
   async generateToken(user: any) {
     const payload = { email: user.email, sub: user.id };
-    return this.jwtService.sign(payload);
+    return this.jwtService.sign(payload, {
+      secret: process.env.JWT_SECRET,
+      expiresIn: process.env.ACCESS_TOKEN_EXPIRY || '1h',
+    });
   }
 
   async validateUser(payload: any) {
