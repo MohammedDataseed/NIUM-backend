@@ -47,13 +47,9 @@ import { ConfigController } from './controllers/v1/main/config.controller';
     GracefulShutdownModule,
     MiddlewareModule,
     AuthModule,
-    JwtModule.registerAsync({
-      imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: '1h' },
-      }),
-      inject: [ConfigService],
+    JwtModule.register({
+      secret: process.env.JWT_SECRET, // ✅ Use environment variable
+      signOptions: { expiresIn: '1h' }, // ✅ Token expiry
     }),
   ],
   controllers: [
