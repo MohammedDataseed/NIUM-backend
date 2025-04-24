@@ -3,7 +3,7 @@ import { AppController } from './controllers/v1/main/app.controller';
 import { AppService } from './services/v1/app/app.service';
 import { SharedModule } from './shared/shared.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from './database/database.module';
 import { GracefulShutdownModule } from './graceful-shutdown/graceful-shutdown.module';
 import { MiddlewareModule } from './middleware/middleware.module';
