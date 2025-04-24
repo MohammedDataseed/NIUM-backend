@@ -3,34 +3,34 @@ import { ConfigModule } from '@nestjs/config';
 import { SharedModule } from '../shared/shared.module';
 import { AuthModule } from '../auth/auth.module'; // ✅ Import Auth Module
 import { DatabaseModule } from '../database/database.module';
-import { UserController } from '../agent-portal/controllers/user.controller';
+import { UserController } from './controllers/user/user.controller';
 import { UserService } from '../agent-portal/services/user/user.service';
 import { RoleService } from '../agent-portal/services/role/role.service';
-import { RoleController } from '../agent-portal/controllers/role.controller';
+import { RoleController } from './controllers/role/role.controller';
 import { MailerService } from '../shared/services/mailer/mailer.service';
 import { BranchService } from '../agent-portal/services/branch/branch.service';
-import { BranchController } from '../agent-portal/controllers/branch.controller';
+import { BranchController } from './controllers/branch/branch.controller';
 import { ProductService } from '../agent-portal/services/product/product.service';
-import { ProductController } from '../agent-portal/controllers/product.controller';
-import { PartnerController } from '../agent-portal/controllers/partner.controller';
+import { ProductController } from './controllers/product/product.controller';
+import { PartnerController } from './controllers/partner/partner.controller';
 import { PartnerService } from '../agent-portal/services/partner/partner.service';
 import { EkycController } from '../agent-portal/controllers/ekyc/ekyc.controller';
 import { EkycService } from '../agent-portal/services/ekyc/ekyc.service';
 import { PdfService } from '../agent-portal/services/document-consolidate/document-consolidate.service';
-import { PdfController } from '../agent-portal/controllers/documents-consolidate.controller';
+import { PdfController } from './controllers/documents-consolidate/documents-consolidate.controller';
 import { OrdersService } from '../agent-portal/services/order/order.service';
-import { OrdersController } from '../agent-portal/controllers/order.controller';
+import { OrdersController } from './controllers/order/order.controller';
 import { VideokycService } from '../agent-portal/services/videokyc/videokyc.service';
 import { VideokycController } from '../agent-portal/controllers/videokyc/videokyc.controller';
-import { BankAccountController } from '../agent-portal/controllers/bank-account.controller';
+import { BankAccountController } from './controllers/bank-account/bank-account.controller';
 import { BankAccountService } from '../agent-portal/services/bank_account/bank_account.service';
-import { PurposeController } from '../agent-portal/controllers/purpose.controller';
+import { PurposeController } from './controllers/purpose/purpose.controller';
 import { PurposeService } from '../agent-portal/services/purpose/purpose.service';
-import { DocumentTypeController } from '../agent-portal/controllers/document-type.controller';
+import { DocumentTypeController } from './controllers/document-type/document-type.controller';
 import { DocumentTypeService } from '../agent-portal/services/document/document-type.service';
-import { TransactionTypeController } from '../agent-portal/controllers/transaction-type.controller';
+import { TransactionTypeController } from './controllers/transaction-type/transaction-type.controller';
 import { TransactionTypeService } from '../agent-portal/services/transaction/transaction-type.service';
-import { ConfigController } from '../agent-portal/controllers/config.controller';
+import { ConfigController } from './controllers/config/config.controller';
 
 @Module({
   imports: [

@@ -9,11 +9,11 @@ import {
   UseGuards,
   Param,
 } from '@nestjs/common';
-import { PurposeService } from '../services/purpose/purpose.service';
-import { Purpose } from '../../database/models/purpose.model';
+import { PurposeService } from '../../services/purpose/purpose.service';
+import { Purpose } from '../../../database/models/purpose.model';
 import * as opentracing from 'opentracing';
 import { WhereOptions } from 'sequelize';
-import { CreatePurposeDto, UpdatePurposeDto } from '../../dto/purpose.dto';
+import { CreatePurposeDto, UpdatePurposeDto } from '../../../dto/purpose.dto';
 import {
   ApiTags,
   ApiOperation,
@@ -21,7 +21,7 @@ import {
   ApiBody,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { JwtGuard } from '../../auth/jwt.guard';
+import { JwtGuard } from '../../../auth/jwt.guard';
 
 @ApiTags('Purpose')
 @Controller('purpose')

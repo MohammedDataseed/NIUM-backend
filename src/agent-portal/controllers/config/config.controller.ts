@@ -5,10 +5,10 @@ import {
   Headers,
   BadRequestException,
 } from '@nestjs/common';
-import { PurposeService } from '../services/purpose/purpose.service';
-import { DocumentTypeService } from '../services/document/document-type.service';
-import { TransactionTypeService } from '../services/transaction/transaction-type.service';
-import { OrdersService } from '../services/order/order.service';
+import { PurposeService } from '../../services/purpose/purpose.service';
+import { DocumentTypeService } from '../../services/document/document-type.service';
+import { TransactionTypeService } from '../../services/transaction/transaction-type.service';
+import { OrdersService } from '../../services/order/order.service';
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import * as opentracing from 'opentracing';
 

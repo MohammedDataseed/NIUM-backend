@@ -9,14 +9,14 @@ import {
   UseGuards,
   Param,
 } from '@nestjs/common';
-import { TransactionTypeService } from '../services/transaction/transaction-type.service';
-import { transaction_type } from '../../database/models/transaction_type.model';
+import { TransactionTypeService } from '../../services/transaction/transaction-type.service';
+import { transaction_type } from '../../../database/models/transaction_type.model';
 import * as opentracing from 'opentracing';
 import { WhereOptions } from 'sequelize';
 import {
   Createtransaction_typeDto,
   Updatetransaction_typeDto,
-} from '../../dto/transaction_type.dto';
+} from '../../../dto/transaction_type.dto';
 import {
   ApiTags,
   ApiOperation,
@@ -24,7 +24,7 @@ import {
   ApiBody,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { JwtGuard } from '../../auth/jwt.guard';
+import { JwtGuard } from '../../../auth/jwt.guard';
 
 @ApiTags('transaction_type')
 @Controller('transaction_type')

@@ -8,13 +8,13 @@ import {
   Body,
   Param,
 } from '@nestjs/common';
-import { PartnerService } from '../services/partner/partner.service';
+import { PartnerService } from '../../services/partner/partner.service';
 import * as opentracing from 'opentracing';
 import {
   CreatePartnerDto,
   UpdatePartnerDto,
   PartnerResponseDto,
-} from '../../dto/partner.dto';
+} from '../../../dto/partner.dto';
 import {
   ApiTags,
   ApiOperation,
@@ -23,7 +23,7 @@ import {
   ApiBearerAuth,
   ApiParam,
 } from '@nestjs/swagger';
-import { JwtGuard } from '../../auth/jwt.guard';
+import { JwtGuard } from '../../../auth/jwt.guard';
 
 @ApiTags('Partners')
 @Controller('partners')
