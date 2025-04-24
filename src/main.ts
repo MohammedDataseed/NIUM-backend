@@ -20,7 +20,6 @@ async function bootstrap() {
     Object.keys(secretObject).forEach((secretKey) => {
       process.env[secretKey] = secretObject[secretKey];
     });
-    console.log('Process env', process.env);
     delete process.env.AWS_AUTO_SECRET_ENV_VARIABLES;
   }
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
