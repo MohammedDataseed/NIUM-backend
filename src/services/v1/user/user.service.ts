@@ -220,10 +220,9 @@ export class UserService {
     console.log('USER JWT_SECRET:', process.env.JWT_SECRET);
     return {
       user: safeUser, // Return user object without password
-      access_token: this.jwtService.sign(payload, {
-        expiresIn: process.env.ACCESS_TOKEN_EXPIRY || '1h',
-      }),
+      access_token: this.jwtService.sign(payload),
       refresh_token: this.jwtService.sign(payload, {
+        secret: process.env.JWT_SECRET,
         expiresIn: process.env.REFRESH_TOKEN_EXPIRY || '1d',
       }),
     };
@@ -272,10 +271,10 @@ export class UserService {
     try {
       const payload = this.jwtService.verify(refreshToken);
       return {
-        access_token: this.jwtService.sign(
-          { email: payload.email, sub: payload.sub },
-          { expiresIn: '1h' },
-        ),
+        access_token: this.jwtService.sign({
+          email: payload.email,
+          sub: payload.sub,
+        }),
       };
     } catch (error) {
       throw new UnauthorizedException('Invalid or expired refresh token');
@@ -292,7 +291,7 @@ export class UserService {
     // Generate a reset token valid for 1 hour
     const resetToken = this.jwtService.sign(
       { email, type: 'reset' },
-      { expiresIn: '15m' },
+      { secret: process.env.JWT_SECRET, expiresIn: '15m' },
     );
     const resetUrl = `https://nium-forex-agent-portal.vercel.app/reset-password?token=${resetToken}`;
 
