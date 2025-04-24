@@ -3,7 +3,7 @@ import { AppController } from './controllers/v1/main/app.controller';
 import { AppService } from './services/v1/app/app.service';
 import { SharedModule } from './shared/shared.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { DatabaseModule } from './database/database.module';
 import { GracefulShutdownModule } from './graceful-shutdown/graceful-shutdown.module';
 import { MiddlewareModule } from './middleware/middleware.module';
@@ -47,9 +47,13 @@ import { ConfigController } from './controllers/v1/main/config.controller';
     GracefulShutdownModule,
     MiddlewareModule,
     AuthModule,
-    JwtModule.register({
-      secret: process.env.JWT_SECRET, // ✅ Use environment variable
-      signOptions: { expiresIn: '1h' }, // ✅ Token expiry
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET'),
+        signOptions: { expiresIn: '1h' },
+      }),
+      inject: [ConfigService],
     }),
   ],
   controllers: [
