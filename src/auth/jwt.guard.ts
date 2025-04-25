@@ -4,17 +4,18 @@ import {
   ExecutionContext,
   UnauthorizedException,
 } from '@nestjs/common';
-import { Observable } from 'rxjs';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 
+import { ConfigService } from '@nestjs/config'; // ✅ <-- Add this
 @Injectable()
 export class JwtGuard implements CanActivate {
-  constructor(private jwtService: JwtService) {}
+  constructor(
+    private jwtService: JwtService,
+    private configService: ConfigService,
+  ) {}
 
-  canActivate(
-    context: ExecutionContext,
-  ): boolean | Promise<boolean> | Observable<boolean> {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>();
     const token = this.extractTokenFromHeader(request);
 
@@ -23,9 +24,10 @@ export class JwtGuard implements CanActivate {
     }
 
     try {
-      const decoded = this.jwtService.verify(token);
+      const decoded = this.jwtService.verify(token, {
+        secret: this.configService.get<string>('JWT_SECRET'),
+      });
 
-      // Reject tokens that are meant for password reset only
       if (decoded.type === 'reset') {
         throw new UnauthorizedException('Invalid token type');
       }
@@ -33,14 +35,14 @@ export class JwtGuard implements CanActivate {
       (request as any).user = decoded;
       return true;
     } catch (error) {
-      throw new UnauthorizedException('Invalid or expired token');
+      console.error('JWT verification error:', error);
+      throw new UnauthorizedException('Invalid or expired token 37');
     }
   }
 
   private extractTokenFromHeader(request: Request): string | null {
-    // const authHeader = request.headers['authorization'];
     const authHeader = request.headers.authorization;
-    if (authHeader && authHeader.startsWith('Bearer ')) {
+    if (authHeader?.startsWith('Bearer ')) {
       return authHeader.split(' ')[1];
     }
     return null;

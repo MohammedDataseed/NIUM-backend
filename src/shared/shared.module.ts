@@ -13,7 +13,7 @@ import { MailerService } from './services/mailer/mailer.service';
   providers: [
     LoggerService,
     ConfigService,
-    RedisService,
+    // RedisService,
     HttpWrapperService,
     TracerService,
     RequestStorageService,
@@ -21,7 +21,7 @@ import { MailerService } from './services/mailer/mailer.service';
   ],
   exports: [
     LoggerService,
-    RedisService,
+    // RedisService,
     HttpWrapperService,
     // RabbitProducerService,
     TracerService,

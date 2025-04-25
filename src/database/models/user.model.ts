@@ -38,7 +38,8 @@ export class User extends Model<User> {
 
   @Unique
   @AllowNull(false)
-  @Column({ type: DataType.STRING, field: 'hashed_key' })
+  @Default(DataType.UUIDV4)
+  @Column({ type: DataType.UUIDV4, field: 'hashed_key' })
   hashed_key: string;
 
   @ForeignKey(() => Role)
@@ -94,11 +95,11 @@ export class User extends Model<User> {
   @BelongsTo(() => User, { foreignKey: 'updated_by', as: 'updater' })
   updater: User;
 
-  /** Generate `publicKey` before creation */
-  @BeforeCreate
-  static generatePublicKey(instance: User) {
-    const randomPart = crypto.randomBytes(16).toString('hex'); // 16-character random string
-    const timestampPart = Date.now().toString(36); // Convert timestamp to base36 for compactness
-    instance.hashed_key = `${randomPart}${timestampPart}`; // 16-char random + timestamp
-  }
+  // /** Generate `publicKey` before creation */
+  // @BeforeCreate
+  // static generatePublicKey(instance: User) {
+  //   const randomPart = crypto.randomBytes(16).toString('hex'); // 16-character random string
+  //   const timestampPart = Date.now().toString(36); // Convert timestamp to base36 for compactness
+  //   instance.hashed_key = `${randomPart}${timestampPart}`; // 16-char random + timestamp
+  // }
 }

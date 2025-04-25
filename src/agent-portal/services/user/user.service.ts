@@ -42,18 +42,21 @@ export class UserService {
     jwt: string,
   ): Promise<any> {
     const childSpan = span.tracer().startSpan('db-query', { childOf: span });
-
-    // Decode JWT and extract role
     let decodedToken;
     try {
-      decodedToken = this.jwtService.verify(jwt);
+      decodedToken = this.jwtService.verify(jwt, {
+        secret: process.env.JWT_SECRET, // or inject ConfigService and use configService.get<string>('JWT_SECRET')
+      });
+
+      console.log(decodedToken);
     } catch (error) {
-      throw new UnauthorizedException('Invalid or expired token');
+      console.error('JWT verification failed:', error.message); // For debugging only
+      throw new UnauthorizedException('Invalid or expired token 51');
     }
 
     // Check if the user has the role of "admin" or "co-admin"
     const userRole = decodedToken.role;
-    if (!(userRole === 'admin' || userRole === 'co-admin')) {
+    if (!(userRole == 'admin' || userRole == 'co-admin')) {
       throw new HttpException(
         'Unauthorized to create user',
         HttpStatus.FORBIDDEN,
@@ -83,7 +86,7 @@ export class UserService {
       // Create the user in the database
       const user = await this.userRepository.create({
         ...createUserDto,
-        hashed_key: hashedKey,
+        // hashed_key: hashedKey,
         role_id: createUserDto.role_id,
         branch_id: createUserDto.branch_id,
         bank_account_id: createUserDto.bank_account_id,
@@ -332,7 +335,7 @@ export class UserService {
         throw new UnauthorizedException('Invalid token type');
       }
     } catch (error) {
-      throw new UnauthorizedException('Invalid or expired token');
+      throw new UnauthorizedException('Invalid or expired token 336');
     }
 
     const user = await this.userRepository.findOne({
