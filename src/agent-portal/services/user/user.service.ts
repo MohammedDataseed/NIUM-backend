@@ -15,10 +15,10 @@ import { Role } from '../../../database/models/role.model';
 import { Branch } from '../../../database/models/branch.model';
 import { bank_account } from '../../../database/models/bank_account.model';
 import * as opentracing from 'opentracing';
-import { CreateUserDto, UpdateUserDto } from 'src/dto/user.dto';
+import { CreateUserDto, UpdateUserDto } from 'src/agent-portal/dto/user.dto';
 import * as bcrypt from 'bcryptjs';
 import * as crypto from 'crypto';
-import { LoginDto } from 'src/dto/login.dto';
+import { LoginDto } from 'src/agent-portal/dto/login.dto';
 import { MailerService } from '../../../shared/services/mailer/mailer.service';
 import { verify } from 'jsonwebtoken';
 

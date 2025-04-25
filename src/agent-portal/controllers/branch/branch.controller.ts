@@ -3,7 +3,7 @@ import { BranchService } from '../../services/branch/branch.service';
 import { Branch } from '../../../database/models/branch.model';
 import * as opentracing from 'opentracing';
 import { WhereOptions } from 'sequelize';
-import { CreateBranchDto } from '../../../dto/branch.dto';
+import { CreateBranchDto } from '../../dto/branch.dto';
 import {
   ApiTags,
   ApiOperation,

@@ -10,7 +10,7 @@ import {
   PurposeDto,
   CreatePurposeDto,
   UpdatePurposeDto,
-} from '../../../dto/purpose.dto';
+} from '../../dto/purpose.dto';
 import { WhereOptions } from 'sequelize';
 
 @Injectable()

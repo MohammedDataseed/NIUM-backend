@@ -1,7 +1,7 @@
 import { Injectable, Inject, ConflictException } from '@nestjs/common';
 import { Branch } from '../../../database/models/branch.model';
 import * as opentracing from 'opentracing';
-import { CreateBranchDto } from '../../../dto/branch.dto';
+import { CreateBranchDto } from '../../dto/branch.dto';
 import * as crypto from 'crypto';
 import { WhereOptions } from 'sequelize';
 

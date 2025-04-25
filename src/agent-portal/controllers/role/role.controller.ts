@@ -10,7 +10,7 @@ import {
 import { RoleService } from '../../services/role/role.service';
 import { Role } from '../../../database/models/role.model';
 import * as opentracing from 'opentracing';
-import { CreateRoleDto, UpdateRoleDto } from '../../../dto/role.dto';
+import { CreateRoleDto, UpdateRoleDto } from '../../dto/role.dto';
 import {
   ApiTags,
   ApiOperation,

@@ -9,7 +9,7 @@ import * as opentracing from 'opentracing';
 import {
   CreateDocumentTypeDto,
   UpdateDocumentTypeDto,
-} from '../../../dto/documentType.dto';
+} from '../../dto/document-type.dto';
 import { WhereOptions } from 'sequelize';
 
 @Injectable()

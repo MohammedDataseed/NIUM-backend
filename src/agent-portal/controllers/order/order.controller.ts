@@ -19,7 +19,7 @@ import {
   GetCheckerOrdersDto,
   UpdateOrderDetailsDto,
   GetOrderDetailsDto,
-} from '../../../dto/order.dto';
+} from '../../dto/order.dto';
 import { ApiTags, ApiResponse } from '@nestjs/swagger';
 import * as opentracing from 'opentracing';
 

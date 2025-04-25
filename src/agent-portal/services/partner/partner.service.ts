@@ -14,7 +14,7 @@ import {
   UpdatePartnerDto,
   PartnerResponseDto,
   business_type,
-} from '../../../dto/partner.dto';
+} from '../../dto/partner.dto';
 import * as bcrypt from 'bcryptjs';
 import * as crypto from 'crypto';
 

@@ -14,7 +14,7 @@ import {
   CreatePartnerDto,
   UpdatePartnerDto,
   PartnerResponseDto,
-} from '../../../dto/partner.dto';
+} from '../../dto/partner.dto';
 import {
   ApiTags,
   ApiOperation,

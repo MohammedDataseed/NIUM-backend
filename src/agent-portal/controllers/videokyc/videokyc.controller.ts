@@ -23,7 +23,7 @@ import {
   ApiQuery,
   ApiResponse,
 } from '@nestjs/swagger';
-import { SyncProfileDto } from '../../../dto/video-kyc.dto';
+import { SyncProfileDto } from '../../dto/video-kyc.dto';
 
 @ApiTags('V-KYC')
 @Controller('videokyc')

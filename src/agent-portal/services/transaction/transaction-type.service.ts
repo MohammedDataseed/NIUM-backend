@@ -10,7 +10,7 @@ import {
   transaction_typeDto,
   Createtransaction_typeDto,
   Updatetransaction_typeDto,
-} from '../../../dto/transaction_type.dto';
+} from '../../dto/transaction-type.dto';
 import { WhereOptions } from 'sequelize';
 
 @Injectable()

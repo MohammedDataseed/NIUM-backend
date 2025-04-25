@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { Products } from '../../../database/models/products.model';
 import * as opentracing from 'opentracing';
-import { CreateProductDto, UpdateProductDto } from '../../../dto/product.dto';
+import { CreateProductDto, UpdateProductDto } from '../../dto/product.dto';
 import { WhereOptions } from 'sequelize';
 import * as crypto from 'crypto';
 @Injectable()

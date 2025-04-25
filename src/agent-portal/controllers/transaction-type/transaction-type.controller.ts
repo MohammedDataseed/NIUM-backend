@@ -16,7 +16,7 @@ import { WhereOptions } from 'sequelize';
 import {
   Createtransaction_typeDto,
   Updatetransaction_typeDto,
-} from '../../../dto/transaction_type.dto';
+} from '../../dto/transaction-type.dto';
 import {
   ApiTags,
   ApiOperation,

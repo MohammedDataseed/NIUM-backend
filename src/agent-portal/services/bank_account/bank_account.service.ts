@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { bank_account } from '../../../database/models/bank_account.model';
 import * as opentracing from 'opentracing';
-import { CreateBankAccountDto } from '../../../dto/bank_account.dto';
+import { CreateBankAccountDto } from '../../dto/bank-account.dto';
 import { WhereOptions } from 'sequelize';
 
 @Injectable()

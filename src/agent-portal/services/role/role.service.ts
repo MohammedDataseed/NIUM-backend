@@ -9,7 +9,7 @@ import { User } from '../../../database/models/user.model';
 import * as opentracing from 'opentracing';
 import * as crypto from 'crypto';
 
-import { CreateRoleDto, UpdateRoleDto } from '../../../dto/role.dto';
+import { CreateRoleDto, UpdateRoleDto } from '../../dto/role.dto';
 import { WhereOptions } from 'sequelize';
 
 @Injectable()

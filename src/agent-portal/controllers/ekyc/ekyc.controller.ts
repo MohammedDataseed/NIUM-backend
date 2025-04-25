@@ -20,7 +20,7 @@ import {
   ApiQuery,
   ApiResponse,
 } from '@nestjs/swagger';
-import { EkycRetrieveRequestDto } from '../../../dto/ekyc-request.dto';
+import { EkycRetrieveRequestDto } from '../../dto/ekyc-request.dto';
 import { OrdersService } from '../../services/order/order.service';
 import * as opentracing from 'opentracing';
 

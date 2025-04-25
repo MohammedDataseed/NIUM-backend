@@ -19,11 +19,7 @@ import {
 import { User } from '../../../database/models/user.model';
 import * as opentracing from 'opentracing';
 import { WhereOptions } from 'sequelize';
-import {
-  CreateUserDto,
-  UpdateUserDto,
-  SendEmailDto,
-} from '../../../dto/user.dto';
+import { CreateUserDto, UpdateUserDto, SendEmailDto } from '../../dto/user.dto';
 import {
   ApiTags,
   ApiOperation,
@@ -32,7 +28,7 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { JwtGuard } from '../../../auth/jwt.guard';
-import { LoginDto } from '../../../dto/login.dto';
+import { LoginDto } from '../../dto/login.dto';
 import { MailerService } from '../../../shared/services/mailer/mailer.service';
 
 @ApiTags('Users')

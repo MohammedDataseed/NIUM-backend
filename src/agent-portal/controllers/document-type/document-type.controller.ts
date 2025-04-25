@@ -16,7 +16,7 @@ import { WhereOptions } from 'sequelize';
 import {
   CreateDocumentTypeDto,
   UpdateDocumentTypeDto,
-} from '../../../dto/documentType.dto';
+} from '../../dto/document-type.dto';
 import {
   ApiTags,
   ApiOperation,

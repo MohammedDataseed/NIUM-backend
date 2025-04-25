@@ -17,7 +17,7 @@ import {
   GetCheckerOrdersDto,
   UpdateOrderDetailsDto,
   GetOrderDetailsDto,
-} from '../../../dto/order.dto';
+} from '../../dto/order.dto';
 // import { CreateOrderDto, UpdateOrderDto,UpdateCheckerDto,UnassignCheckerDto } from "../../../dto/order.dto";
 import * as opentracing from 'opentracing';
 import { User } from '../../../database/models/user.model';

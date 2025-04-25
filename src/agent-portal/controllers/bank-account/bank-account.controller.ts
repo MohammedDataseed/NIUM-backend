@@ -13,7 +13,7 @@ import { BankAccountService } from '../../services/bank_account/bank_account.ser
 import { bank_account } from '../../../database/models/bank_account.model';
 import * as opentracing from 'opentracing';
 import { WhereOptions } from 'sequelize';
-import { CreateBankAccountDto } from '../../../dto/bank_account.dto';
+import { CreateBankAccountDto } from '../../dto/bank-account.dto';
 import {
   ApiTags,
   ApiOperation,

@@ -13,7 +13,7 @@ import { PurposeService } from '../../services/purpose/purpose.service';
 import { Purpose } from '../../../database/models/purpose.model';
 import * as opentracing from 'opentracing';
 import { WhereOptions } from 'sequelize';
-import { CreatePurposeDto, UpdatePurposeDto } from '../../../dto/purpose.dto';
+import { CreatePurposeDto, UpdatePurposeDto } from '../../dto/purpose.dto';
 import {
   ApiTags,
   ApiOperation,
