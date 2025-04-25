@@ -18,9 +18,7 @@ import { MailModule } from '../shared/services/mailer/mailer.module';
       inject: [ConfigService], // ✅ Inject ConfigService
       useFactory: (configService: ConfigService) => {
         const secret = configService.get<string>('JWT_SECRET');
-        console.log('JWT_SECRET:', secret);
         const expiresIn = configService.get<string>('JWT_SECRET_EXPIRE');
-        console.log('JWT_SECRET:', expiresIn);
         if (!secret) {
           throw new Error('JWT_SECRET is not defined in environment variables');
         }
